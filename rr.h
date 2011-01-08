@@ -1,0 +1,1 @@
+static void reboot_recovery(int *argc, char ***argv);
