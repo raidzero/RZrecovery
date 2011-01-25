@@ -15,6 +15,7 @@ LOCAL_SRC_FILES := \
 	mount_menu.c \
 	wipe_menu.c \
 	bootloader.c \
+	cw_nandroid_menu.c \
 	firmware.c \
 	install.c \
 	roots.c \
