@@ -18,20 +18,12 @@ void wipe_all(int confirm) {
         }
 
         char* items[] = { " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
                           " Yes -- Wipe EVERYTHING",   // [7]
-                          " No",
-                          " No",
                           " No",
                           NULL };
 
         int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 7) {
+        if (chosen_item != 1) {
             return;
         }
     }
@@ -67,20 +59,12 @@ void wipe_systemp(int confirm) {
         }
 
         char* items[] = { " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
                           " Yes -- Wipe system",   // [7]
-                          " No",
-                          " No",
                           " No",
                           NULL };
 
         int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 7) {
+        if (chosen_item != 1) {
             return;
         }
     }
@@ -102,20 +86,12 @@ void wipe_datap(int confirm) {
         }
 
         char* items[] = { " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
                           " Yes -- wipe data",   // [7]
-                          " No",
-                          " No",
                           " No",
                           NULL };
 
         int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 7) {
+        if (chosen_item != 1) {
             return;
         }
     }
@@ -137,20 +113,12 @@ void wipe_bootp(int confirm) {
         }
 
         char* items[] = { " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
                           " Yes -- Wipe boot",   // [7]
-                          " No",
-                          " No",
                           " No",
                           NULL };
 
         int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 7) {
+        if (chosen_item != 1) {
             return;
         }
     }
@@ -172,20 +140,12 @@ void wipe_cachep(int confirm) {
         }
 
         char* items[] = { " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
                           " Yes -- Wipe cache",   // [7]
-                          " No",
-                          " No",
                           " No",
                           NULL };
 
         int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 7) {
+        if (chosen_item != 1) {
             return;
         }
     }
@@ -207,20 +167,12 @@ void wipe_miscp(int confirm) {
         }
 
         char* items[] = { " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
                           " Yes -- Wipe misc",   // [7]
-                          " No",
-                          " No",
                           " No",
                           NULL };
 
         int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 7) {
+        if (chosen_item != 1) {
             return;
         }
     }
@@ -242,20 +194,12 @@ void wipe_batts(int confirm) {
         }
 
         char* items[] = { " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
                           " Yes -- Wipe battery stats",   // [7]
-                          " No",
-                          " No",
                           " No",
                           NULL };
 
         int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 7) {
+        if (chosen_item != 1) {
             return;
         }
     }
@@ -263,6 +207,34 @@ void wipe_batts(int confirm) {
 		ensure_root_path_mounted("DATA:"); 
 		remove("/data/system/batterystats.bin");
 		ui_print("\n Battery Statistics cleared.\n");
+}
+
+void wipe_dc(int confirm) {
+    if (confirm) {
+        static char** title_headers = NULL;
+
+        if (title_headers == NULL) {
+            char* headers[] = { "Confirm wipe of dalvik-cache?",
+                                "THIS CAN NOT BE UNDONE.",
+                                "",
+                                NULL };
+            title_headers = prepend_title(headers);
+        }
+
+        char* items[] = { " No",
+                          " Yes -- Wipe dalvik-cache",   // [7]
+                          " No",
+                          NULL };
+
+        int chosen_item = get_menu_selection(title_headers, items, 1, 0);
+        if (chosen_item != 1) {
+            return;
+        }
+    }
+		ui_print("\n-- Wiping dalvik-cache...\n");
+		ensure_root_path_mounted("DATA:"); 
+		remove("/data/dalvik-cache/*");
+		ui_print("\n dalvik-cache cleared.\n");
 }
 
 void show_wipe_menu()
@@ -282,6 +254,7 @@ void show_wipe_menu()
 			  "Wipe cache",
 		      "Wipe misc",
 			  "Wipe battery stats",
+			  "Wipe dalvik-cache",
 		      NULL };
 
 #define WIPE_ALL			1			  
@@ -291,6 +264,7 @@ void show_wipe_menu()
 #define WIPE_CACHE			5
 #define WIPE_MISC   		6
 #define WIPE_BATT			7
+#define WIPE_DK				8
 
 int chosen_item = -1;
 
@@ -325,6 +299,9 @@ int chosen_item = -1;
 
 	case WIPE_BATT:
 		wipe_batts(ui_text_visible());
+	    break;
+	case WIPE_DK:
+		wipe_dc(ui_text_visible());
 	    break;
         }
     }
