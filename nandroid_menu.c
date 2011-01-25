@@ -450,12 +450,14 @@ void show_nandroid_menu()
 			     "Simple Nandroid restore (latest)",
 			     "Advanced Nandroid backup",
 			     "Advanced Nandroid restore",
+				 "Clockwork Nandroid restore",
 			     NULL };
 
 #define ITEM_DEF_BACKUP  0
 #define ITEM_DEF_RESTORE 1
 #define ITEM_ADV_BACKUP  2
 #define ITEM_ADV_RESTORE 3
+#define ITEM_CW_RESTORE	 4
 
   
     
@@ -476,6 +478,9 @@ void show_nandroid_menu()
 	    break;
 	case ITEM_ADV_RESTORE:
 	    show_nandroid_adv_r_menu();
+	    break;
+	case ITEM_CW_RESTORE:
+	    show_choose_cwnand_menu();
 	    break;
 	}
     }

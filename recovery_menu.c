@@ -15,6 +15,20 @@
 #include "install_menu.h"
 #include "wipe_menu.h"
 
+extern volatile int do_reboot;
+
+void reboot_recovery()
+{
+	ui_print("\n-- Rebooting into recovery...\n");
+	__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "recovery");
+}
+
+void poweroff()
+{
+	ui_print("\n-- Shutting down...");
+	__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_POWER_OFF, NULL);
+}
+
 
 void prompt_and_wait() 
 {
@@ -27,10 +41,10 @@ void prompt_and_wait()
 
     char* items[] = { "Reboot into Android",
 		      "Reboot into Recovery",
-			  "Shutdown system",
-		      "Wipe partitions",
-		      "Mount options",
-		      "Backup/restore",
+			  "Power Off",
+		      "Wipe Options",
+		      "Mount Options",
+		      "Backup/Restore",
 		      "Install",
 		      "Help",
 		      NULL };
@@ -63,16 +77,13 @@ void prompt_and_wait()
 
         switch (chosen_item) {
 	case ITEM_REBOOT:
-		ui_print("\n\n\n\n\n\n\n\n\n\n\n\n\nRebooting Android...");
-		finish_recovery(NULL);
+		ui_print("\n-- Rebooting into Android...\n");
 	    return;
 	case ITEM_RECOVERY:
-		ui_print("\n\n\n\n\n\n\n\n\n\n\n\n\nRebooting Recovery...");
-		reboot(RB_AUTOBOOT);
+		reboot_recovery();
 	    return;
 	case ITEM_POWEROFF:
-	    ui_print("\n\n\n\n\n\n\n\n\n\n\n\n\nShutting down...");
-		reboot(RB_POWER_OFF);
+		poweroff();
 	    return;
 	case ITEM_WIPE_PARTS:
 	    show_wipe_menu();
