@@ -246,8 +246,7 @@ void show_wipe_menu()
 			       "",
 			       NULL };
 
-    char* items[] = { " ", 
-			  "Wipe All",
+    char* items[] = { "Wipe All",
 			  "Wipe system",
 		      "Wipe data",
 		      "Wipe boot",
@@ -257,14 +256,14 @@ void show_wipe_menu()
 			  "Wipe dalvik-cache",
 		      NULL };
 
-#define WIPE_ALL			1			  
-#define WIPE_SYSTEM         2
-#define WIPE_DATA       	3
-#define WIPE_BOOT      		4
-#define WIPE_CACHE			5
-#define WIPE_MISC   		6
-#define WIPE_BATT			7
-#define WIPE_DK				8
+#define WIPE_ALL			0			  
+#define WIPE_SYSTEM         1
+#define WIPE_DATA       	2
+#define WIPE_BOOT      		3
+#define WIPE_CACHE			4
+#define WIPE_MISC   		5
+#define WIPE_BATT			6
+#define WIPE_DK				7
 
 int chosen_item = -1;
 

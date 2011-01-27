@@ -176,9 +176,23 @@ static void draw_text_line(int row, const char* t) {
 // Should only be called with gUpdateMutex locked.
 static void draw_screen_locked(void)
 {
-int cRv = 54;
-int cGv = 74;
-int cBv = 255;
+	int cRv;
+	int cGv;
+	int cBv;
+	
+	ensure_root_path_mounted("DATA:");
+	
+	if( access("/data/rgb", F_OK ) != -1 ) {
+		FILE *fp = fopen ("/data/rgb", "rb");
+		fread(&cRv, 1, 1, fp);
+		fread(&cGv, 1, 1, fp);
+		fread(&cBv, 1, 1, fp);
+		fclose(fp);
+	} else {
+		cRv = 54;
+		cGv = 74;
+		cBv = 255;
+	}
  
     draw_background_locked(gCurrentIcon);
     draw_progress_locked();

@@ -18,7 +18,9 @@ LOCAL_SRC_FILES := \
 	cw_nandroid_menu.c \
 	firmware.c \
 	install.c \
+	options_menu.c \
 	roots.c \
+	colors_menu.c \
 	ui.c \
 		
 LOCAL_SRC_FILES += test_roots.c

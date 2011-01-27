@@ -126,7 +126,7 @@ void show_choose_tar_menu()
     }
 }
 
-void show_choose_zip_menu()
+void show_choose_zip_menu(char* sdpath)
 {
     static char* headers[] = { "Choose an update file or press POWER to return",
 			       "",
@@ -141,18 +141,18 @@ void show_choose_zip_menu()
     char** list;
 
     if (ensure_root_path_mounted("SDCARD:") != 0) {
-	LOGE ("Can't mount /sdcard\n");
+	LOGE ("Can't mount path\n");
 	return;
     }
 
-    dir = opendir("/sdcard");
+    dir = opendir(sdpath);
     if (dir == NULL) {
-	LOGE("Couldn't open /sdcard");
+	LOGE("Couldn't open directory!");
 	return;
     }
     
     while ((de=readdir(dir)) != NULL) {
-	if (de->d_name[0] != '.' && strlen(de->d_name) > 4 && (strcmp(de->d_name+strlen(de->d_name)-11,".update.zip")==0 || strcmp(de->d_name+strlen(de->d_name)-15,".rom.update.zip")==0) || strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0) {
+	if (de->d_name[0] != '.' && strlen(de->d_name) > 4 && (strcmp(de->d_name+strlen(de->d_name)-11,"-update.zip")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0) || (strcmp(de->d_name+strlen(de->d_name)-0,"")==0 )) {
 	    total++;
 	}
     }
@@ -160,7 +160,7 @@ void show_choose_zip_menu()
     if (total==0) {
 	LOGE("No zip archives found\n");
 	if(closedir(dir) < 0) {
-	    LOGE("Failed to close directory /sdcard");
+	    LOGE("Failed to close directory");
 	    return;
 	}
     }
@@ -175,9 +175,9 @@ void show_choose_zip_menu()
 
 	i = 0;
 	while ((de = readdir(dir)) != NULL) {
-	    if (de->d_name[0] != '.' && strlen(de->d_name) > 4 && (strcmp(de->d_name+strlen(de->d_name)-11,".update.zip")==0 || strcmp(de->d_name+strlen(de->d_name)-15,".rom.update.zip")==0) || strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0) {
-		files[i] = (char*) malloc(strlen("/sdcard/")+strlen(de->d_name)+1);
-		strcpy(files[i], "/sdcard/");
+	    if (de->d_name[0] != '.' && strlen(de->d_name) > 4 && (strcmp(de->d_name+strlen(de->d_name)-11,"-update.zip")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0) || (strcmp(de->d_name+strlen(de->d_name)-0,"")==0 )) {
+		files[i] = (char*) malloc(strlen(sdpath)+strlen(de->d_name)+1);
+		strcpy(files[i], sdpath);
 		strcat(files[i], de->d_name);
 		
 		list[i] = (char*) malloc(strlen(de->d_name)+1);
@@ -188,7 +188,7 @@ void show_choose_zip_menu()
 	}
 
 	if (closedir(dir) <0) {
-	    LOGE("Failure closing directory /sdcard\n");
+	    LOGE("Failure closing directory \n");
 	    return;
 	}
 
@@ -353,7 +353,93 @@ void show_rec_menu()
 	}
     }
 }
+void append(char* s, char c)
+{
+        int len = strlen(s);
+        s[len] = c;
+        s[len+1] = '\0';
+}
 
+
+void show_choose_folder_menu(char* sdpath)
+{
+    static char* headers[] = { "Choose update folder or press POWER to return",
+			       "",
+			       NULL };
+    
+    char path[PATH_MAX] = "";
+    DIR *dir;
+    struct dirent *de;
+    int total = 0;
+    int i;
+    char** files;
+    char** list;
+
+    if (ensure_root_path_mounted("SDCARD:") != 0) {
+	LOGE ("Can't mount path\n");
+	return;
+    }
+
+    dir = opendir(sdpath);
+    if (dir == NULL) {
+	LOGE("\nCouldn't open directory!");
+	LOGE("\nPlease make sure directory exists!\n");
+	return;
+    }
+    
+    while ((de=readdir(dir)) != NULL) {
+	if (de->d_name[0] != '.' && strlen(de->d_name) > 4 &&(strcmp(de->d_name+strlen(de->d_name)-0,"")==0 )) {
+	    total++;
+	}
+    }
+
+    if (total==0) {
+	LOGE("No directories found\n");
+	if(closedir(dir) < 0) {
+	    LOGE("Failed to close directory");
+	    return;
+	}
+    }
+    else {
+	files = (char**) malloc((total+1)*sizeof(char*));
+	files[total]=NULL;
+
+	list = (char**) malloc((total+1)*sizeof(char*));
+	list[total]=NULL;
+	
+	rewinddir(dir);
+
+	i = 0;
+	while ((de = readdir(dir)) != NULL) {
+	    if (de->d_name[0] != '.' && strlen(de->d_name) > 4 && (strcmp(de->d_name+strlen(de->d_name)-0,"")==0 )) {
+		files[i] = (char*) malloc(strlen(sdpath)+strlen(de->d_name)+1);
+		strcpy(files[i], sdpath);
+		strcat(files[i], de->d_name);
+		
+		list[i] = (char*) malloc(strlen(de->d_name)+1);
+		strcpy(list[i], de->d_name);
+
+		i++;
+	    }
+	}
+
+	if (closedir(dir) <0) {
+	    LOGE("Failure closing directory \n");
+	    return;
+	}
+
+	int chosen_item = -1;
+	while (chosen_item < 0) {
+		char* folder;
+	    chosen_item = get_menu_selection(headers, list, 1, chosen_item<0?0:chosen_item);
+	    if (chosen_item >= 0 && chosen_item != ITEM_BACK) {
+		folder = files[chosen_item];
+        append(folder, '/'); // add forward slash to string	
+		show_choose_zip_menu(folder);
+	    }
+	}
+    }
+}
 
 char *replace(const char *s, const char *old, const char *new)
 {
@@ -472,25 +558,31 @@ void show_install_menu()
   
     char* items[] = { "Install ROM tar from SD card",
 		      "Install update.zip from SD card",
+			  "Install update.zip from updates folder",
 			  "Install kernel img from /sdcard/kernels",
 			  "Install recovery img from /sdcard/recovery",
 		      NULL };
   
 #define ITEM_TAR 	0
 #define ITEM_ZIP 	1
-#define ITEM_KERNEL 2
-#define ITEM_REC	3
+#define ITEM_FOLDER 2
+#define ITEM_KERNEL 3
+#define ITEM_REC	4
 
+	char* sdloc = "/sdcard/";
+	char* updateloc = "/sdcard/updates/";
     int chosen_item = -1;
     while (chosen_item != ITEM_BACK) {
 	chosen_item = get_menu_selection(headers,items,1,chosen_item<0?0:chosen_item);
-
 	switch(chosen_item) {
-	case ITEM_ZIP:
-		show_choose_zip_menu();
-	    break;
-	case ITEM_TAR:
+		case ITEM_TAR:
 	    show_choose_tar_menu();
+	    break;
+	case ITEM_ZIP:
+		show_choose_zip_menu(sdloc);
+	    break;
+	case ITEM_FOLDER:
+		show_choose_folder_menu(updateloc);
 	    break;
 	case ITEM_KERNEL:
 		show_kernel_menu();

@@ -5,6 +5,15 @@
 #include "roots.h"
 #include "recovery_ui.h"
 
+void disable_OTA() {
+	ui_print("\nDisabling OTA updates in ROM...");
+	ensure_root_path_mounted("SYSTEM:");
+	ensure_root_path_mounted("CACHE:");
+	remove("/system/etc/security/otacerts.zip");
+	remove("/cache/signed-*.*");
+	ui_print("\nOTA-updates disabled.\n");
+}	
+
 void show_options_menu()
 {
     static char* headers[] = { "Options",
@@ -13,10 +22,11 @@ void show_options_menu()
 			       NULL };
 
     char* items[] = { "Colors",
-			 
+				"Disable OTA updating",
 		      NULL };
 			  
 #define COLORS         0
+#define OTA			   1
 
 
 int chosen_item = -1;
@@ -29,6 +39,9 @@ int chosen_item = -1;
 	case COLORS:
 		show_colors_menu();
 	    return;
+	case OTA:
+		disable_OTA();
+		break;
 
         }
     }

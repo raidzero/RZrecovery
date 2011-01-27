@@ -164,7 +164,8 @@ int get_menu_selection(char** headers, char** items, int menu_only, int selected
     // accidentally trigger menu items.
     ui_clear_key_queue();
 
-    ui_start_menu(headers, items,selected);
+    ui_start_menu(headers, items, selected);
+	//int sel =0;
     int chosen_item = -1;
 
     while (chosen_item < 0) {

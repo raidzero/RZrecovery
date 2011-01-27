@@ -15,23 +15,29 @@
 #include "install_menu.h"
 #include "wipe_menu.h"
 
-extern volatile int do_reboot;
 
-void reboot_recovery()
-{
+void reboot_android() {
+	ui_print("\n-- Rebooting into Android...\n");
+	ensure_root_path_unmounted("CACHE:");
+	sync();
+	__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, NULL);
+}
+void reboot_recovery() {
 	ui_print("\n-- Rebooting into recovery...\n");
+	ensure_root_path_unmounted("CACHE:");
+	sync();
 	__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "recovery");
 }
 
-void poweroff()
-{
+void poweroff() {
 	ui_print("\n-- Shutting down...");
+	ensure_root_path_unmounted("CACHE:");
+	sync();
 	__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_POWER_OFF, NULL);
 }
 
 
-void prompt_and_wait() 
-{
+void prompt_and_wait() {
 
     char* menu_headers[] = { "Modded by raidzero",
 			     "",
@@ -46,6 +52,7 @@ void prompt_and_wait()
 		      "Mount Options",
 		      "Backup/Restore",
 		      "Install",
+			  "Options",
 		      "Help",
 		      NULL };
 
@@ -61,7 +68,8 @@ void prompt_and_wait()
 #define ITEM_MOUNT_MENU      4
 #define ITEM_NANDROID_MENU   5
 #define ITEM_INSTALL         6
-#define ITEM_HELP		     7   
+#define ITEM_OPTIONS		 7
+#define ITEM_HELP		     8   
 
     int chosen_item = -1;
     for (;;) {
@@ -77,7 +85,7 @@ void prompt_and_wait()
 
         switch (chosen_item) {
 	case ITEM_REBOOT:
-		ui_print("\n-- Rebooting into Android...\n");
+		reboot_android();
 	    return;
 	case ITEM_RECOVERY:
 		reboot_recovery();
@@ -97,6 +105,9 @@ void prompt_and_wait()
 	case ITEM_INSTALL:
 	    show_install_menu();
 	    break;
+	case ITEM_OPTIONS:
+		show_options_menu();
+		break;
 	case ITEM_HELP:
 		ui_print("\n\n\nHELP/FEATURES:\n");
 		ui_print("1.1ghz kernel, wipe menu,\n");
