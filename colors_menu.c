@@ -6,36 +6,103 @@
 #include "roots.h"
 #include "recovery_ui.h"
 
-void set_random() {
-			int cR = rand() % 256;
-			int cG = rand() % 256;
-			int cB = rand() % 256;
+
+void set_color(char red, char green, char blue) {
+	FILE *fp = fopen ("/data/rgb", "wb");
+	fwrite(&red, 1, 1, fp);
+	fwrite(&green, 1, 1, fp);
+	fwrite(&blue, 1, 1, fp);
+	fclose(fp);
 }
 
-void show_colors_menu()
-{
-    static char* headers[] = { "Colors",
+void set_random() {
+	char cR = rand() % 255;
+	char cG = rand() % 255;
+	char cB = rand() % 255;
+	
+	FILE *fp = fopen ("/data/rgb", "wb");
+	fwrite(&cR, 1, 1, fp);
+	fwrite(&cG, 1, 1, fp);
+	fwrite(&cB, 1, 1, fp);
+	fclose(fp);		
+}
+			  
+
+void show_colors_menu() {
+    static char* headers[] = { "Choose a color",
 			       "or press DEL or POWER to return",
 			       "",
 			       NULL };
 
     char* items[] = { "Random",
-			  NULL };
+				"Blue",
+				"Cyan",
+				"Green",
+				"Orange",
+				"Pink",
+				"Purple",
+				"Red",
+				"Smoked",
+				"Yellow",
+		      NULL };
 			  
-#define RANDOM  		1
+#define RANDOM  		0
+#define BLUE			1
+#define CYAN			2
+#define GREEN			3
+#define ORANGE			4
+#define PINK			5
+#define PURPLE			6
+#define RED				7
+#define SMOKED			8
+#define YELLOW			9
 
 int chosen_item = -1;
 
     while(chosen_item!=ITEM_BACK) {
 	chosen_item = get_menu_selection(headers,items,1,chosen_item<0?0:chosen_item);
-	
-	char* argv[] = { NULL };
-	char* envp[] = { NULL };
 
         switch (chosen_item) {
-	case RANDOM:		
-			set_random();
-			break;
+	case RANDOM:
+		ui_print("\nYou have selected random color.\n");
+		set_random();
+		break;
+	case BLUE:	
+		ui_print("\nYou selected blue.\n");
+		set_color(54, 74, 255);
+		break;
+	case CYAN:
+		ui_print("\nYou selected cyan.\n");
+		set_color(0,255,255);
+		break;
+	case GREEN:
+		ui_print("\nYou selected green.\n");
+		set_color(0,255,74);
+		break;
+	case ORANGE:
+		ui_print("\nYou selected orange.\n");
+		set_color(255, 115, 0);
+		break;
+	case PINK:
+		ui_print("\nYou selected pink.\n");
+		set_color(255,0,255);
+		break;
+	case PURPLE:
+		ui_print("\nYou selected purple.\n");
+		set_color(175,0,255);
+		break;
+	case RED:
+		ui_print("\nYou selected red.\n");
+		set_color(255,0,0);
+		break;
+	case SMOKED:
+		ui_print("\nYou selected smoked.\n");
+		set_color(200,200,200);
+		break;
+	case YELLOW:
+		ui_print("\nYou selected yellow.\n");
+		set_color(255,255,0);
+		break;
         }
     }
 }
