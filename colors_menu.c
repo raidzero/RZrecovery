@@ -44,7 +44,48 @@ void set_random() {
 	fwrite(&cB, 1, 1, fp);
 	fclose(fp);		
 }
-			  
+
+void set_manual() {
+	int cR = 0;
+	int cG = 0;
+	int cB = 0;
+				ui_print("\nPress R to increment Red by 10\n"); //key 19
+				ui_print("Press G to increment Green by 10\n");//key 34 
+				ui_print("Press B to increment Green by 10\n");//key 48
+                ui_print("Press Enter to save.\n");//key 28
+				int key;
+                int action;
+                do
+                {
+                    key = ui_wait_key();
+                    action = device_handle_key(key, 1);
+                    if (key == 19) {
+						cR = cR + 10;
+						gr_color(cR,cG,cB,255);
+						ui_print("\nRed+");
+						set_color(cR,cG,cB);	
+					}
+					
+					if (key == 34) {
+						cG = cG + 10;
+						gr_color(cR,cG,cB,255);
+						ui_print("\nGreen+");
+						set_color(cR,cG,cB);	
+					}
+					
+					if (key == 48) {
+						cB = cB + 10;
+						gr_color(cR,cG,cB,255);
+						ui_print("\nBlue+");
+						set_color(cR,cG,cB);
+					}
+					if (key != 28) {
+					set_color(cR,cG,cB);
+					}
+                }
+                while (key != 28);
+				return;
+}
 
 void show_colors_menu() {
     static char* headers[] = { "Choose a color",
@@ -62,6 +103,7 @@ void show_colors_menu() {
 				"Red",
 				"Smoked",
 				"Yellow",
+				"Manual",
 		      NULL };
 			  
 #define RANDOM  		0
@@ -74,6 +116,7 @@ void show_colors_menu() {
 #define RED				7
 #define SMOKED			8
 #define YELLOW			9
+#define MANUAL			10
 
 int chosen_item = -1;
 
@@ -129,6 +172,9 @@ int chosen_item = -1;
 		ui_print("\nYou selected yellow.\n");
 		set_color(255,255,0); //use black text
 		set_ht_color(0,0,0);
+		break;
+	case MANUAL:
+		set_manual();
 		break;
         }
     }
