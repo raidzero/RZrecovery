@@ -18,7 +18,7 @@ void wipe_all(int confirm) {
         }
 
         char* items[] = { " No",
-                          " Yes -- Wipe EVERYTHING",   // [7]
+                          " Yes -- Wipe EVERYTHING",
                           " No",
                           NULL };
 
@@ -59,7 +59,7 @@ void wipe_systemp(int confirm) {
         }
 
         char* items[] = { " No",
-                          " Yes -- Wipe system",   // [7]
+                          " Yes -- Wipe system",
                           " No",
                           NULL };
 
@@ -86,7 +86,7 @@ void wipe_datap(int confirm) {
         }
 
         char* items[] = { " No",
-                          " Yes -- wipe data",   // [7]
+                          " Yes -- wipe data", 
                           " No",
                           NULL };
 
@@ -113,7 +113,7 @@ void wipe_bootp(int confirm) {
         }
 
         char* items[] = { " No",
-                          " Yes -- Wipe boot",   // [7]
+                          " Yes -- Wipe boot",
                           " No",
                           NULL };
 
@@ -140,7 +140,7 @@ void wipe_cachep(int confirm) {
         }
 
         char* items[] = { " No",
-                          " Yes -- Wipe cache",   // [7]
+                          " Yes -- Wipe cache",
                           " No",
                           NULL };
 
@@ -167,7 +167,7 @@ void wipe_miscp(int confirm) {
         }
 
         char* items[] = { " No",
-                          " Yes -- Wipe misc",   // [7]
+                          " Yes -- Wipe misc",
                           " No",
                           NULL };
 
@@ -194,7 +194,7 @@ void wipe_batts(int confirm) {
         }
 
         char* items[] = { " No",
-                          " Yes -- Wipe battery stats",   // [7]
+                          " Yes -- Wipe battery stats",
                           " No",
                           NULL };
 
@@ -222,7 +222,7 @@ void wipe_dc(int confirm) {
         }
 
         char* items[] = { " No",
-                          " Yes -- Wipe dalvik-cache",   // [7]
+                          " Yes -- Wipe dalvik-cache",
                           " No",
                           NULL };
 

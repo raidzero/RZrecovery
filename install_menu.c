@@ -517,13 +517,16 @@ int install_rec_img(char* filename) {
 	return 0;
 }
 
+	
 int install_update_zip(char* filename) {
 
 char *path = NULL;
 
 puts(filename);
 path = replace(filename, "/sdcard/", "SDCARD:");
-
+	ui_print("\nWould you like to wipe /data first?");
+	ui_print("\nIn case it is a ROM?\n");
+	wipe_datap(ui_text_visible());
     ui_print("\n-- Install update.zip from sdcard...\n");
 	    set_sdcard_update_bootloader_message();
 		ui_print("Attempting update from...\n");
