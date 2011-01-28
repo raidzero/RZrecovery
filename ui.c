@@ -180,10 +180,14 @@ static void draw_screen_locked(void)
 	int cGv;
 	int cBv;
 	
+	int tRv;
+	int tGv;
+	int tBv;
+	
 	ensure_root_path_mounted("DATA:");
 	
-	if( access("/data/rgb", F_OK ) != -1 ) {
-		FILE *fp = fopen ("/data/rgb", "rb");
+	if( access("/data/mrgb", F_OK ) != -1 ) {
+		FILE *fp = fopen ("/data/mrgb", "rb");
 		fread(&cRv, 1, 1, fp);
 		fread(&cGv, 1, 1, fp);
 		fread(&cBv, 1, 1, fp);
@@ -192,6 +196,18 @@ static void draw_screen_locked(void)
 		cRv = 54;
 		cGv = 74;
 		cBv = 255;
+	}
+	
+	if( access("/data/trgb", F_OK ) != -1 ) {
+		FILE *fp = fopen ("/data/trgb", "rb");
+		fread(&tRv, 1, 1, fp);
+		fread(&tGv, 1, 1, fp);
+		fread(&tBv, 1, 1, fp);
+		fclose(fp);
+	} else {
+		tRv = 255;
+		tGv = 255;
+		tBv = 255;
 	}
  
     draw_background_locked(gCurrentIcon);
@@ -209,7 +225,7 @@ static void draw_screen_locked(void)
 
             for (; i < menu_top + menu_items; ++i) {
                 if (i == menu_top + menu_sel) {
-                    gr_color(255, 255, 255, 255);
+                    gr_color(tRv,tGv,tBv,255);
                     draw_text_line(i, menu[i]);
 		    gr_color(cRv,cGv,cBv,255);
 			} else {

@@ -8,7 +8,15 @@
 
 
 void set_color(char red, char green, char blue) {
-	FILE *fp = fopen ("/data/rgb", "wb");
+	FILE *fp = fopen ("/data/mrgb", "wb");
+	fwrite(&red, 1, 1, fp);
+	fwrite(&green, 1, 1, fp);
+	fwrite(&blue, 1, 1, fp);
+	fclose(fp);
+}
+
+void set_ht_color(char red, char green, char blue) {
+	FILE *fp = fopen ("/data/trgb", "wb");
 	fwrite(&red, 1, 1, fp);
 	fwrite(&green, 1, 1, fp);
 	fwrite(&blue, 1, 1, fp);
@@ -16,11 +24,21 @@ void set_color(char red, char green, char blue) {
 }
 
 void set_random() {
+
+	
+
 	char cR = rand() % 255;
 	char cG = rand() % 255;
 	char cB = rand() % 255;
 	
-	FILE *fp = fopen ("/data/rgb", "wb");
+	if ( cG >= 150 ) {
+		set_ht_color(0,0,0);
+	} else {
+		set_ht_color(255,255,255);
+	}
+	
+	
+	FILE *fp = fopen ("/data/mrgb", "wb");
 	fwrite(&cR, 1, 1, fp);
 	fwrite(&cG, 1, 1, fp);
 	fwrite(&cB, 1, 1, fp);
@@ -69,39 +87,48 @@ int chosen_item = -1;
 		break;
 	case BLUE:	
 		ui_print("\nYou selected blue.\n");
-		set_color(54, 74, 255);
+		set_color(54,74,255); // total 383, use white text
+		set_ht_color(255,255,255);
 		break;
 	case CYAN:
 		ui_print("\nYou selected cyan.\n");
-		set_color(0,255,255);
+		set_color(0,255,255); //total 510, use black text
+		set_ht_color(0,0,0);
 		break;
 	case GREEN:
 		ui_print("\nYou selected green.\n");
-		set_color(0,255,74);
+		set_color(0,255,74); // use black text
+		set_ht_color(100,100,100);
 		break;
 	case ORANGE:
 		ui_print("\nYou selected orange.\n");
-		set_color(255, 115, 0);
+		set_color(255,115,0); //use white text
+		set_ht_color(255,255,255);
 		break;
 	case PINK:
 		ui_print("\nYou selected pink.\n");
-		set_color(255,0,255);
+		set_color(255,0,255); //use white text
+		set_ht_color(0,0,0);
 		break;
 	case PURPLE:
 		ui_print("\nYou selected purple.\n");
-		set_color(175,0,255);
+		set_color(175,0,255); //use white text
+		set_ht_color(255,255,255);
 		break;
 	case RED:
 		ui_print("\nYou selected red.\n");
-		set_color(255,0,0);
+		set_color(255,0,0); //use white text
+		set_ht_color(255,255,255);
 		break;
 	case SMOKED:
 		ui_print("\nYou selected smoked.\n");
-		set_color(200,200,200);
+		set_color(200,200,200); //use black text
+		set_ht_color(0,0,0);
 		break;
 	case YELLOW:
 		ui_print("\nYou selected yellow.\n");
-		set_color(255,255,0);
+		set_color(255,255,0); //use black text
+		set_ht_color(0,0,0);
 		break;
         }
     }
