@@ -152,7 +152,7 @@ void show_choose_zip_menu(char* sdpath)
     }
     
     while ((de=readdir(dir)) != NULL) {
-	if (de->d_name[0] != '.' && strlen(de->d_name) > 4 && (strcmp(de->d_name+strlen(de->d_name)-11,"-update.zip")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0) || (strcmp(de->d_name+strlen(de->d_name)-0,"")==0 )) {
+	if (de->d_name[0] != '.' && strlen(de->d_name) > 4 && (strcmp(de->d_name+strlen(de->d_name)-11,"-update.zip")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0)) {
 	    total++;
 	}
     }
@@ -175,7 +175,7 @@ void show_choose_zip_menu(char* sdpath)
 
 	i = 0;
 	while ((de = readdir(dir)) != NULL) {
-	    if (de->d_name[0] != '.' && strlen(de->d_name) > 4 && (strcmp(de->d_name+strlen(de->d_name)-11,"-update.zip")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0) || (strcmp(de->d_name+strlen(de->d_name)-0,"")==0 )) {
+	    if (de->d_name[0] != '.' && strlen(de->d_name) > 4 && (strcmp(de->d_name+strlen(de->d_name)-11,"-update.zip")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0)) {
 		files[i] = (char*) malloc(strlen(sdpath)+strlen(de->d_name)+1);
 		strcpy(files[i], sdpath);
 		strcat(files[i], de->d_name);
