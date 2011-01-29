@@ -267,8 +267,7 @@ static void update_progress_locked(void)
 }
 
 // Keeps the progress bar updated, even when the process is otherwise busy.
-static void *progress_thread(void *cookie)
-{
+static void *progress_thread(void *cookie) {
     for (;;) {
         usleep(1000000 / PROGRESSBAR_INDETERMINATE_FPS);
         pthread_mutex_lock(&gUpdateMutex);
@@ -297,8 +296,7 @@ static void *progress_thread(void *cookie)
 }
 
 // Reads input events, handles special hot keys, and adds to the key queue.
-static void *input_thread(void *cookie)
-{
+static void *input_thread(void *cookie) {
     int rel_sum = 0;
     int fake_key = 0;
     for (;;) {
@@ -364,8 +362,7 @@ static void *input_thread(void *cookie)
     return NULL;
 }
 
-void ui_init(void)
-{
+void ui_init(void) {
     gr_init();
     ev_init();
 

@@ -49,13 +49,13 @@ void set_manual() {
 	int cR = 0;
 	int cG = 0;
 	int cB = 0;
-				ui_print("\nPress R to increment Red by 10\n"); //key 19
-				ui_print("Press G to increment Green by 10\n");//key 34 
-				ui_print("Press B to increment Green by 10\n");//key 48
-                ui_print("Press Enter to save.\n");//key 28
-				int key;
-                int action;
-                do
+	ui_print("\nPress R to increment Red   by 10"); //key 19
+	ui_print("\nPress G to increment Green by 10");//key 34 
+	ui_print("\nPress B to increment Blue  by 10");//key 48
+    ui_print("\nPress Enter to save.\n");//key 28
+	int key;
+    int action;
+          do
                 {
                     key = ui_wait_key();
                     action = device_handle_key(key, 1);
@@ -63,14 +63,15 @@ void set_manual() {
 						cR = cR + 10;
 						gr_color(cR,cG,cB,255);
 						ui_print("\nRed+");
-						set_color(cR,cG,cB);	
+						set_color(cR,cG,cB);
 					}
 					
 					if (key == 34) {
 						cG = cG + 10;
 						gr_color(cR,cG,cB,255);
 						ui_print("\nGreen+");
-						set_color(cR,cG,cB);	
+						set_color(cR,cG,cB);
+						gr_fill(0, 0, 10, 10);
 					}
 					
 					if (key == 48) {
@@ -78,6 +79,7 @@ void set_manual() {
 						gr_color(cR,cG,cB,255);
 						ui_print("\nBlue+");
 						set_color(cR,cG,cB);
+						gr_fill(0, 0, 10, 10);
 					}
 					if (key != 28) {
 					set_color(cR,cG,cB);
@@ -130,18 +132,18 @@ int chosen_item = -1;
 		break;
 	case BLUE:	
 		ui_print("\nYou selected blue.\n");
-		set_color(54,74,255); // total 383, use white text
+		set_color(54,74,255); //use white text
 		set_ht_color(255,255,255);
 		break;
 	case CYAN:
 		ui_print("\nYou selected cyan.\n");
-		set_color(0,255,255); //total 510, use black text
+		set_color(0,255,255); //use black text
 		set_ht_color(0,0,0);
 		break;
 	case GREEN:
 		ui_print("\nYou selected green.\n");
 		set_color(0,255,74); // use black text
-		set_ht_color(100,100,100);
+		set_ht_color(0,0,0);
 		break;
 	case ORANGE:
 		ui_print("\nYou selected orange.\n");
