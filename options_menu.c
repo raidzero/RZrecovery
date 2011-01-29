@@ -14,6 +14,22 @@ void disable_OTA() {
 	ui_print("\nOTA-updates disabled.\n");
 }	
 
+void show_battstat() {
+	FILE* fs = fopen("/sys/class/power_supply/battery/status","r");
+    char* bstat = calloc(13,sizeof(char));
+    fgets(bstat, 13, fs);
+	
+	FILE* fc = fopen("/sys/class/power_supply/battery/capacity","r");
+    char* bcap = calloc(4,sizeof(char));
+    fgets(bcap, 4, fc);
+	
+	ui_print("\nBattery Status: ");
+	ui_print(bstat);
+	ui_print("Charge Level: ");
+	ui_print(bcap);
+	ui_print(" %");
+}
+	
 void show_options_menu()
 {
     static char* headers[] = { "Options",
@@ -23,10 +39,12 @@ void show_options_menu()
 
     char* items[] = { "Colors",
 				"Disable OTA updating",
+				"Show Battery Status",
 		      NULL };
 			  
 #define COLORS         0
 #define OTA			   1
+#define BATT		   2
 
 
 int chosen_item = -1;
@@ -41,6 +59,9 @@ int chosen_item = -1;
 	    return;
 	case OTA:
 		disable_OTA();
+		break;
+	case BATT:
+		show_battstat();
 		break;
 
         }
