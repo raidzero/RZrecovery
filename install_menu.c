@@ -559,11 +559,11 @@ void show_install_menu()
 			"",
 			NULL };
   
-    char* items[] = { "Install ROM tar from SD card",
-		      "Install update.zip from SD card",
+    char* items[] = { "Install ROM tar/tgz from SD card",
+			  "Install update.zip from SD card",
 			  "Install update.zip from updates folder",
-			  "Install kernel img from /sdcard/kernels",
-			  "Install recovery img from /sdcard/recovery",
+			  "Install kernel image from kernels folder",
+			  "Install recovery image from recovery folder",
 		      NULL };
   
 #define ITEM_TAR 	0
