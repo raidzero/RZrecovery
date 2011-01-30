@@ -246,7 +246,7 @@ void show_wipe_menu()
 			       "",
 			       NULL };
 
-    char* items[] = { "Wipe All",
+    char* items[] = { "Wipe all",
 			  "Wipe system",
 		      "Wipe data",
 		      "Wipe boot",
