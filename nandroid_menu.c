@@ -412,7 +412,7 @@ void show_nandroid_adv_b_menu()
 
 	switch(chosen_item) {
 	case ITEM_NAME:
-		ui_print("\nType special characters by holding down\n the Alt & Shift keys.\n");
+		ui_print("\nType special characters by holding down\nthe Alt & Shift keys.\n");
 	    ui_print("Type a prefix to name your backup:\n> ");
 	    ui_read_line_n(filename,PATH_MAX);
 	    headers[2]=filename;
