@@ -45,7 +45,7 @@ void set_random() {
 	fclose(fp);		
 }
 
-void set_manual() {
+void set_manual_k() {
 	int cR = 0;
 	int cG = 0;
 	int cB = 0;
@@ -89,6 +89,41 @@ void set_manual() {
 				return;
 }
 
+void set_manual_d() {
+	char R[3];
+	char G[3];
+	char B[3];
+	int cR;
+	int cG;
+	int cB;
+		ui_print("\nPlease enter decimal values.");
+		ui_print("\nHold down Alt to enter numbers.");
+		ui_print("\nEnter the value for Red (0-255): ");
+	    ui_read_line_n(R,3);
+		ui_print("\nEnter the value for Green (0-255): ");
+	    ui_read_line_n(G,3);
+		ui_print("\nEnter the value for Blue (0-255): ");
+	    ui_read_line_n(B,3);
+		
+		cR = atoi(R);
+		cG = atoi(G);
+		cB = atoi(B);
+		
+		//check if value is over 255
+		if ( cR > 255 ) {
+			cR = 255;
+		}
+		if ( cG > 255 ) {
+			cG = 255;
+		}
+		if ( cB > 255 ) {
+			cB = 255;
+		}
+		set_color(cR,cG,cB);
+		return;
+}
+		
+
 void show_colors_menu() {
     static char* headers[] = { "Choose a color",
 			       "or press DEL or POWER to return",
@@ -105,7 +140,8 @@ void show_colors_menu() {
 				"Red",
 				"Smoked",
 				"Yellow",
-				"Manual",
+				"Manual - keys",
+				"Manual - values",
 		      NULL };
 			  
 #define RANDOM  		0
@@ -118,7 +154,8 @@ void show_colors_menu() {
 #define RED				7
 #define SMOKED			8
 #define YELLOW			9
-#define MANUAL			10
+#define MANUALK			10
+#define MANUALD			11
 
 int chosen_item = -1;
 
@@ -175,8 +212,11 @@ int chosen_item = -1;
 		set_color(255,255,0); //use black text
 		set_ht_color(0,0,0);
 		break;
-	case MANUAL:
-		set_manual();
+	case MANUALK:
+		set_manual_k();
+		break;
+	case MANUALD:
+		set_manual_d();
 		break;
         }
     }
