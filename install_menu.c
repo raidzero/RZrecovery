@@ -228,7 +228,7 @@ void show_kernel_menu()
     }
     
     while ((de=readdir(dir)) != NULL) {
-	if (de->d_name[0] != '.' && strlen(de->d_name) > 4 && (strcmp(de->d_name+strlen(de->d_name)-8,"boot.img")==0 || strcmp(de->d_name+strlen(de->d_name)-16,"-kernel-boot.img")==0) || strcmp(de->d_name+strlen(de->d_name)-10,"kernel.img")==0) {
+	if (de->d_name[0] != '.' && strlen(de->d_name) > 4 && (strcmp(de->d_name+strlen(de->d_name)-8,"boot.img")==0 || strcmp(de->d_name+strlen(de->d_name)-10,"kernel.img")==0)) {
 	    total++;
 	}
     }
@@ -251,7 +251,7 @@ void show_kernel_menu()
 
 	i = 0;
 	while ((de = readdir(dir)) != NULL) {
-	    if (de->d_name[0] != '.' && strlen(de->d_name) > 4 && (strcmp(de->d_name+strlen(de->d_name)-8,"boot.img")==0 || strcmp(de->d_name+strlen(de->d_name)-16,"-kernel-boot.img")==0) || strcmp(de->d_name+strlen(de->d_name)-10,"kernel.img")==0) {
+	    if (de->d_name[0] != '.' && strlen(de->d_name) > 4 && (strcmp(de->d_name+strlen(de->d_name)-8,"boot.img")==0 || strcmp(de->d_name+strlen(de->d_name)-10,"kernel.img")==0)) {
 		files[i] = (char*) malloc(strlen("/sdcard/kernels/")+strlen(de->d_name)+1);
 		strcpy(files[i], "/sdcard/kernels/");
 		strcat(files[i], de->d_name);
@@ -304,7 +304,7 @@ void show_rec_menu()
     }
     
     while ((de=readdir(dir)) != NULL) {
-	if (de->d_name[0] != '.' && strlen(de->d_name) > 4 && (strcmp(de->d_name+strlen(de->d_name)-8,"-rec.img")==0 || strcmp(de->d_name+strlen(de->d_name)-8,"_rec.img")==0) || strcmp(de->d_name+strlen(de->d_name)-8,".rec.img")==0) {
+	if (de->d_name[0] != '.' && strlen(de->d_name) > 4 && strcmp(de->d_name+strlen(de->d_name)-7,"rec.img")==0) {
 	    total++;
 	}
     }
@@ -327,7 +327,7 @@ void show_rec_menu()
 
 	i = 0;
 	while ((de = readdir(dir)) != NULL) {
-	    if (de->d_name[0] != '.' && strlen(de->d_name) > 4 && (strcmp(de->d_name+strlen(de->d_name)-8,"-rec.img")==0 || strcmp(de->d_name+strlen(de->d_name)-8,"_rec.img")==0) || strcmp(de->d_name+strlen(de->d_name)-8,".rec.img")==0) {
+	    if (de->d_name[0] != '.' && strlen(de->d_name) > 4 && strcmp(de->d_name+strlen(de->d_name)-7,"rec.img")==0) {
 		files[i] = (char*) malloc(strlen("/sdcard/recovery/")+strlen(de->d_name)+1);
 		strcpy(files[i], "/sdcard/recovery/");
 		strcat(files[i], de->d_name);
