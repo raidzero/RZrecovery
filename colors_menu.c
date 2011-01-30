@@ -83,6 +83,11 @@ void set_manual_k() {
 					}
 					if (key != 28) {
 					set_color(cR,cG,cB);
+					if ( cG >= 150 ) {
+						set_ht_color(0,0,0);
+					} else {
+						set_ht_color(255,255,255);
+					}
 					}
                 }
                 while (key != 28);
