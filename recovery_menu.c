@@ -38,10 +38,10 @@ void poweroff() {
 
 
 void prompt_and_wait() {
-
+	
     char* menu_headers[] = { "Modded by raidzero",
-			     "",
-			     NULL };
+							 " ",
+							 NULL };
 
     char** headers = prepend_title(menu_headers);
 
@@ -109,18 +109,21 @@ void prompt_and_wait() {
 		show_options_menu();
 		break;
 	case ITEM_HELP:
-		ui_print("\n\n\nHELP/FEATURES:\n");
-		ui_print("1.1ghz kernel, wipe menu,\n");
-		ui_print("Battery charging,\n");
-		ui_print("arbitrary unsigned update.zip install,\n");
+		ui_print("\n*HELP/FEATURES*\n");
+		ui_print("1.1ghz low voltage kernel w/ battery charging\n");
+		ui_print("arbitrary unsigned update.zip install\n");
 		ui_print("arbitrary kernel/recovery img install\n");
+		ui_print("One level of subfolders under /sdcard/updates\n");
 		ui_print("rom.tar/tgz scripted install support\n");
-		ui_print("\nRecovery images must be in /sdcard/recovery &\n");
-		ui_print("end in either -rec.img, _rec.img, .rec.img\n");
-		ui_print("\nKernel images must be in /sdcard/kernels &\n");
-		ui_print("end in -kernel-boot.img, boot.img, kernel.img\n");
-		ui_print("\nWipe Menu: wipes any partition on device\n");
-		ui_print("also includes battery statistics wipe\n");
+		ui_print("Recovery images must be in /sdcard/recovery &\n");
+		ui_print("end in rec.img\n");
+		ui_print("Kernel images must be in /sdcard/kernels &\n");
+		ui_print("end in boot.img or kernel.img\n");
+		ui_print("Wipe menu: wipes any partition on device\n");
+		ui_print("also includes battery statistics &\n");
+		ui_print("dalvik-cache wipe.\n");
+		ui_print("Options: customize colors, OTA updates\n");
+		ui_print("display battery statistics\n");
 	    break;
         }
     }
