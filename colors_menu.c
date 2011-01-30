@@ -120,6 +120,11 @@ void set_manual_d() {
 			cB = 255;
 		}
 		set_color(cR,cG,cB);
+		if ( cG >= 150 ) {
+			set_ht_color(0,0,0);
+		} else {
+		set_ht_color(255,255,255);
+		}
 		return;
 }
 		
