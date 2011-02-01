@@ -7,41 +7,38 @@
 #include "recovery_ui.h"
 
 
-void set_color(char red, char green, char blue) {
-	FILE *fp = fopen ("/data/mrgb", "wb");
-	fwrite(&red, 1, 1, fp);
-	fwrite(&green, 1, 1, fp);
-	fwrite(&blue, 1, 1, fp);
-	fclose(fp);
-}
 
-void set_ht_color(char red, char green, char blue) {
-	FILE *fp = fopen ("/data/trgb", "wb");
+void set_color(char red, char green, char blue) {
+	char txt;
+	if ( green >= 150) {
+		txt = 0;
+	} else { 
+		txt = 255;
+	}
+	FILE *fp = fopen ("/cache/rgb", "wb");
 	fwrite(&red, 1, 1, fp);
 	fwrite(&green, 1, 1, fp);
 	fwrite(&blue, 1, 1, fp);
+	fwrite(&txt, 1, 1, fp);
 	fclose(fp);
 }
 
 void set_random() {
-
-	
-
 	char cR = rand() % 255;
 	char cG = rand() % 255;
 	char cB = rand() % 255;
-	
-	if ( cG >= 150 ) {
-		set_ht_color(0,0,0);
-	} else {
-		set_ht_color(255,255,255);
+	char txt;
+	if ( cG >= 150) {
+		txt = 0;
+	} else { 
+		txt = 255;
 	}
 	
-	
-	FILE *fp = fopen ("/data/mrgb", "wb");
+	FILE *fp = fopen ("/cache/rgb", "wb");
 	fwrite(&cR, 1, 1, fp);
 	fwrite(&cG, 1, 1, fp);
 	fwrite(&cB, 1, 1, fp);
+	fwrite(&txt, 1, 1, fp);
 	fclose(fp);		
 }
 
@@ -61,7 +58,6 @@ void set_manual_k() {
                     action = device_handle_key(key, 1);
                     if (key == 19) {
 						cR = cR + 10;
-						gr_color(cR,cG,cB,255);
 						ui_print("\nRed+");
 						set_color(cR,cG,cB);
 					}
@@ -71,7 +67,6 @@ void set_manual_k() {
 						gr_color(cR,cG,cB,255);
 						ui_print("\nGreen+");
 						set_color(cR,cG,cB);
-						gr_fill(0, 0, 10, 10);
 					}
 					
 					if (key == 48) {
@@ -79,15 +74,9 @@ void set_manual_k() {
 						gr_color(cR,cG,cB,255);
 						ui_print("\nBlue+");
 						set_color(cR,cG,cB);
-						gr_fill(0, 0, 10, 10);
 					}
 					if (key != 28) {
 					set_color(cR,cG,cB);
-					if ( cG >= 150 ) {
-						set_ht_color(0,0,0);
-					} else {
-						set_ht_color(255,255,255);
-					}
 					}
                 }
                 while (key != 28);
@@ -125,11 +114,6 @@ void set_manual_d() {
 			cB = 255;
 		}
 		set_color(cR,cG,cB);
-		if ( cG >= 150 ) {
-			set_ht_color(0,0,0);
-		} else {
-		set_ht_color(255,255,255);
-		}
 		return;
 }
 		
@@ -174,53 +158,34 @@ int chosen_item = -1;
 
         switch (chosen_item) {
 	case RANDOM:
-		ui_print("\nYou have selected random color.\n");
 		set_random();
 		break;
 	case BLUE:	
-		ui_print("\nYou selected blue.\n");
-		set_color(54,74,255); //use white text
-		set_ht_color(255,255,255);
+		set_color(54,74,255);
 		break;
 	case CYAN:
-		ui_print("\nYou selected cyan.\n");
-		set_color(0,255,255); //use black text
-		set_ht_color(0,0,0);
+		set_color(0,255,255);
 		break;
 	case GREEN:
-		ui_print("\nYou selected green.\n");
-		set_color(0,255,74); // use black text
-		set_ht_color(0,0,0);
+		set_color(0,255,74); 
 		break;
 	case ORANGE:
-		ui_print("\nYou selected orange.\n");
-		set_color(255,115,0); //use white text
-		set_ht_color(255,255,255);
+		set_color(255,115,0);
 		break;
 	case PINK:
-		ui_print("\nYou selected pink.\n");
-		set_color(255,0,255); //use white text
-		set_ht_color(0,0,0);
+		set_color(255,0,255);
 		break;
 	case PURPLE:
-		ui_print("\nYou selected purple.\n");
-		set_color(175,0,255); //use white text
-		set_ht_color(255,255,255);
+		set_color(175,0,255);
 		break;
 	case RED:
-		ui_print("\nYou selected red.\n");
-		set_color(255,0,0); //use white text
-		set_ht_color(255,255,255);
+		set_color(255,0,0);
 		break;
 	case SMOKED:
-		ui_print("\nYou selected smoked.\n");
-		set_color(200,200,200); //use black text
-		set_ht_color(0,0,0);
+		set_color(200,200,200);
 		break;
 	case YELLOW:
-		ui_print("\nYou selected yellow.\n");
-		set_color(255,255,0); //use black text
-		set_ht_color(0,0,0);
+		set_color(255,255,0);
 		break;
 	case MANUALK:
 		set_manual_k();

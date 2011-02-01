@@ -122,8 +122,57 @@ static const int MAX_ARGS = 100;
 //   - the actual command line
 //   - the bootloader control block (one per line, after "recovery")
 //   - the contents of COMMAND_FILE (one per line)
+
+#include <stdio.h>
+#include <stdlib.h>
+
+
+void read_rgb() {
+	ensure_root_path_mounted("DATA:");
+	if( access("/data/rgb", F_OK ) != -1 ) {
+	    char* argv[] = { "/sbin/busybox",
+		"mv",
+	    "/data/rgb",
+		"/cache/rgb",
+	    NULL };
+
+		char* envp[] = { NULL };
+  
+		int status = runve("/sbin/busybox",argv,envp,1);
+	} else {
+		remove("/cache/rgb");
+		char red = 54;
+		char green = 74;
+		char blue = 255;
+		char text = 255;
+		FILE *fpm = fopen ("/cache/rgb", "wb");
+		fwrite(&red, 1, 1, fpm);
+		fwrite(&green, 1, 1, fpm);
+		fwrite(&blue, 1, 1, fpm);
+		fwrite(&text, 1, 1, fpm);
+		fclose(fpm);
+	}
+	ensure_root_path_unmounted("DATA:");
+}
+//write colors file from cache to data
+void write_rgb() {
+	ensure_root_path_mounted("DATA:");	
+	char* argv[] = { "/sbin/busybox",
+	"mv",
+	"/cache/rgb",
+	"/data/rgb",
+	NULL };
+
+	char* envp[] = { NULL };
+  
+	int status = runve("/sbin/busybox",argv,envp,1);	
+}
+
 static void
 get_args(int *argc, char ***argv) {
+//copy rgb files from data to cache
+read_rgb();
+
     struct bootloader_message boot;
     memset(&boot, 0, sizeof(boot));
     get_bootloader_message(&boot);  // this may fail, leaving a zeroed structure

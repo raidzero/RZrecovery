@@ -32,6 +32,8 @@ void wipe_all(int confirm) {
     ui_print("System wipe complete.\n");
     ui_print("\n-- Wiping data...\n");
     erase_root("DATA:");
+	write_rgb();
+	read_rgb();
     ui_print("Data wipe complete.\n");
     ui_print("\n-- Wiping boot...\n");
     erase_root("BOOT:");
@@ -97,6 +99,8 @@ void wipe_datap(int confirm) {
     }
     ui_print("\n-- Wiping data...\n");
     erase_root("DATA:");
+	write_rgb();
+	read_rgb();
     ui_print("Data wipe complete.\n");
 }
 

@@ -15,23 +15,25 @@
 #include "install_menu.h"
 #include "wipe_menu.h"
 
+//save colors in case recovery is not exited from one of my functions
+write_rgb();
 
 void reboot_android() {
 	ui_print("\n-- Rebooting into Android...\n");
-	ensure_root_path_unmounted("CACHE:");
+	write_rgb();
 	sync();
 	__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, NULL);
 }
 void reboot_recovery() {
 	ui_print("\n-- Rebooting into recovery...\n");
-	ensure_root_path_unmounted("CACHE:");
+	write_rgb();
 	sync();
 	__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "recovery");
 }
 
 void poweroff() {
 	ui_print("\n-- Shutting down...");
-	ensure_root_path_unmounted("CACHE:");
+	write_rgb();
 	sync();
 	__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_POWER_OFF, NULL);
 }

@@ -33,7 +33,7 @@
 #include "recovery_ui.h"
 
 #define MAX_COLS 64
-#define MAX_ROWS 32
+#define MAX_ROWS 40
 
 #define CHAR_WIDTH 10
 #define CHAR_HEIGHT 18
@@ -176,40 +176,26 @@ static void draw_text_line(int row, const char* t) {
 // Should only be called with gUpdateMutex locked.
 static void draw_screen_locked(void)
 {
+	//define menu color integers
 	int cRv;
 	int cGv;
 	int cBv;
+	//define menu highlight text color
+	int txt;
 	
-	int tRv;
-	int tGv;
-	int tBv;
+	ensure_root_path_mounted("CACHE:");
 	
-	ensure_root_path_mounted("DATA:");
-	
-	if( access("/data/mrgb", F_OK ) != -1 ) {
-		FILE *fp = fopen ("/data/mrgb", "rb");
+	if( access("/cache/rgb", F_OK ) != -1 ) {
+		FILE *fp = fopen ("/cache/rgb", "rb");
 		fread(&cRv, 1, 1, fp);
 		fread(&cGv, 1, 1, fp);
 		fread(&cBv, 1, 1, fp);
-		fclose(fp);
+		fread(&txt, 1, 1, fp);
+		fclose(fp);	
 	} else {
-		cRv = 54;
-		cGv = 74;
-		cBv = 255;
+		set_color(54,74,255);
 	}
 	
-	if( access("/data/trgb", F_OK ) != -1 ) {
-		FILE *fp = fopen ("/data/trgb", "rb");
-		fread(&tRv, 1, 1, fp);
-		fread(&tGv, 1, 1, fp);
-		fread(&tBv, 1, 1, fp);
-		fclose(fp);
-	} else {
-		tRv = 255;
-		tGv = 255;
-		tBv = 255;
-	}
- 
     draw_background_locked(gCurrentIcon);
     draw_progress_locked();
 
@@ -225,7 +211,7 @@ static void draw_screen_locked(void)
 
             for (; i < menu_top + menu_items; ++i) {
                 if (i == menu_top + menu_sel) {
-                    gr_color(tRv,tGv,tBv,255);
+                    gr_color(txt,txt,txt,255);
                     draw_text_line(i, menu[i]);
 		    gr_color(cRv,cGv,cBv,255);
 			} else {
@@ -236,8 +222,8 @@ static void draw_screen_locked(void)
                     gr_fb_width(), i*CHAR_HEIGHT+CHAR_HEIGHT/2+1);
             ++i;
         }
-
-        TEXTCOLOR
+		
+        TEXTCOLOR // text on the bottom
 
 	    for (; i < text_rows; ++i) {
 		draw_text_line(i, text[(i+text_top) % text_rows]);
