@@ -30,55 +30,32 @@ void show_battstat() {
 	ui_print(" %");
 }
 
-void flashlight(char* mode) {
+void flashlight() {
     char* argv[] = { "/sbin/flashlight",
-		     mode,
 		     NULL };
 
     char* envp[] = { NULL };
   
     int status = runve("/sbin/flashlight",argv,envp,1);
-	ui_print("\nFlashlight turned ");
-	ui_print(mode);
-	ui_print(".");
+}
+
+
+void act_root() {
+    char* argv[] = { "/sbin/actroot",
+	NULL };
+
+    char* envp[] = { NULL };
+  
+    int status = runve("/sbin/actroot",argv,envp,1);
 	return;
 }
 
-void show_flashlight_menu()
-{
-    static char* headers[] = { "Flashlight",
-			       "or press DEL or POWER to return",
-			       "raidzero takes no responsibility",
-				   "for any damages caused by this function",
-				   " ",
-			       NULL };
-
-    char* items[] = { "Off",
-				"On",
-		      NULL };
-			  
-#define OFF         	   0
-#define ON			   	   1
-
-
-
-int chosen_item = -1;
-
-    while(chosen_item!=ITEM_BACK) {
-	chosen_item = get_menu_selection(headers,items,1,chosen_item<0?0:chosen_item);
-
-
-        switch (chosen_item) {
-	case OFF:
-		flashlight("off");
-	    return;
-	case ON:
-		flashlight("on");
-		break;
-		}
-	}
+void disable_FRS() {
+	ensure_root_path_mounted("SYSTEM:");
+	remove("/system/recovery-from-boot.p");
+	ui_print("\nFlash Recovery Service disabled");
 }
-	
+
 void show_options_menu()
 {
     static char* headers[] = { "Options",
@@ -89,13 +66,17 @@ void show_options_menu()
     char* items[] = { "Colors",
 				"Disable OTA updating",
 				"Show Battery Status",
-				"Flashlight",
+				"Toggle Flashlight",
+				"Activate root access in ROM",
+				"Disable Flash Recovery Service",
 		      NULL };
 			  
 #define COLORS         0
 #define OTA			   1
 #define BATT		   2
 #define FLASHLIGHT     3
+#define ACTROOT		   4
+#define FRS			   5
 
 
 int chosen_item = -1;
@@ -115,7 +96,13 @@ int chosen_item = -1;
 		show_battstat();
 		break;
 	case FLASHLIGHT:
-		show_flashlight_menu();
+		flashlight();
+		break;
+	case ACTROOT:
+		act_root();
+		break;
+	case FRS:
+		disable_FRS();
 		break;
         }
     }

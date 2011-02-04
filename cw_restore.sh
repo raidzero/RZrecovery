@@ -28,6 +28,9 @@ if [ "$sysp" == "1" ]; then
 	echo "* "
 	unyaffs-arm-uclibc $1/system.img
 	echo "* print system partition restored."
+	echo "* print Fixing root permissions..."
+	chmod 6755 /system/bin/su
+	chown 0:0 /system/bin/su
 fi
 
 if [ "$asp" == "1" ]; then

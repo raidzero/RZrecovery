@@ -42,47 +42,6 @@ void set_random() {
 	fclose(fp);		
 }
 
-void set_manual_k() {
-	int cR = 0;
-	int cG = 0;
-	int cB = 0;
-	ui_print("\nPress R to increment Red   by 10"); //key 19
-	ui_print("\nPress G to increment Green by 10");//key 34 
-	ui_print("\nPress B to increment Blue  by 10");//key 48
-    ui_print("\nPress Enter to save.\n");//key 28
-	int key;
-    int action;
-          do
-                {
-                    key = ui_wait_key();
-                    action = device_handle_key(key, 1);
-                    if (key == 19) {
-						cR = cR + 10;
-						ui_print("\nRed+");
-						set_color(cR,cG,cB);
-					}
-					
-					if (key == 34) {
-						cG = cG + 10;
-						gr_color(cR,cG,cB,255);
-						ui_print("\nGreen+");
-						set_color(cR,cG,cB);
-					}
-					
-					if (key == 48) {
-						cB = cB + 10;
-						gr_color(cR,cG,cB,255);
-						ui_print("\nBlue+");
-						set_color(cR,cG,cB);
-					}
-					if (key != 28) {
-					set_color(cR,cG,cB);
-					}
-                }
-                while (key != 28);
-				return;
-}
-
 void set_manual_d() {
 	char R[3];
 	char G[3];
@@ -134,8 +93,7 @@ void show_colors_menu() {
 				"Red",
 				"Smoked",
 				"Yellow",
-				"Manual - keys",
-				"Manual - values",
+				"Manual",
 		      NULL };
 			  
 #define RANDOM  		0
@@ -148,8 +106,7 @@ void show_colors_menu() {
 #define RED				7
 #define SMOKED			8
 #define YELLOW			9
-#define MANUALK			10
-#define MANUALD			11
+#define MANUALD			10
 
 int chosen_item = -1;
 
@@ -186,9 +143,6 @@ int chosen_item = -1;
 		break;
 	case YELLOW:
 		set_color(255,255,0);
-		break;
-	case MANUALK:
-		set_manual_k();
 		break;
 	case MANUALD:
 		set_manual_d();
