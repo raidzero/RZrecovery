@@ -441,37 +441,22 @@ void show_choose_folder_menu(char* sdpath)
     }
 }
 
-char *replace(const char *s, const char *old, const char *new)
+char *replace_str(char *str, char *orig, char *rep)
 {
-char *ret;
-int i, count = 0;
-size_t newlen = strlen(new);
-size_t oldlen = strlen(old);
+  static char buffer[4096];
+  char *p;
 
-for (i = 0; s[i] != '\0'; i++) {
-if (strstr(&s[i], old) == &s[i]) {
-count++;
-i += oldlen - 1;
-}
+  if(!(p = strstr(str, orig)))  // Is 'orig' even in 'str'?
+    return str;
+
+  strncpy(buffer, str, p-str); // Copy characters from 'str' start to 'orig' st$
+  buffer[p-str] = '\0';
+
+  sprintf(buffer+(p-str), "%s%s", rep, p+strlen(orig));
+
+  return buffer;
 }
 
-ret = malloc(i + count * (newlen - oldlen));
-if (ret == NULL)
-exit(EXIT_FAILURE);
-
-i = 0;
-while (*s) {
-if (strstr(s, old) == s) {
-strcpy(&ret[i], new);
-i += newlen;
-s += oldlen;
-} else
-ret[i++] = *s++;
-}
-ret[i] = '\0';
-
-return ret;
-}
 
 int install_kernel_img(char* filename) {
 
@@ -523,7 +508,8 @@ int install_update_zip(char* filename) {
 char *path = NULL;
 
 puts(filename);
-path = replace(filename, "/sdcard/", "SDCARD:");
+//path = replace(filename, "/sdcard/", "SDCARD:");
+path = replace_str(filename, "/sdcard/", "SDCARD:");
 	if (ui_key_pressed(KEY_SPACE)) {
 	ui_print("Backing up before installing...\n");
 
@@ -536,6 +522,8 @@ path = replace(filename, "/sdcard/", "SDCARD:");
 	    set_sdcard_update_bootloader_message();
 		ui_print("Attempting update from...\n");
 		ui_print(filename);
+		ui_print("\n");
+		ui_print(path);
 		ui_print("\n");
 	    int status = install_package(path);
 	    if (status != INSTALL_SUCCESS) {
