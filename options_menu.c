@@ -58,7 +58,7 @@ void disable_FRS() {
 
 void show_options_menu()
 {
-    static char* headers[] = { "Options",
+    static char* headers[] = { "Extras",
 			       "or press DEL or POWER to return",
 			       "",
 			       NULL };

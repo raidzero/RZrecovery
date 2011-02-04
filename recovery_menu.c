@@ -54,7 +54,7 @@ void prompt_and_wait() {
 		      "Mount Options",
 		      "Backup/Restore",
 		      "Install",
-			  "Options",
+			  "Extras",
 		      "Help",
 		      NULL };
 
