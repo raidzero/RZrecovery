@@ -152,7 +152,7 @@ void show_choose_zip_menu(char* sdpath)
     }
     
     while ((de=readdir(dir)) != NULL) {
-	if (de->d_name[0] != '.' && strlen(de->d_name) > 4 && (strcmp(de->d_name+strlen(de->d_name)-11,"-update.zip")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0)) {
+	if (de->d_name[0] != '.' && strlen(de->d_name) > 4 && strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0) {
 	    total++;
 	}
     }
@@ -175,7 +175,7 @@ void show_choose_zip_menu(char* sdpath)
 
 	i = 0;
 	while ((de = readdir(dir)) != NULL) {
-	    if (de->d_name[0] != '.' && strlen(de->d_name) > 4 && (strcmp(de->d_name+strlen(de->d_name)-11,"-update.zip")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0)) {
+	    if (de->d_name[0] != '.' && strlen(de->d_name) > 4 && strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0) {
 		files[i] = (char*) malloc(strlen(sdpath)+strlen(de->d_name)+1);
 		strcpy(files[i], sdpath);
 		strcat(files[i], de->d_name);
@@ -524,6 +524,11 @@ char *path = NULL;
 
 puts(filename);
 path = replace(filename, "/sdcard/", "SDCARD:");
+	if (ui_key_pressed(KEY_SPACE)) {
+	ui_print("Backing up before installing...\n");
+
+	nandroid_backup("preinstall",BSD|PROGRESS);
+    }
 	ui_print("\nWould you like to wipe /data first?");
 	ui_print("\nIn case it is a ROM?\n");
 	wipe_datap(ui_text_visible());
