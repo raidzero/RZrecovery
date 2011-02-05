@@ -5,240 +5,86 @@
 #include "roots.h"
 #include "recovery_ui.h"
 
-void wipe_all(int confirm) {
+void wipe_partition(int confirm, char* title, char* operation, char* partition) {
     if (confirm) {
         static char** title_headers = NULL;
 
         if (title_headers == NULL) {
-            char* headers[] = { "Confirm complete wipe?",
-                                "THIS CAN NOT BE UNDONE.",
+            char* headers[] = { title,
+                                "THIS CAN NOT BE UNDONE!",
                                 "",
                                 NULL };
             title_headers = prepend_title(headers);
         }
 
         char* items[] = { " No",
-                          " Yes -- Wipe EVERYTHING",
+						  " No",
+                          operation,
                           " No",
                           NULL };
 
         int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 1) {
+        if (chosen_item != 2) {
             return;
         }
     }
-	ui_print("\n-- Wiping System...\n");
-    erase_root("SYSTEM:");
-    ui_print("System wipe complete.\n");
-    ui_print("\n-- Wiping data...\n");
-    erase_root("DATA:");
-	write_rgb();
-	read_rgb();
-    ui_print("Data wipe complete.\n");
-    ui_print("\n-- Wiping boot...\n");
-    erase_root("BOOT:");
-    ui_print("Boot wipe complete.\n");
-	ui_print("\n-- Wiping cache...\n");
-    erase_root("CACHE:");
-    ui_print("Misc wipe complete.\n");
-    ui_print("\n-- Wiping misc...\n");
-    erase_root("MISC:");
-    ui_print("Misc wipe complete.\n");
-	ui_print("Device completely wiped.\n\n");
-	ui_print("All that remains is RZR.\n");
-}
-
-void wipe_systemp(int confirm) {
-    if (confirm) {
-        static char** title_headers = NULL;
-
-        if (title_headers == NULL) {
-            char* headers[] = { "Confirm wipe of system?",
-                                "THIS CAN NOT BE UNDONE.",
-                                "",
-                                NULL };
-            title_headers = prepend_title(headers);
-        }
-
-        char* items[] = { " No",
-                          " Yes -- Wipe system",
-                          " No",
-                          NULL };
-
-        int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 1) {
-            return;
-        }
-    }
-    ui_print("\n-- Wiping system...\n");
-    erase_root("SYSTEM:");
-    ui_print("System wipe complete.\n");
-}
-
-void wipe_datap(int confirm) {
-    if (confirm) {
-        static char** title_headers = NULL;
-
-        if (title_headers == NULL) {
-            char* headers[] = { "Confirm wipe of data?",
-                                "THIS CAN NOT BE UNDONE.",
-                                "",
-                                NULL };
-            title_headers = prepend_title(headers);
-        }
-
-        char* items[] = { " No",
-                          " Yes -- wipe data", 
-                          " No",
-                          NULL };
-
-        int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 1) {
-            return;
-        }
-    }
-    ui_print("\n-- Wiping data...\n");
-    erase_root("DATA:");
-	write_rgb();
-	read_rgb();
-    ui_print("Data wipe complete.\n");
-}
-
-void wipe_bootp(int confirm) {
-    if (confirm) {
-        static char** title_headers = NULL;
-
-        if (title_headers == NULL) {
-            char* headers[] = { "Confirm wipe of boot?",
-                                "THIS CAN NOT BE UNDONE.",
-                                "",
-                                NULL };
-            title_headers = prepend_title(headers);
-        }
-
-        char* items[] = { " No",
-                          " Yes -- Wipe boot",
-                          " No",
-                          NULL };
-
-        int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 1) {
-            return;
-        }
-    }
-    ui_print("\n-- Wiping boot...\n");
-    erase_root("BOOT:");
-    ui_print("Boot wipe complete.\n");
-}
-
-void wipe_cachep(int confirm) {
-    if (confirm) {
-        static char** title_headers = NULL;
-
-        if (title_headers == NULL) {
-            char* headers[] = { "Confirm wipe of cache?",
-                                "THIS CAN NOT BE UNDONE.",
-                                "",
-                                NULL };
-            title_headers = prepend_title(headers);
-        }
-
-        char* items[] = { " No",
-                          " Yes -- Wipe cache",
-                          " No",
-                          NULL };
-
-        int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 1) {
-            return;
-        }
-    }
-    ui_print("\n-- Wiping cache...\n");
-    erase_root("CACHE:");
-    ui_print("Cache wipe complete.\n");
-}
-
-void wipe_miscp(int confirm) {
-    if (confirm) {
-        static char** title_headers = NULL;
-
-        if (title_headers == NULL) {
-            char* headers[] = { "Confirm wipe of misc?",
-                                "THIS CAN NOT BE UNDONE.",
-                                "",
-                                NULL };
-            title_headers = prepend_title(headers);
-        }
-
-        char* items[] = { " No",
-                          " Yes -- Wipe misc",
-                          " No",
-                          NULL };
-
-        int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 1) {
-            return;
-        }
-    }
-    ui_print("\n-- Wiping misc...\n");
-    erase_root("MISC:");
-    ui_print("Misc wipe complete.\n");
-}
-
-void wipe_batts(int confirm) {
-    if (confirm) {
-        static char** title_headers = NULL;
-
-        if (title_headers == NULL) {
-            char* headers[] = { "Confirm wipe of battery stats?",
-                                "THIS CAN NOT BE UNDONE.",
-                                "",
-                                NULL };
-            title_headers = prepend_title(headers);
-        }
-
-        char* items[] = { " No",
-                          " Yes -- Wipe battery stats",
-                          " No",
-                          NULL };
-
-        int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 1) {
-            return;
-        }
-    }
-		ui_print("\n-- Wiping battery stats...\n");
-		ensure_root_path_mounted("DATA:"); 
+	if( strcmp( partition, "system" ) == 0 ) {
+		ui_print("\n-- Wiping system...\n");
+		erase_root("SYSTEM:");
+		ui_print("System wipe complete.\n");
+	}
+	if( strcmp( partition, "data" ) == 0 ) {
+		ui_print("\n-- Wiping data...\n");
+		erase_root("DATA:");
+		ui_print("Data wipe complete.\n");
+	}
+	if( strcmp( partition, "boot" ) == 0 ) {
+		ui_print("\n-- Wiping boot...\n");
+		erase_root("BOOT:");
+		ui_print("Boot wipe complete.\n");
+	}
+	if( strcmp( partition, "cache" ) == 0 ) {
+		ui_print("\n-- Wiping cache...\n");
+		erase_root("CACHE:");
+		ui_print("Cache wipe complete.\n");
+	}
+	if( strcmp( partition, "misc" ) == 0 ) {
+		ui_print("\n-- Wiping misc...\n");
+		erase_root("MISC:");
+		ui_print("Misc wipe complete.\n");
+	}
+	if( strcmp( partition, "batts" ) == 0 ) {
+		ui_print("\n-- Wiping battery statistics...\n");
 		remove("/data/system/batterystats.bin");
-		ui_print("\n Battery Statistics cleared.\n");
-}
-
-void wipe_dc(int confirm) {
-    if (confirm) {
-        static char** title_headers = NULL;
-
-        if (title_headers == NULL) {
-            char* headers[] = { "Confirm wipe of dalvik-cache?",
-                                "THIS CAN NOT BE UNDONE.",
-                                "",
-                                NULL };
-            title_headers = prepend_title(headers);
-        }
-
-        char* items[] = { " No",
-                          " Yes -- Wipe dalvik-cache",
-                          " No",
-                          NULL };
-
-        int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 1) {
-            return;
-        }
-    }
+		ui_print("Battery stat wipe complete.\n");
+	}	
+	if( strcmp( partition, "dalvik-cache" ) == 0 ) {
 		ui_print("\n-- Wiping dalvik-cache...\n");
 		ensure_root_path_mounted("DATA:"); 
 		remove("/data/dalvik-cache/*");
 		ui_print("\n dalvik-cache cleared.\n");
+	}	
+	if( strcmp( partition, "all" ) == 0 ) {
+		ui_print("\n-- Wiping System...\n");
+		erase_root("SYSTEM:");
+		ui_print("System wipe complete.\n");
+		ui_print("\n-- Wiping data...\n");
+		erase_root("DATA:");
+		write_rgb();
+		read_rgb();
+		ui_print("Data wipe complete.\n");
+		ui_print("\n-- Wiping boot...\n");
+		erase_root("BOOT:");
+		ui_print("Boot wipe complete.\n");
+		ui_print("\n-- Wiping cache...\n");
+		erase_root("CACHE:");
+		ui_print("Misc wipe complete.\n");
+		ui_print("\n-- Wiping misc...\n");
+		erase_root("MISC:");
+		ui_print("Misc wipe complete.\n");
+		ui_print("Device completely wiped.\n\n");
+		ui_print("All that remains is RZR.\n");
+	}
 }
 
 void show_wipe_menu()
@@ -277,34 +123,35 @@ int chosen_item = -1;
         switch (chosen_item) {
 		
 	case WIPE_ALL:
-		wipe_all(ui_text_visible());
+		wipe_partition(ui_text_visible(), "Wipe entire device?", "Yes - wipe EVERYTHING", "all");
 		break;
 		
 	case WIPE_SYSTEM:
-		wipe_systemp(ui_text_visible());
+		wipe_partition(ui_text_visible(), "Wipe system?", "Yes - wipe SYSTEM", "system");
 		break;
 		
 	case WIPE_DATA:
-		wipe_datap(ui_text_visible());
+		wipe_partition(ui_text_visible(), "Wipe data?", "Yes - wipe DATA", "data");
 		break;
 		
 	case WIPE_BOOT:
-		wipe_bootp(ui_text_visible());
+		wipe_partition(ui_text_visible(), "Wipe boot?", "Yes - wipe BOOT", "boot");
 	    break;	
 
 	case WIPE_CACHE:    
-		wipe_cachep(ui_text_visible());
+		wipe_partition(ui_text_visible(), "Wipe cache?", "Yes - wipe CACHE", "cache");
 	    break;
 		
 	case WIPE_MISC:
-		wipe_miscp(ui_text_visible());
+		wipe_partition(ui_text_visible(), "Wipe misc?", "Yes - wipe MISC", "misc");
 	    break;
 
 	case WIPE_BATT:
-		wipe_batts(ui_text_visible());
+		wipe_partition(ui_text_visible(), "Wipe battery stats?", "Yes - wipe BATTERY STATS", "batts");
 	    break;
+		
 	case WIPE_DK:
-		wipe_dc(ui_text_visible());
+		wipe_partition(ui_text_visible(), "Wipe dalvik cache?", "Yes - wipe DALVIK-CACHE", "dalvik-cache");
 	    break;
         }
     }
