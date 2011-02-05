@@ -39,23 +39,42 @@ void flashlight() {
     int status = runve("/sbin/flashlight",argv,envp,1);
 }
 
+void root_menu(int confirm) {
+    if (confirm) {
+        static char** title_headers = NULL;
 
-void act_root() {
-    char* argv[] = { "/sbin/actroot",
+        if (title_headers == NULL) {
+            char* headers[] = { "ROOT installed ROM?",
+								" ",
+                                "Rooting without the superuser app to keep apps",
+                                "in check is dangerous! It is STRONGLY",
+								"recommended to install the superuser app from",
+								"the market! (by ChainsDD)",
+								" ",
+                                NULL };
+            title_headers = prepend_title(headers);
+        }
+
+        char* items[] = { " No",
+                          " OK, give me root!",
+                          NULL };
+
+        int chosen_item = get_menu_selection(title_headers, items, 1, 0);
+        if (chosen_item != 1) {
+            return;
+        }
+    }
+	char* argv[] = { "/sbin/actroot",
 	NULL };
 
     char* envp[] = { NULL };
-  
-    int status = runve("/sbin/actroot",argv,envp,1);
-	return;
-}
-
-void disable_FRS() {
+	
 	ensure_root_path_mounted("SYSTEM:");
 	remove("/system/recovery-from-boot.p");
-	ui_print("\nFlash Recovery Service disabled");
-}
-
+    int status = runve("/sbin/actroot",argv,envp,1);
+	ui_print("\nFlash Recovery Service disabled.\n");
+	}
+	
 void show_options_menu()
 {
     static char* headers[] = { "Extras",
@@ -63,20 +82,18 @@ void show_options_menu()
 			       "",
 			       NULL };
 
-    char* items[] = { "Colors",
+    char* items[] = { "Custom Colors",
 				"Disable OTA updating",
 				"Show Battery Status",
 				"Toggle Flashlight",
-				"Activate root access in ROM",
-				"Disable Flash Recovery Service",
+				"Activate Root Access in ROM",
 		      NULL };
 			  
 #define COLORS         0
 #define OTA			   1
 #define BATT		   2
 #define FLASHLIGHT     3
-#define ACTROOT		   4
-#define FRS			   5
+#define ROOT_MENU	   4
 
 
 int chosen_item = -1;
@@ -98,11 +115,8 @@ int chosen_item = -1;
 	case FLASHLIGHT:
 		flashlight();
 		break;
-	case ACTROOT:
-		act_root();
-		break;
-	case FRS:
-		disable_FRS();
+	case ROOT_MENU:
+		root_menu(ui_text_visible());
 		break;
         }
     }
