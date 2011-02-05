@@ -11,7 +11,7 @@ void wipe_partition(int confirm, char* title, char* operation, char* partition) 
 
         if (title_headers == NULL) {
             char* headers[] = { title,
-                                "THIS CAN NOT BE UNDONE!",
+                                "THIS CANNOT BE UNDONE!",
                                 "",
                                 NULL };
             title_headers = prepend_title(headers);
@@ -77,6 +77,8 @@ void wipe_partition(int confirm, char* title, char* operation, char* partition) 
 		erase_root("BOOT:");
 		ui_print("Boot wipe complete.\n");
 		ui_print("\n-- Wiping cache...\n");
+		write_rgb();
+		read_rgb();
 		erase_root("CACHE:");
 		ui_print("Misc wipe complete.\n");
 		ui_print("\n-- Wiping misc...\n");
@@ -123,35 +125,35 @@ int chosen_item = -1;
         switch (chosen_item) {
 		
 	case WIPE_ALL:
-		wipe_partition(ui_text_visible(), "Wipe entire device?", "Yes - wipe EVERYTHING", "all");
+		wipe_partition(ui_text_visible(), "Are you sure?", "Yes - wipe EVERYTHING", "all");
 		break;
 		
 	case WIPE_SYSTEM:
-		wipe_partition(ui_text_visible(), "Wipe system?", "Yes - wipe SYSTEM", "system");
+		wipe_partition(ui_text_visible(), "Are you sure?", "Yes - wipe SYSTEM", "system");
 		break;
 		
 	case WIPE_DATA:
-		wipe_partition(ui_text_visible(), "Wipe data?", "Yes - wipe DATA", "data");
+		wipe_partition(ui_text_visible(), "Are you sure?", "Yes - wipe DATA", "data");
 		break;
 		
 	case WIPE_BOOT:
-		wipe_partition(ui_text_visible(), "Wipe boot?", "Yes - wipe BOOT", "boot");
+		wipe_partition(ui_text_visible(), "Are you sure?", "Yes - wipe BOOT", "boot");
 	    break;	
 
 	case WIPE_CACHE:    
-		wipe_partition(ui_text_visible(), "Wipe cache?", "Yes - wipe CACHE", "cache");
+		wipe_partition(ui_text_visible(), "Are you sure?", "Yes - wipe CACHE", "cache");
 	    break;
 		
 	case WIPE_MISC:
-		wipe_partition(ui_text_visible(), "Wipe misc?", "Yes - wipe MISC", "misc");
+		wipe_partition(ui_text_visible(), "Are you sure?", "Yes - wipe MISC", "misc");
 	    break;
 
 	case WIPE_BATT:
-		wipe_partition(ui_text_visible(), "Wipe battery stats?", "Yes - wipe BATTERY STATS", "batts");
+		wipe_partition(ui_text_visible(), "Are you sure?", "Yes - wipe BATTERY STATS", "batts");
 	    break;
 		
 	case WIPE_DK:
-		wipe_partition(ui_text_visible(), "Wipe dalvik cache?", "Yes - wipe DALVIK-CACHE", "dalvik-cache");
+		wipe_partition(ui_text_visible(), "Are you sure?", "Yes - wipe DALVIK-CACHE", "dalvik-cache");
 	    break;
         }
     }
