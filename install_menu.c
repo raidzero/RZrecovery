@@ -516,7 +516,8 @@ path = replace_str(filename, "/sdcard/", "SDCARD:");
 	nandroid_backup("preinstall",BSD|PROGRESS);
     }
 	ui_print("\nWould you like to wipe /data?\n");
-	wipe_partition(ui_text_visible(), "(In case this is a ROM)", "Yes - wipe DATA", "data");
+	ui_print("(In case this is a ROM)\n");
+	wipe_partition(ui_text_visible(), "Are you sure?", "Yes - wipe DATA", "data");
     ui_print("\n-- Install update.zip from sdcard...\n");
 	    set_sdcard_update_bootloader_message();
 		ui_print("Attempting update from...\n");
