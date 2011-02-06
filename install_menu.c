@@ -196,7 +196,7 @@ void show_choose_zip_menu(char* sdpath)
 	while (chosen_item < 0) {
 	    chosen_item = get_menu_selection(headers, list, 1, chosen_item<0?0:chosen_item);
 	    if (chosen_item >= 0 && chosen_item != ITEM_BACK) {
-		install_update_zip(files[chosen_item]);
+		preinstall_menu(files[chosen_item]);
 	    }
 	}
     }
@@ -502,48 +502,72 @@ int install_rec_img(char* filename) {
 	return 0;
 }
 
+void preinstall_menu(char* filename) {
+    char* headers[] = { "Preinstall Menu",
+			"Choose options and select filename to install.",
+			" ",
+			NULL };
+  
+    char* items[] = { "Abort Install",
+			  "Preinstall Backup",
+			  "Wipe /data",
+			  filename,
+		      NULL };
+#define ITEM_NO 		0
+#define ITEM_BACKUP 	1
+#define ITEM_WIPE 		2
+#define ITEM_INSTALL 	3
+
+		int chosen_item = -1;
+			while (chosen_item != ITEM_BACK) {
+			chosen_item = get_menu_selection(headers,items,1,chosen_item<0?0:chosen_item);
+			switch(chosen_item) {
+				case ITEM_NO:
+				chosen_item = ITEM_BACK;
+				return;
+			case ITEM_BACKUP:
+				ui_print("Backing up before installing...\n");
+				nandroid_backup("preinstall",BSD|PROGRESS);
+				break;
+			case ITEM_WIPE:
+				wipe_partition(ui_text_visible(), "Are you sure?", "Yes - wipe DATA", "data");
+				break;
+			case ITEM_INSTALL:
+				install_update_zip(filename);
+				break;
+			}
+		}
+}
 	
 int install_update_zip(char* filename) {
 
-char *path = NULL;
+	char *path = NULL;
 
-puts(filename);
-//path = replace(filename, "/sdcard/", "SDCARD:");
-path = replace_str(filename, "/sdcard/", "SDCARD:");
-	if (ui_key_pressed(KEY_SPACE)) {
-	ui_print("Backing up before installing...\n");
-
-	nandroid_backup("preinstall",BSD|PROGRESS);
-    }
-	ui_print("\nWould you like to wipe /data?\n");
-	ui_print("(In case this is a ROM)\n");
-	wipe_partition(ui_text_visible(), "Are you sure?", "Yes - wipe DATA", "data");
-    ui_print("\n-- Install update.zip from sdcard...\n");
-	    set_sdcard_update_bootloader_message();
-		ui_print("Attempting update from...\n");
-		ui_print(filename);
-		ui_print("\n");
-		ui_print(path);
-		ui_print("\n");
-	    int status = install_package(path);
-	    if (status != INSTALL_SUCCESS) {
+	puts(filename);
+	path = replace_str(filename, "/sdcard/", "SDCARD:");
+	ui_print("\n-- Install update.zip from sdcard...\n");
+	set_sdcard_update_bootloader_message();
+	ui_print("Attempting update from...\n");
+	ui_print(filename);
+	ui_print("\n");
+	ui_print(path);
+	ui_print("\n");
+	int status = install_package(path);
+	if (status != INSTALL_SUCCESS) {
 		ui_set_background(BACKGROUND_ICON_ERROR);
 		ui_print("Installation aborted.\n");
-	    } else if (!ui_text_visible()) {
+	} else if (!ui_text_visible()) {
 		return 0;  // reboot if logs aren't visible
-	    } else {
-		if (firmware_update_pending()) {
-		    ui_print("\nReboot via menu to complete\n"
-			     "installation.\n");
-		} else {
-		    ui_print("\nInstall from sdcard complete.\n");
-			ui_print("\nThanks for using RZrecovery.\n");
+	} else {
+	if (firmware_update_pending()) {
+	    ui_print("\nReboot via menu to complete\ninstallation.\n");
+	} else {
+	    ui_print("\nInstall from sdcard complete.\n");
+		ui_print("\nThanks for using RZrecovery.\n");
 		}
-	    }
+	}   
 	return 0;
 }
-
-
 
 void show_install_menu()
 {
