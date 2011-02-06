@@ -40,8 +40,9 @@ int device_handle_key(int key_code, int visible) {
 	    return HIGHLIGHT_UP;
 
 	case KEY_ENTER:
-	case KEY_HP: // this is the camera key's first level of being pressed
+	//case KEY_HP: // this is the camera key's first level of being pressed
 	case KEY_CENTER:
+	case KEY_CAMERA:
 	    return SELECT_ITEM;
 
 	case KEY_END: // This is actually the power button!

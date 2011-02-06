@@ -93,6 +93,7 @@ void show_colors_menu() {
 				"Red",
 				"Smoked",
 				"Yellow",
+				"Gold",
 				"Manual",
 		      NULL };
 			  
@@ -106,7 +107,8 @@ void show_colors_menu() {
 #define RED				7
 #define SMOKED			8
 #define YELLOW			9
-#define MANUALD			10
+#define GOLD			10
+#define MANUALD			11
 
 int chosen_item = -1;
 
@@ -143,6 +145,9 @@ int chosen_item = -1;
 		break;
 	case YELLOW:
 		set_color(255,255,0);
+		break;
+	case GOLD:
+		set_color(255,204,102);
 		break;
 	case MANUALD:
 		set_manual_d();

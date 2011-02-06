@@ -141,16 +141,7 @@ void read_rgb() {
 		int status = runve("/sbin/busybox",argv,envp,1);
 	} else {
 		remove("/cache/rgb");
-		char red = 54;
-		char green = 74;
-		char blue = 255;
-		char text = 255;
-		FILE *fpm = fopen ("/cache/rgb", "wb");
-		fwrite(&red, 1, 1, fpm);
-		fwrite(&green, 1, 1, fpm);
-		fwrite(&blue, 1, 1, fpm);
-		fwrite(&text, 1, 1, fpm);
-		fclose(fpm);
+		set_color(54,74,255);
 	}
 	ensure_root_path_unmounted("DATA:");
 }
