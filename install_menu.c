@@ -101,7 +101,7 @@ void choose_file_menu(char* sdpath, char* ext1, char *ext2, char* ext3, char* ex
     }
     //count the nummber of valid files:
     while ((de=readdir(dir)) != NULL) {
-	if ((de->d_name[0] == '.' && de->d_name[1] == '.') || /*(dir_contains_files(de->d_name) != 0) ||*/ (strcmp(de->d_name+strlen(de->d_name)-ext1_l,ext1)==0 || strcmp(de->d_name+strlen(de->d_name)-ext2_l,ext2)==0) || strcmp(de->d_name+strlen(de->d_name)-ext3_l,ext3)==0 || strcmp(de->d_name+strlen(de->d_name)-ext4_l,ext4)==0 || strcmp(de->d_name+strlen(de->d_name)-ext5_l,ext5)==0) {
+	if ((de->d_name[0] == '.' && de->d_name[1] == '.') || (dir_contains_files(de->d_name) == 1) || (strcmp(de->d_name+strlen(de->d_name)-ext1_l,ext1)==0 || strcmp(de->d_name+strlen(de->d_name)-ext2_l,ext2)==0) || strcmp(de->d_name+strlen(de->d_name)-ext3_l,ext3)==0 || strcmp(de->d_name+strlen(de->d_name)-ext4_l,ext4)==0 || strcmp(de->d_name+strlen(de->d_name)-ext5_l,ext5)==0) {
 			total++;
 		}
 	}
@@ -125,7 +125,7 @@ void choose_file_menu(char* sdpath, char* ext1, char *ext2, char* ext3, char* ex
 		i = 0;
 		while ((de = readdir(dir)) != NULL) {
 			//display valid files
-			if ( (de->d_name[0] == '.' && de->d_name[1] == '.') || /*(dir_contains_files(de->d_name) == 1) ||*/ (strcmp(de->d_name+strlen(de->d_name)-ext1_l,ext1)==0 || strcmp(de->d_name+strlen(de->d_name)-ext2_l,ext2)==0) || strcmp(de->d_name+strlen(de->d_name)-ext3_l,ext3)==0 || strcmp(de->d_name+strlen(de->d_name)-ext4_l,ext4)==0 || strcmp(de->d_name+strlen(de->d_name)-ext5_l,ext5)==0) {
+			if ( (de->d_name[0] == '.' && de->d_name[1] == '.') || (dir_contains_files(de->d_name) == 1) || (strcmp(de->d_name+strlen(de->d_name)-ext1_l,ext1)==0 || strcmp(de->d_name+strlen(de->d_name)-ext2_l,ext2)==0) || strcmp(de->d_name+strlen(de->d_name)-ext3_l,ext3)==0 || strcmp(de->d_name+strlen(de->d_name)-ext4_l,ext4)==0 || strcmp(de->d_name+strlen(de->d_name)-ext5_l,ext5)==0) {
 				files[i] = (char*) malloc(strlen(sdpath)+strlen(de->d_name)+1);
 				strcpy(files[i], sdpath);
 				strcat(files[i], de->d_name);
