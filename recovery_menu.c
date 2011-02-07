@@ -105,7 +105,7 @@ void prompt_and_wait() {
 	    show_nandroid_menu();
 	    break;
 	case ITEM_INSTALL:
-	    show_install_menu();
+	    choose_file_menu("/sdcard/", ".zip", ".tgz", ".tar", "rec.img", "boot.img");
 	    break;
 	case ITEM_OPTIONS:
 		show_options_menu();
