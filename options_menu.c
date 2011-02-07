@@ -36,7 +36,7 @@ void flashlight() {
 
     char* envp[] = { NULL };
   
-    int status = runve("/sbin/flashlight",argv,envp,1);
+	int status = runve("/sbin/flashlight",argv,envp,1); 	
 }
 
 void root_menu(int confirm) {

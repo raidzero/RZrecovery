@@ -270,7 +270,11 @@ install_package(const char *root_path)
 	//VERIFICATION_PROGRESS_FRACTION,
 	//VERIFICATION_PROGRESS_TIME);
 
-    
+	
+	if (!access("/block_update",F_OK)) {
+		LOGE("update.zip install blocked\n");
+        return INSTALL_CORRUPT;
+    }    
 
     /* Try to open the package.
      */

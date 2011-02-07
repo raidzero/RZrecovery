@@ -39,6 +39,35 @@ char *replace_str(char *str, char *orig, char *rep) // Helper function - search 
   return buffer;
 }
 
+int dir_contains_files(char* sdpath) {
+	char path[PATH_MAX] = "";
+    DIR *dir;
+    struct dirent *de;
+    int total = 0;
+    int i;
+    char** files;
+    char** list;
+	
+	dir = opendir(sdpath);
+    if (dir == NULL) {
+		return 0;
+    }
+    while ((de=readdir(dir)) != NULL) {
+	if (de->d_name[0] != '.' && (strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0 || strcmp(de->d_name+strlen(de->d_name)-4,"tar")==0) || strcmp(de->d_name+strlen(de->d_name)-4,"tgz")==0 || strcmp(de->d_name+strlen(de->d_name)-7,"rec.img")==0 || strcmp(de->d_name+strlen(de->d_name)-8,"boot.img")==0) {
+			total++;
+		}
+	}	
+    if (total == 0) { // no usable files found in dir
+		if(closedir(dir) < 0) { 
+			return 0;
+		}
+		return 0;
+    } 
+	if (total > 0) {
+		return 1; //dir does contain usable files
+	}
+	return 0;
+}
 void choose_file_menu(char* sdpath, char* ext1, char *ext2, char* ext3, char* ext4, char* ext5)
 {
 	int ext1_l = strlen(ext1);
@@ -70,9 +99,9 @@ void choose_file_menu(char* sdpath, char* ext1, char *ext2, char* ext3, char* ex
 		LOGE("Please make sure it exists!");
 		return;
     }
-    
+    //count the nummber of valid files:
     while ((de=readdir(dir)) != NULL) {
-	if ((de->d_name[0] == '.' && de->d_name[1] == '.') || (opendir(de->d_name) != NULL) || (strcmp(de->d_name+strlen(de->d_name)-ext1_l,ext1)==0 || strcmp(de->d_name+strlen(de->d_name)-ext2_l,ext2)==0) || strcmp(de->d_name+strlen(de->d_name)-ext3_l,ext3)==0 || strcmp(de->d_name+strlen(de->d_name)-ext4_l,ext4)==0 || strcmp(de->d_name+strlen(de->d_name)-ext5_l,ext5)==0) {
+	if ((de->d_name[0] == '.' && de->d_name[1] == '.') || /*(dir_contains_files(de->d_name) != 0) ||*/ (strcmp(de->d_name+strlen(de->d_name)-ext1_l,ext1)==0 || strcmp(de->d_name+strlen(de->d_name)-ext2_l,ext2)==0) || strcmp(de->d_name+strlen(de->d_name)-ext3_l,ext3)==0 || strcmp(de->d_name+strlen(de->d_name)-ext4_l,ext4)==0 || strcmp(de->d_name+strlen(de->d_name)-ext5_l,ext5)==0) {
 			total++;
 		}
 	}
@@ -84,8 +113,7 @@ void choose_file_menu(char* sdpath, char* ext1, char *ext2, char* ext3, char* ex
 			LOGE("Failed to close directory\n");
 	    return;
 		}
-    }
-    else {
+    } else {
 		files = (char**) malloc((total+1)*sizeof(char*));
 		files[total]=NULL;
 
@@ -96,7 +124,8 @@ void choose_file_menu(char* sdpath, char* ext1, char *ext2, char* ext3, char* ex
 
 		i = 0;
 		while ((de = readdir(dir)) != NULL) {
-			if ((de->d_name[0] == '.' && de->d_name[1] == '.') || (opendir(de->d_name) != NULL) || (strcmp(de->d_name+strlen(de->d_name)-ext1_l,ext1)==0 || strcmp(de->d_name+strlen(de->d_name)-ext2_l,ext2)==0) || strcmp(de->d_name+strlen(de->d_name)-ext3_l,ext3)==0 || strcmp(de->d_name+strlen(de->d_name)-ext4_l,ext4)==0 || strcmp(de->d_name+strlen(de->d_name)-ext5_l,ext5)==0) {
+			//display valid files
+			if ( (de->d_name[0] == '.' && de->d_name[1] == '.') || /*(dir_contains_files(de->d_name) == 1) ||*/ (strcmp(de->d_name+strlen(de->d_name)-ext1_l,ext1)==0 || strcmp(de->d_name+strlen(de->d_name)-ext2_l,ext2)==0) || strcmp(de->d_name+strlen(de->d_name)-ext3_l,ext3)==0 || strcmp(de->d_name+strlen(de->d_name)-ext4_l,ext4)==0 || strcmp(de->d_name+strlen(de->d_name)-ext5_l,ext5)==0) {
 				files[i] = (char*) malloc(strlen(sdpath)+strlen(de->d_name)+1);
 				strcpy(files[i], sdpath);
 				strcat(files[i], de->d_name);
@@ -161,6 +190,7 @@ void install_update_package(char* filename) {
 	char* rec_extension = (filename+strlen(filename)-7);
 	if (strcmp(extension, "zip") == 0 ) {
 		ui_print("\nZIP detected.\n");
+		remove("/block_update");
 		install_update_zip(filename);
 	} 
 	if (strcmp(extension, "tar") == 0 || strcmp(extension, "tgz") == 0 ) { 
@@ -181,7 +211,7 @@ void install_update_package(char* filename) {
 int install_update_zip(char* filename) {
 
 	char *path = NULL;
-
+	
 	puts(filename);
 	path = replace_str(filename, "/sdcard/", "SDCARD:");
 	ui_print("\n-- Install update.zip from sdcard...\n");
