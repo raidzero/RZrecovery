@@ -15,7 +15,7 @@ void set_color(char red, char green, char blue) {
 	} else { 
 		txt = 255;
 	}
-	FILE *fp = fopen ("/cache/rgb", "wb");
+	FILE *fp = fopen ("/sdcard/RZR/rgb", "wb");
 	fwrite(&red, 1, 1, fp);
 	fwrite(&green, 1, 1, fp);
 	fwrite(&blue, 1, 1, fp);
@@ -34,7 +34,7 @@ void set_random() {
 		txt = 255;
 	}
 	
-	FILE *fp = fopen ("/cache/rgb", "wb");
+	FILE *fp = fopen ("/sdcard/RZR/rgb", "wb");
 	fwrite(&cR, 1, 1, fp);
 	fwrite(&cG, 1, 1, fp);
 	fwrite(&cB, 1, 1, fp);

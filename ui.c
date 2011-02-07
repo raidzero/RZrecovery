@@ -183,16 +183,17 @@ static void draw_screen_locked(void)
 	//define menu highlight text color
 	int txt;
 	
-	ensure_root_path_mounted("CACHE:");
+	ensure_root_path_mounted("SDCARD:");
 	
-	if( access("/cache/rgb", F_OK ) != -1 ) {
-		FILE *fp = fopen ("/cache/rgb", "rb");
+	if( access("/sdcard/RZR/rgb", F_OK ) != -1 ) {
+		FILE *fp = fopen ("/sdcard/RZR/rgb", "rb");
 		fread(&cRv, 1, 1, fp);
 		fread(&cGv, 1, 1, fp);
 		fread(&cBv, 1, 1, fp);
 		fread(&txt, 1, 1, fp);
 		fclose(fp);	
 	} else {
+		mkdir("/sdcard/RZR");
 		set_color(54,74,255);
 	}
 	
