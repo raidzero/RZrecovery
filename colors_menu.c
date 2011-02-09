@@ -153,6 +153,7 @@ int chosen_item = -1;
 		break;
 	case WHITE:
 		set_color(255,255,255);
+		break;
 	case MANUALD:
 		set_manual_d();
 		break;
