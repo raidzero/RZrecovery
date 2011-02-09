@@ -15,7 +15,7 @@ void set_color(char red, char green, char blue) {
 	} else { 
 		txt = 255;
 	}
-	FILE *fp = fopen ("/sdcard/RZR/rgb", "wb");
+	FILE *fp = fopen ("/cache/rgb", "wb");
 	fwrite(&red, 1, 1, fp);
 	fwrite(&green, 1, 1, fp);
 	fwrite(&blue, 1, 1, fp);
@@ -34,7 +34,7 @@ void set_random() {
 		txt = 255;
 	}
 	
-	FILE *fp = fopen ("/sdcard/RZR/rgb", "wb");
+	FILE *fp = fopen ("/cache/rgb", "wb");
 	fwrite(&cR, 1, 1, fp);
 	fwrite(&cG, 1, 1, fp);
 	fwrite(&cB, 1, 1, fp);
@@ -94,6 +94,7 @@ void show_colors_menu() {
 				"Smoked",
 				"Yellow",
 				"Gold",
+				"White",
 				"Manual",
 		      NULL };
 			  
@@ -108,7 +109,8 @@ void show_colors_menu() {
 #define SMOKED			8
 #define YELLOW			9
 #define GOLD			10
-#define MANUALD			11
+#define WHITE			11
+#define MANUALD			12
 
 int chosen_item = -1;
 
@@ -149,6 +151,8 @@ int chosen_item = -1;
 	case GOLD:
 		set_color(255,204,102);
 		break;
+	case WHITE:
+		set_color(255,255,255);
 	case MANUALD:
 		set_manual_d();
 		break;
