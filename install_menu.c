@@ -17,13 +17,6 @@
 
 #include "nandroid_menu.h"
 
-void append(char* s, char c) //Helper function - used to append a character to a string
-{
-        int len = strlen(s); //len=length of string s
-        s[len] = c; // the last character of s = char c
-        s[len+1] = '\0'; // the last character of s + 1 = '\0'
-}
-
 char *replace_str(char *str, char *orig, char *rep) // Helper function - search and replace within in string
 {
   static char buffer[4096];
@@ -40,8 +33,7 @@ char *replace_str(char *str, char *orig, char *rep) // Helper function - search 
   return buffer;
 }
 
-void choose_file_menu(char* sdpath, char* ext1, char *ext2, char* ext3, char* ext4, char* ext5)
-{
+void choose_file_menu(char* sdpath) {
     static char* headers[] = { "Choose item or press POWER to return",
 			       "",
 			       NULL };
@@ -84,8 +76,8 @@ void choose_file_menu(char* sdpath, char* ext1, char *ext2, char* ext3, char* ex
 			if (strcmp(de->d_name+strlen(de->d_name)-8,"boot.img")==0) {
 				total++;
 			}
-			}
 		}
+	}
 
     if (total==0) {
 		LOGE("No valid files found!\n");
@@ -105,8 +97,7 @@ void choose_file_menu(char* sdpath, char* ext1, char *ext2, char* ext3, char* ex
 		i = 0;
 		while ((de = readdir(dir)) != NULL) {
 			//display valid files
-			if (de->d_name[0] != '.' && de->d_type == DT_DIR || (de->d_type == DT_REG && (strcmp(de->d_name+strlen(de->d_name)-strlen(ext1),ext1)==0 || strcmp(de->d_name+strlen(de->d_name)-strlen(ext2),ext2)==0 || strcmp(de->d_name+strlen(de->d_name)-strlen(ext3),ext3)==0 || strcmp(de->d_name+strlen(de->d_name)-strlen(ext4),ext4)==0 || strcmp(de->d_name+strlen(de->d_name)-strlen(ext5),ext5)==0) || strcmp(de->d_name,"..") == 0 )) {
-
+			if (((de->d_name[0] != '.') != 0 || de->d_name[1] != '.') && de->d_type == DT_DIR || (de->d_type == DT_REG && (strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".tar")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".tgz")==0 || strcmp(de->d_name+strlen(de->d_name)-7,"rec.img")==0 || strcmp(de->d_name+strlen(de->d_name)-8,"boot.img")==0) || strcmp(de->d_name,"..") == 0 )) {
 				
 				files[i] = (char*) malloc(strlen(sdpath)+strlen(de->d_name)+1);
 				strcpy(files[i], sdpath);
@@ -114,7 +105,7 @@ void choose_file_menu(char* sdpath, char* ext1, char *ext2, char* ext3, char* ex
 				list[i] = (char*) malloc(strlen(de->d_name)+1);
 				
 				if (de->d_type == DT_DIR) { //if is a dir, add / to it
-					append(de->d_name, '/');
+					strcat(de->d_name, "/");
 				}
 				strcpy(list[i], de->d_name);				
 					i++;				
@@ -129,16 +120,15 @@ void choose_file_menu(char* sdpath, char* ext1, char *ext2, char* ext3, char* ex
 		int chosen_item = -1;
 		while (chosen_item < 0) {
 			chosen_item = get_menu_selection(headers, list, 1, chosen_item<0?0:chosen_item);
-			if (chosen_item >= 0 && chosen_item != ITEM_BACK ) {				
+			if (chosen_item >= 0 && chosen_item != ITEM_BACK ) {
 				if (opendir(files[chosen_item]) == NULL) {
 					preinstall_menu(files[chosen_item]);
-				} 
-				if (opendir(files[chosen_item]) != NULL) {	
+				}
+				if (opendir(files[chosen_item]) != NULL) { 					
 					char actualpath[PATH_MAX];
-					char* folder;
-					folder = realpath(files[chosen_item], actualpath);
-					append(folder, '/');
-					choose_file_menu(folder, ".zip", ".tar", ".tgz", "boot.img", "rec.img");
+					char* folder = realpath(files[chosen_item], actualpath);
+					strcat(folder, "/"); //append "/" to end 
+					choose_file_menu(folder);			 
 				} 
 			} 
 		} 
@@ -245,6 +235,12 @@ int install_rom_from_tar(char* filename)
 }
 
 void preinstall_menu(char* filename) {
+
+	char *updatename = NULL;
+	char* file = strtok(updatename,"/");
+	strcat("Install ", file);
+	ui_print(file);
+
 
     char* headers[] = { "Preinstall Menu",
 			"Choose options and select filename to install.",
