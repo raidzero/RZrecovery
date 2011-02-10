@@ -236,21 +236,20 @@ int install_rom_from_tar(char* filename)
 
 void preinstall_menu(char* filename) {
 
-	//char *updatename = NULL;
-	//char* file = strtok(updatename,"/");
-	//strcat("Install ", file);
-	//ui_print(file);
-
-
+	char* basename = strrchr(filename, '/') +1;
+	char install_string[PATH_MAX];
+	strcpy(install_string, "Install ");
+	strcat(install_string, basename);	
+	
     char* headers[] = { "Preinstall Menu",
-			"Choose options and select filename to install.",
+			"Please make your selections.",
 			" ",
 			NULL };
   
     char* items[] = { "Abort Install",
-			  "Perform Quick Backup",
+			  "Backup Before Install",
 			  "Wipe /data",
-			  filename,
+			  install_string,
 		      NULL };
 #define ITEM_NO 		0
 #define ITEM_BACKUP 	1
