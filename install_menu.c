@@ -139,8 +139,12 @@ void choose_file_menu(char* sdpath, char* ext1, char *ext2, char* ext3, char* ex
 				} 
 				if (opendir(files[chosen_item]) != NULL) {
 					folder = files[chosen_item];
-					append(folder, '/'); // add forward slash to string	
-					choose_file_menu(folder, ".zip", ".tar", ".tgz", "boot.img", "rec.img");
+					
+					char actualpath [PATH_MAX];
+					char *ptr;
+					ptr = realpath(folder, actualpath);
+					append(ptr, '/');
+					choose_file_menu(ptr, ".zip", ".tar", ".tgz", "boot.img", "rec.img");
 				} 
 			} 
 		} 
