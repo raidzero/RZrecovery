@@ -19,9 +19,9 @@
 
 void append(char* s, char c) //Helper function - used to append a character to a string
 {
-        int len = strlen(s);
-        s[len] = c;
-        s[len+1] = '\0';
+        int len = strlen(s); //len=length of string s
+        s[len] = c; // the last character of s = char c
+        s[len+1] = '\0'; // the last character of s + 1 = '\0'
 }
 
 char *replace_str(char *str, char *orig, char *rep) // Helper function - search and replace within in string
@@ -39,43 +39,6 @@ char *replace_str(char *str, char *orig, char *rep) // Helper function - search 
 
   return buffer;
 }
-
-/*int dir_contains_files(char* sdpath) {
-	char path[PATH_MAX] = "";
-    DIR *dir;
-    struct dirent *de;
-    int total = 0;
-    int i;
-    char** files;
-    char** list;
-	
-	dir = opendir(sdpath);
-    if (dir == NULL) {
-		return 0;
-    }
-    while ((de=readdir(dir)) != NULL) {
-		if (de->d_type == DT_DIR) {
-			total ++;
-		} else if (de->d_type == DT_REG) {
-			if (strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0) {
-				total++;
-			}
-			if (strcmp(de->d_name+strlen(de->d_name)-4,"tar")==0) {
-				total++;
-			}
-			if (strcmp(de->d_name+strlen(de->d_name)-4,"tgz")==0) {
-				total++;
-			}
-			if (strcmp(de->d_name+strlen(de->d_name)-7,"rec.img")==0) {
-				total++;
-			}
-			if (strcmp(de->d_name+strlen(de->d_name)-8,"boot.img")==0) {
-				total++;
-			}
-		}
-	}
-	return total;
-}*/
 
 void choose_file_menu(char* sdpath, char* ext1, char *ext2, char* ext3, char* ext4, char* ext5)
 {
@@ -124,11 +87,6 @@ void choose_file_menu(char* sdpath, char* ext1, char *ext2, char* ext3, char* ex
 			}
 		}
 
-	
-
-
-	
-
     if (total==0) {
 		LOGE("No valid files found!\n");
 		if(closedir(dir) < 0) {
@@ -147,7 +105,7 @@ void choose_file_menu(char* sdpath, char* ext1, char *ext2, char* ext3, char* ex
 		i = 0;
 		while ((de = readdir(dir)) != NULL) {
 			//display valid files
-			if (de->d_name[0] != '.' && de->d_type == DT_DIR || (de->d_type == DT_REG && (strcmp(de->d_name+strlen(de->d_name)-strlen(ext1),ext1)==0 || strcmp(de->d_name+strlen(de->d_name)-strlen(ext2),ext2)==0 || strcmp(de->d_name+strlen(de->d_name)-strlen(ext3),ext3)==0 || strcmp(de->d_name+strlen(de->d_name)-strlen(ext4),ext4)==0 || strcmp(de->d_name+strlen(de->d_name)-strlen(ext5),ext5)==0) )) {
+			if (de->d_name[0] != '.' && de->d_type == DT_DIR || (de->d_type == DT_REG && (strcmp(de->d_name+strlen(de->d_name)-strlen(ext1),ext1)==0 || strcmp(de->d_name+strlen(de->d_name)-strlen(ext2),ext2)==0 || strcmp(de->d_name+strlen(de->d_name)-strlen(ext3),ext3)==0 || strcmp(de->d_name+strlen(de->d_name)-strlen(ext4),ext4)==0 || strcmp(de->d_name+strlen(de->d_name)-strlen(ext5),ext5)==0) || strcmp(de->d_name,"..") == 0 )) {
 
 				
 				files[i] = (char*) malloc(strlen(sdpath)+strlen(de->d_name)+1);
@@ -175,14 +133,11 @@ void choose_file_menu(char* sdpath, char* ext1, char *ext2, char* ext3, char* ex
 			if (chosen_item == ITEM_BACK ) {
 				sdpath = "/sdcard/";
 			}
-			if (chosen_item >= 0 && chosen_item != ITEM_BACK ) {
-				
+			if (chosen_item >= 0 && chosen_item != ITEM_BACK ) {				
 				if (opendir(files[chosen_item]) == NULL) {
 					preinstall_menu(files[chosen_item]);
 				} 
 				if (opendir(files[chosen_item]) != NULL) {
-					ui_print(files[chosen_item]);
-					ui_print("\n");
 					folder = files[chosen_item];
 					append(folder, '/'); // add forward slash to string	
 					choose_file_menu(folder, ".zip", ".tar", ".tgz", "boot.img", "rec.img");
