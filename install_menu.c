@@ -128,23 +128,17 @@ void choose_file_menu(char* sdpath, char* ext1, char *ext2, char* ext3, char* ex
 
 		int chosen_item = -1;
 		while (chosen_item < 0) {
-			char* folder;
 			chosen_item = get_menu_selection(headers, list, 1, chosen_item<0?0:chosen_item);
-			if (chosen_item == ITEM_BACK ) {
-				sdpath = "/sdcard/";
-			}
 			if (chosen_item >= 0 && chosen_item != ITEM_BACK ) {				
 				if (opendir(files[chosen_item]) == NULL) {
 					preinstall_menu(files[chosen_item]);
 				} 
-				if (opendir(files[chosen_item]) != NULL) {
-					folder = files[chosen_item];
-					
-					char actualpath [PATH_MAX];
-					char *ptr;
-					ptr = realpath(folder, actualpath);
-					append(ptr, '/');
-					choose_file_menu(ptr, ".zip", ".tar", ".tgz", "boot.img", "rec.img");
+				if (opendir(files[chosen_item]) != NULL) {	
+					char actualpath[PATH_MAX];
+					char* folder;
+					folder = realpath(files[chosen_item], actualpath);
+					append(folder, '/');
+					choose_file_menu(folder, ".zip", ".tar", ".tgz", "boot.img", "rec.img");
 				} 
 			} 
 		} 
