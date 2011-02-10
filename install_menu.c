@@ -13,6 +13,7 @@
 #include "firmware.h"
 #include "install.h"
 #include <string.h>
+#include <sys/reboot.h>
 
 #include "nandroid_menu.h"
 
@@ -39,7 +40,7 @@ char *replace_str(char *str, char *orig, char *rep) // Helper function - search 
   return buffer;
 }
 
-int dir_contains_files(char* sdpath) {
+/*int dir_contains_files(char* sdpath) {
 	char path[PATH_MAX] = "";
     DIR *dir;
     struct dirent *de;
@@ -53,29 +54,31 @@ int dir_contains_files(char* sdpath) {
 		return 0;
     }
     while ((de=readdir(dir)) != NULL) {
-	if (de->d_name[0] != '.' && (strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0 || strcmp(de->d_name+strlen(de->d_name)-4,"tar")==0) || strcmp(de->d_name+strlen(de->d_name)-4,"tgz")==0 || strcmp(de->d_name+strlen(de->d_name)-7,"rec.img")==0 || strcmp(de->d_name+strlen(de->d_name)-8,"boot.img")==0) {
-			total++;
+		if (de->d_type == DT_DIR) {
+			total ++;
+		} else if (de->d_type == DT_REG) {
+			if (strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0) {
+				total++;
+			}
+			if (strcmp(de->d_name+strlen(de->d_name)-4,"tar")==0) {
+				total++;
+			}
+			if (strcmp(de->d_name+strlen(de->d_name)-4,"tgz")==0) {
+				total++;
+			}
+			if (strcmp(de->d_name+strlen(de->d_name)-7,"rec.img")==0) {
+				total++;
+			}
+			if (strcmp(de->d_name+strlen(de->d_name)-8,"boot.img")==0) {
+				total++;
+			}
 		}
-	}	
-    if (total == 0) { // no usable files found in dir
-		if(closedir(dir) < 0) { 
-			return 0;
-		}
-		return 0;
-    } 
-	if (total > 0) {
-		return 1; //dir does contain usable files
 	}
-	return 0;
-}
+	return total;
+}*/
+
 void choose_file_menu(char* sdpath, char* ext1, char *ext2, char* ext3, char* ext4, char* ext5)
 {
-	int ext1_l = strlen(ext1);
-	int ext2_l = strlen(ext2);
-	int ext3_l = strlen(ext3);
-	int ext4_l = strlen(ext4);
-	int ext5_l = strlen(ext5);
-	
     static char* headers[] = { "Choose item or press POWER to return",
 			       "",
 			       NULL };
@@ -86,8 +89,7 @@ void choose_file_menu(char* sdpath, char* ext1, char *ext2, char* ext3, char* ex
     int total = 0;
     int i;
     char** files;
-    char** list;
-
+    char** list; 
     if (ensure_root_path_mounted("SDCARD:") != 0) {
 	LOGE ("Can't mount /sdcard\n");
 	return;
@@ -101,14 +103,34 @@ void choose_file_menu(char* sdpath, char* ext1, char *ext2, char* ext3, char* ex
     }
     //count the nummber of valid files:
     while ((de=readdir(dir)) != NULL) {
-	if ((de->d_name[0] == '.' && de->d_name[1] == '.') || (dir_contains_files(de->d_name) == 1) || (strcmp(de->d_name+strlen(de->d_name)-ext1_l,ext1)==0 || strcmp(de->d_name+strlen(de->d_name)-ext2_l,ext2)==0) || strcmp(de->d_name+strlen(de->d_name)-ext3_l,ext3)==0 || strcmp(de->d_name+strlen(de->d_name)-ext4_l,ext4)==0 || strcmp(de->d_name+strlen(de->d_name)-ext5_l,ext5)==0) {
-			total++;
+		if (de->d_type == DT_DIR) {
+				total++;
+		} else if (de->d_type == DT_REG) {
+			if (strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0) {
+				total++;
+			}
+			if (strcmp(de->d_name+strlen(de->d_name)-4,".tar")==0) {
+				total++;
+			}
+			if (strcmp(de->d_name+strlen(de->d_name)-4,".tgz")==0) {
+				total++;
+			}
+			if (strcmp(de->d_name+strlen(de->d_name)-7,"rec.img")==0) {
+				total++;
+			}
+			if (strcmp(de->d_name+strlen(de->d_name)-8,"boot.img")==0) {
+				total++;
+			}
+			}
 		}
-	}
+
+	
+
+
 	
 
     if (total==0) {
-		LOGE("No files found!\n");
+		LOGE("No valid files found!\n");
 		if(closedir(dir) < 0) {
 			LOGE("Failed to close directory\n");
 	    return;
@@ -125,18 +147,21 @@ void choose_file_menu(char* sdpath, char* ext1, char *ext2, char* ext3, char* ex
 		i = 0;
 		while ((de = readdir(dir)) != NULL) {
 			//display valid files
-			if ( (de->d_name[0] == '.' && de->d_name[1] == '.') || (dir_contains_files(de->d_name) == 1) || (strcmp(de->d_name+strlen(de->d_name)-ext1_l,ext1)==0 || strcmp(de->d_name+strlen(de->d_name)-ext2_l,ext2)==0) || strcmp(de->d_name+strlen(de->d_name)-ext3_l,ext3)==0 || strcmp(de->d_name+strlen(de->d_name)-ext4_l,ext4)==0 || strcmp(de->d_name+strlen(de->d_name)-ext5_l,ext5)==0) {
+			if (de->d_name[0] != '.' && de->d_type == DT_DIR || (de->d_type == DT_REG && (strcmp(de->d_name+strlen(de->d_name)-strlen(ext1),ext1)==0 || strcmp(de->d_name+strlen(de->d_name)-strlen(ext2),ext2)==0 || strcmp(de->d_name+strlen(de->d_name)-strlen(ext3),ext3)==0 || strcmp(de->d_name+strlen(de->d_name)-strlen(ext4),ext4)==0 || strcmp(de->d_name+strlen(de->d_name)-strlen(ext5),ext5)==0) )) {
+
+				
 				files[i] = (char*) malloc(strlen(sdpath)+strlen(de->d_name)+1);
 				strcpy(files[i], sdpath);
 				strcat(files[i], de->d_name);
 				list[i] = (char*) malloc(strlen(de->d_name)+1);
-				if (opendir(de->d_name) != NULL) { //if is a dir, add / to it
+				
+				if (de->d_type == DT_DIR) { //if is a dir, add / to it
 					append(de->d_name, '/');
 				}
 				strcpy(list[i], de->d_name);				
 					i++;				
 			}
-		}	
+		}
 
 		if (closedir(dir) <0) {
 			LOGE("Failure closing directory\n");
@@ -147,12 +172,17 @@ void choose_file_menu(char* sdpath, char* ext1, char *ext2, char* ext3, char* ex
 		while (chosen_item < 0) {
 			char* folder;
 			chosen_item = get_menu_selection(headers, list, 1, chosen_item<0?0:chosen_item);
+			if (chosen_item == ITEM_BACK ) {
+				sdpath = "/sdcard/";
+			}
 			if (chosen_item >= 0 && chosen_item != ITEM_BACK ) {
 				
 				if (opendir(files[chosen_item]) == NULL) {
 					preinstall_menu(files[chosen_item]);
 				} 
 				if (opendir(files[chosen_item]) != NULL) {
+					ui_print(files[chosen_item]);
+					ui_print("\n");
 					folder = files[chosen_item];
 					append(folder, '/'); // add forward slash to string	
 					choose_file_menu(folder, ".zip", ".tar", ".tgz", "boot.img", "rec.img");
@@ -269,7 +299,7 @@ void preinstall_menu(char* filename) {
 			NULL };
   
     char* items[] = { "Abort Install",
-			  "Preinstall Backup",
+			  "Perform Quick Backup",
 			  "Wipe /data",
 			  filename,
 		      NULL };
