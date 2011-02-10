@@ -236,10 +236,10 @@ int install_rom_from_tar(char* filename)
 
 void preinstall_menu(char* filename) {
 
-	char *updatename = NULL;
-	char* file = strtok(updatename,"/");
-	strcat("Install ", file);
-	ui_print(file);
+	//char *updatename = NULL;
+	//char* file = strtok(updatename,"/");
+	//strcat("Install ", file);
+	//ui_print(file);
 
 
     char* headers[] = { "Preinstall Menu",
