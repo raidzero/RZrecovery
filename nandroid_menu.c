@@ -21,6 +21,7 @@ void nandroid_backup(char* subname, char partitions)
     int misc  = partitions&MISC;
     int recovery = partitions&RECOVERY;
     int system = partitions&SYSTEM;
+	int secure = partitions&SECURE;
     int progress = partitions&PROGRESS;
 
     int args = 4;
@@ -30,6 +31,7 @@ void nandroid_backup(char* subname, char partitions)
     if (!misc) args++;
     if (!system) args++;
     if (!data) args++;
+	if (!secure) args++;
     if (progress) args++;
     if (!strcmp(subname, "")) args+=2;  // if a subname is specified, we need 2 more arguments
   
@@ -61,6 +63,9 @@ void nandroid_backup(char* subname, char partitions)
     if(progress) {
 	argv[i++]="--progress";
     }
+	if(!secure) {
+	argv[i++]="--nosecure";
+	}
     if(strcmp(subname,"")) {
 	argv[i++]="--subname";
 	argv[i++]=subname;
@@ -87,6 +92,7 @@ void nandroid_restore(char* subname, char partitions)
     int misc  = partitions&MISC;
     int recovery = partitions&RECOVERY;
     int system = partitions&SYSTEM;
+	int secure = partitions&SECURE;
     int progress = partitions&PROGRESS;
 
     int args = 4;
@@ -96,6 +102,7 @@ void nandroid_restore(char* subname, char partitions)
     if (!misc) args++;
     if (!system) args++;
     if (!data) args++;
+	if (!secure) args++;
     if (progress) args++;
     if (!strcmp(subname, "")) args+=2;  // if a subname is specified, we need 2 more arguments
   
@@ -127,6 +134,9 @@ void nandroid_restore(char* subname, char partitions)
     if(progress) {
 	argv[i++]="--progress";
     }
+	if(!secure) {
+	argv[i++]="--nosecure";
+	}
     if(strcmp(subname,"")) {
 	argv[i++]="--subname";
 	argv[i++]=subname;
@@ -287,7 +297,7 @@ void get_nandroid_adv_menu_opts(char** list, char p, char* br)
 {
     char** tmp = malloc(7*sizeof(char*));
     int i;
-    for (i=0; i<6; i++) {
+    for (i=0; i<7; i++) {
 	tmp[i]=malloc((strlen("(*)  RECOVERY")+strlen(br)+1)*sizeof(char));
     }
     
@@ -297,7 +307,8 @@ void get_nandroid_adv_menu_opts(char** list, char p, char* br)
     sprintf(tmp[3],"(%c) %s MISC",     p&MISC?    '*':' ', br);
     sprintf(tmp[4],"(%c) %s RECOVERY", p&RECOVERY?'*':' ', br);
     sprintf(tmp[5],"(%c) %s SYSTEM",   p&SYSTEM?  '*':' ', br);
-    tmp[6]=NULL;
+	sprintf(tmp[6],"(%c) %s ANDROID-SECURE",   p&SECURE?  '*':' ', br);
+    tmp[7]=NULL;
 
     char** h = list;
     char** j = tmp;
@@ -322,6 +333,7 @@ void show_nandroid_adv_r_menu()
 		      NULL,
 		      NULL,
 		      NULL,
+			  NULL,
 			  NULL	};
   
 #define ITEM_CHSE 0
@@ -332,6 +344,7 @@ void show_nandroid_adv_r_menu()
 #define ITEM_M    5
 #define ITEM_R    6
 #define ITEM_S    7
+#define ITEM_A	  8
 
 
     char filename[PATH_MAX];
@@ -370,6 +383,9 @@ void show_nandroid_adv_r_menu()
 	case ITEM_S:
 	    partitions^=SYSTEM;
 	    break;	
+	case ITEM_A:
+	    partitions^=SECURE;
+	    break;	
 	}
     }
 }
@@ -389,6 +405,7 @@ void show_nandroid_adv_b_menu()
 		      NULL,
 		      NULL,
 		      NULL,
+		      NULL,
 		      NULL };
   
 #define ITEM_NAME 0
@@ -399,6 +416,7 @@ void show_nandroid_adv_b_menu()
 #define ITEM_M    5
 #define ITEM_R    6
 #define ITEM_S    7
+#define ITEM_A	  8
 
     char filename[PATH_MAX];
     filename[0]=NULL;
@@ -437,6 +455,9 @@ void show_nandroid_adv_b_menu()
 	    break;
 	case ITEM_S:
 	    partitions^=SYSTEM;
+	    break;
+	case ITEM_A:
+	    partitions^=SECURE;
 	    break;
 	}
     }
