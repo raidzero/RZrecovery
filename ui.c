@@ -526,7 +526,12 @@ void ui_start_menu(char** headers, char** items, int sel) {
         }
         menu_items = i - menu_top;
         show_menu = 1;
-		menu_sel = sel;
+		if (menu_sel < 34 ){
+			menu_sel = sel;
+		} else if (menu_sel > 34) { 
+			menu_sel = menu_show_start = 0;
+			sel = old_sel;
+		}
         update_screen_locked();
     }
     pthread_mutex_unlock(&gUpdateMutex);
@@ -540,14 +545,13 @@ int ui_menu_select(int sel) {
         menu_sel = sel;
 
         if (menu_sel < 0) {
-		menu_sel = menu_items - 1;
-		menu_show_start = menu_items - (text_rows - menu_top);
-		if(menu_show_start < 0) { menu_show_start = 0; }
-	} else if (menu_sel >= menu_items) {
-		menu_sel = 0;
-		menu_show_start = 0;
-	}
-
+			menu_sel = menu_items - 1;
+			menu_show_start = menu_items -(text_rows - menu_top);
+			if(menu_show_start < 0) { menu_show_start = 0; }
+			} else if (menu_sel >= menu_items) {
+			menu_sel = 0;
+			menu_show_start = 0;
+		} 
 
         if (menu_sel < menu_show_start && menu_show_start > 0) {
             menu_show_start--;
@@ -558,7 +562,7 @@ int ui_menu_select(int sel) {
         }
 
         sel = menu_sel;
-
+		
         if (menu_sel != old_sel) update_screen_locked();
     }
     pthread_mutex_unlock(&gUpdateMutex);
