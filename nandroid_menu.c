@@ -16,17 +16,13 @@ void nandroid_backup(char* subname, char partitions)
     ui_print("Attempting Nandroid backup.\n");
     
     int boot  = partitions&BOOT;
-    int cache = partitions&CACHE;
     int data  = partitions&DATA;
 	int secure = partitions&SECURE;
-    int recovery = partitions&RECOVERY;
     int system = partitions&SYSTEM;
     int progress = partitions&PROGRESS;
 
     int args = 4;
-    if (!recovery) args++;
     if (!boot) args++;
-    if (!cache) args++;
 	if (!secure) args++;
     if (!system) args++;
     if (!data) args++;
@@ -40,14 +36,8 @@ void nandroid_backup(char* subname, char partitions)
     argv[args]=NULL;
   
     int i = 3;
-    if(!recovery) {
-	argv[i++]="--norecovery";
-    }
     if(!boot) {
 	argv[i++]="--noboot";
-    }
-    if(!cache) {
-	argv[i++]="--nocache";
     }
 	if(!secure) {
 	argv[i++]="--nosecure";
@@ -82,17 +72,13 @@ void nandroid_backup(char* subname, char partitions)
 void nandroid_restore(char* subname, char partitions)
 {
     int boot  = partitions&BOOT;
-    int cache = partitions&CACHE;
     int data  = partitions&DATA;
 	int secure = partitions&SECURE;
-    int recovery = partitions&RECOVERY;
     int system = partitions&SYSTEM;
     int progress = partitions&PROGRESS;
 
     int args = 4;
-    if (!recovery) args++;
     if (!boot) args++;
-    if (!cache) args++;
 	if (!secure) args++;
     if (!system) args++;
     if (!data) args++;
@@ -106,14 +92,8 @@ void nandroid_restore(char* subname, char partitions)
     argv[args]=NULL;
   
     int i = 3;
-    if(!recovery) {
-	argv[i++]="--norecovery";
-    }
     if(!boot) {
 	argv[i++]="--noboot";
-    }
-    if(!cache) {
-	argv[i++]="--nocache";
     }
 	if(!secure) {
 	argv[i++]="--nosecure";
@@ -151,8 +131,6 @@ static void nandroid_simple_backup()
     
     char* argv[] = { "/sbin/nandroid-mobile.sh",
 		     "--backup",
-		     "--nocache",
-		     "--norecovery",
 		     "--defaultinput",
 		     "--progress",
 		     NULL };
@@ -175,8 +153,6 @@ static void nandroid_simple_restore()
     
     char* argv[] = { "/sbin/nandroid-mobile.sh",
 		     "--restore",
-		     "--nocache",
-		     "--norecovery",
 		     "--defaultinput",
 		     "--progress",
 		     NULL };
@@ -286,17 +262,15 @@ void get_nandroid_adv_menu_opts(char** list, char p, char* br)
 
     char** tmp = malloc(7*sizeof(char*));
     int i;
-    for (i=0; i<6; i++) {
+    for (i=0; i<5; i++) {
 	tmp[i]=malloc((strlen("(*)  RECOVERY")+strlen(br)+1)*sizeof(char));
     }
 	
     sprintf(tmp[0],"(%c) %s BOOT",     p&BOOT?    '*':' ', br);
-    sprintf(tmp[1],"(%c) %s CACHE",    p&CACHE?   '*':' ', br);
-    sprintf(tmp[2],"(%c) %s DATA",     p&DATA?    '*':' ', br);
-	sprintf(tmp[3],"(%c) %s SECURE",   p&SECURE?  '*':' ', br);
-    sprintf(tmp[4],"(%c) %s RECOVERY", p&RECOVERY?'*':' ', br);
-    sprintf(tmp[5],"(%c) %s SYSTEM",   p&SYSTEM?  '*':' ', br);
-    tmp[6]=NULL;
+    sprintf(tmp[1],"(%c) %s DATA",     p&DATA?    '*':' ', br);
+	sprintf(tmp[2],"(%c) %s SECURE",   p&SECURE?  '*':' ', br);
+    sprintf(tmp[3],"(%c) %s SYSTEM",   p&SYSTEM?  '*':' ', br);
+    tmp[4]=NULL;
 
     char** h = list;
     char** j = tmp;
@@ -319,19 +293,14 @@ void show_nandroid_adv_r_menu()
 		      NULL,
 		      NULL,
 		      NULL,
-		      NULL,
-		      NULL,
-			  NULL,
 			  NULL	};
   
 #define ITEM_CHSE 0
 #define ITEM_PERF 1
 #define ITEM_B    2
-#define ITEM_C    3
-#define ITEM_D    4
-#define ITEM_A	  5
-#define ITEM_R    6
-#define ITEM_S    7
+#define ITEM_D    3
+#define ITEM_A	  4
+#define ITEM_S    5
 
 
     char filename[PATH_MAX];
@@ -355,18 +324,12 @@ void show_nandroid_adv_r_menu()
 	case ITEM_B:
 	    partitions^=BOOT;
 	    break;
-	case ITEM_C:
-	    partitions^=CACHE;
-	    break;
 	case ITEM_D:
 	    partitions^=DATA;
 	    break;
 	case ITEM_A:
 	    partitions^=SECURE;
 	    break;	
-	case ITEM_R:
-	    partitions^=RECOVERY;
-	    break;
 	case ITEM_S:
 	    partitions^=SYSTEM;
 	    break;	
@@ -387,19 +350,14 @@ void show_nandroid_adv_b_menu()
 		      NULL,
 		      NULL,
 		      NULL,
-		      NULL,
-		      NULL,
-			  NULL,
 		      NULL };
   
 #define ITEM_NAME 0
 #define ITEM_PERF 1
 #define ITEM_B    2
-#define ITEM_C    3
-#define ITEM_D    4
-#define ITEM_A	  5
-#define ITEM_R    6
-#define ITEM_S    7
+#define ITEM_D    3
+#define ITEM_A	  4
+#define ITEM_S    5
 
     char filename[PATH_MAX];
     filename[0]=NULL;
@@ -424,17 +382,11 @@ void show_nandroid_adv_b_menu()
 	case ITEM_B:
 	    partitions^=BOOT;
 	    break;
-	case ITEM_C:
-	    partitions^=CACHE;
-	    break;
 	case ITEM_D:
 	    partitions^=DATA;
 	    break;
 	case ITEM_A:
 	    partitions^=SECURE;
-	    break;
-	case ITEM_R:
-	    partitions^=RECOVERY;
 	    break;
 	case ITEM_S:
 	    partitions^=SYSTEM;
