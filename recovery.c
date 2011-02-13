@@ -184,13 +184,19 @@ void read_files() {
 		NULL };
 
 		char* envq[] = { NULL };
-	  
-		int statusoc = runve("/sbin/busybox",argw,envq,1);
+		  
+		int statusmvoc = runve("/sbin/busybox",argw,envq,1);
 		
+		char* argv[] = { "/sbin/clockset",
+		NULL };
+
+		char* envr[] = { NULL };
+		  
+		int statusoc = runve("/sbin/clockset",argv,envr,1);	
 	} else {
 		mkdir("/sdcard/RZR");
-		set_cpufreq("800000");
 	}
+	ensure_root_path_unmounted("SDCARD:");
 }
 
 
