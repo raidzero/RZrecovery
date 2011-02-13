@@ -125,11 +125,78 @@ static const int MAX_ARGS = 100;
 
 #include <stdio.h>
 #include <stdlib.h>
+void set_cpufreq(char* speed) {
+	char* argv[] = { "/sbin/setfreq",
+	speed,
+	NULL };
 
+	char* envp[] = { NULL };
+  
+	int status = runve("/sbin/setfreq",argv,envp,1);
+}
+
+//write recovery files from cache to sdcard
+void write_files() {
+	ensure_root_path_mounted("SDCARD:");
+	char* argv[] = { "/sbin/busybox",
+	"mv",
+	"/cache/rgb",
+	"/sdcard/RZR/rgb",
+	NULL };
+
+	char* envp[] = { NULL };	
+	int statusrgb = runve("/sbin/busybox",argv,envp,1);
+	
+	char* argw[] = { "/sbin/busybox",
+	"mv",
+	"/cache/oc",
+	"/sdcard/RZR/oc",
+	NULL };
+
+	char* envq[] = { NULL };	
+	int statusoc = runve("/sbin/busybox",argw,envq,1);	
+}
+
+void read_files() {
+	int status;
+	ensure_root_path_mounted("SDCARD:");
+	if( access("/sdcard/RZR/rgb", F_OK ) != -1 ) {
+		char* argv[] = { "/sbin/busybox",
+		"mv",
+		"/sdcard/RZR/rgb",
+		"/cache/rgb",
+		NULL };
+
+		char* envp[] = { NULL };
+	  
+		int statusrgb = runve("/sbin/busybox",argv,envp,1);
+		
+	} else {
+		mkdir("/sdcard/RZR");
+		set_color(54,74,255);
+	}
+	
+	if( access("/sdcard/RZR/oc", F_OK ) != -1 ) {
+		char* argw[] = { "/sbin/busybox",
+		"mv",
+		"/sdcard/RZR/oc",
+		"/cache/oc",
+		NULL };
+
+		char* envq[] = { NULL };
+	  
+		int statusoc = runve("/sbin/busybox",argw,envq,1);
+		
+	} else {
+		mkdir("/sdcard/RZR");
+		set_cpufreq("800000");
+	}
+}
 
 
 static void
 get_args(int *argc, char ***argv) {
+read_files();
 
     struct bootloader_message boot;
     memset(&boot, 0, sizeof(boot));

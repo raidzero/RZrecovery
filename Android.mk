@@ -22,6 +22,7 @@ LOCAL_SRC_FILES := \
 	roots.c \
 	colors_menu.c \
 	ui.c \
+	overclock_menu.c \
 		
 LOCAL_SRC_FILES += test_roots.c
 

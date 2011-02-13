@@ -178,7 +178,6 @@ void install_update_package(char* filename) {
 		ui_print("\nBOOT IMAGE detected.\n");
 		install_img(filename, "boot");
 	}
-	return;
 }
 	
 int install_update_zip(char* filename) {

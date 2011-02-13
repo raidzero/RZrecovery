@@ -39,6 +39,15 @@ void flashlight() {
 	int status = runve("/sbin/flashlight",argv,envp,1); 	
 }
 
+void fix_permissions() {
+    char* argv[] = { "/sbin/fix_permissions",
+		     NULL };
+
+    char* envp[] = { NULL };
+  
+	int status = runve("/sbin/fix_permissions",argv,envp,1); 	
+}
+
 void root_menu(int confirm) {
     if (confirm) {
         static char** title_headers = NULL;
@@ -73,8 +82,17 @@ void root_menu(int confirm) {
 	remove("/system/recovery-from-boot.p");
     int status = runve("/sbin/actroot",argv,envp,1);
 	ui_print("\nFlash Recovery Service disabled.\n");
-	}
-	
+}
+
+
+void sel_key_set(char* sel) {
+	remove("/sdcard/RZR/sel");
+	FILE *sk = fopen ("/sdcard/RZR/sel", "w");
+	fprintf(sel, 1, 1, sk);
+	fclose(sk);
+}
+
+
 void show_options_menu()
 {
     static char* headers[] = { "Extras",
@@ -83,10 +101,11 @@ void show_options_menu()
 			       NULL };
 
     char* items[] = { "Custom Colors",
-				"Disable OTA updating",
+				"Disable OTA updates in ROM",
 				"Show Battery Status",
 				"Toggle Flashlight",
 				"Activate Root Access in ROM",
+				"Overclocking",
 		      NULL };
 			  
 #define COLORS         0
@@ -94,7 +113,7 @@ void show_options_menu()
 #define BATT		   2
 #define FLASHLIGHT     3
 #define ROOT_MENU	   4
-
+#define OVERCLOCK	   5
 
 int chosen_item = -1;
 
@@ -117,6 +136,9 @@ int chosen_item = -1;
 		break;
 	case ROOT_MENU:
 		root_menu(ui_text_visible());
+		break;
+	case OVERCLOCK:
+		show_overclock_menu();
 		break;
         }
     }
