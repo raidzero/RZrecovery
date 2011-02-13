@@ -526,12 +526,10 @@ void ui_start_menu(char** headers, char** items, int sel) {
         }
         menu_items = i - menu_top;
         show_menu = 1;
-		if (menu_sel < 34 ){
-			menu_sel = sel;
-		} else if (menu_sel > 34) { 
-			menu_sel = menu_show_start = 0;
-			sel = old_sel;
-		}
+
+		menu_show_start = 0;
+		menu_sel = sel;
+
         update_screen_locked();
     }
     pthread_mutex_unlock(&gUpdateMutex);
@@ -552,6 +550,7 @@ int ui_menu_select(int sel) {
 			menu_sel = 0;
 			menu_show_start = 0;
 		} 
+
 
         if (menu_sel < menu_show_start && menu_show_start > 0) {
             menu_show_start--;
