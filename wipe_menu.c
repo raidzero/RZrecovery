@@ -43,16 +43,6 @@ void wipe_partition(int confirm, char* title, char* operation, char* partition) 
 		erase_root("BOOT:");
 		ui_print("Boot wipe complete.\n");
 	}
-	if( strcmp( partition, "cache" ) == 0 ) {
-		ui_print("\n-- Wiping cache...\n");
-		erase_root("CACHE:");
-		ui_print("Cache wipe complete.\n");
-	}
-	if( strcmp( partition, "misc" ) == 0 ) {
-		ui_print("\n-- Wiping misc...\n");
-		erase_root("MISC:");
-		ui_print("Misc wipe complete.\n");
-	}
 	if( strcmp( partition, "batts" ) == 0 ) {
 		ui_print("\n-- Wiping battery statistics...\n");
 		remove("/data/system/batterystats.bin");
@@ -64,26 +54,26 @@ void wipe_partition(int confirm, char* title, char* operation, char* partition) 
 		remove("/data/dalvik-cache/*");
 		ui_print("\n dalvik-cache cleared.\n");
 	}	
+	if( strcmp( partition, "android-secure" ) == 0 ) {
+		ui_print("\n-- Wiping .android-secure...\n");
+		ensure_root_path_mounted("SDCARD:"); 
+		remove("/sdcard/.android-secure/*");
+		ui_print("\n .android-secure cleared.\n");
+	}
 	if( strcmp( partition, "all" ) == 0 ) {
 		ui_print("\n-- Wiping System...\n");
 		erase_root("SYSTEM:");
 		ui_print("System wipe complete.\n");
 		ui_print("\n-- Wiping data...\n");
 		erase_root("DATA:");
-		write_rgb();
-		read_rgb();
 		ui_print("Data wipe complete.\n");
+		ui_print("\n-- Wiping .android-secure...\n");
+		ensure_root_path_mounted("SDCARD:"); 
+		remove("/sdcard/.android-secure/*");
+		ui_print("\n .android-secure cleared.\n");
 		ui_print("\n-- Wiping boot...\n");
 		erase_root("BOOT:");
 		ui_print("Boot wipe complete.\n");
-		ui_print("\n-- Wiping cache...\n");
-		write_rgb();
-		read_rgb();
-		erase_root("CACHE:");
-		ui_print("Misc wipe complete.\n");
-		ui_print("\n-- Wiping misc...\n");
-		erase_root("MISC:");
-		ui_print("Misc wipe complete.\n");
 		ui_print("Device completely wiped.\n\n");
 		ui_print("All that remains is RZR.\n");
 	}
@@ -101,9 +91,8 @@ void show_wipe_menu()
     char* items[] = { "Wipe all",
 			  "Wipe system",
 		      "Wipe data",
+			  "Wipe .android-secure",
 		      "Wipe boot",
-			  "Wipe cache",
-		      "Wipe misc",
 			  "Wipe battery stats",
 			  "Wipe dalvik-cache",
 		      NULL };
@@ -111,11 +100,11 @@ void show_wipe_menu()
 #define WIPE_ALL			0			  
 #define WIPE_SYSTEM         1
 #define WIPE_DATA       	2
-#define WIPE_BOOT      		3
-#define WIPE_CACHE			4
-#define WIPE_MISC   		5
-#define WIPE_BATT			6
-#define WIPE_DK				7
+#define WIPE_AS				3
+#define WIPE_BOOT      		4
+#define WIPE_BATT			5
+#define WIPE_DK				6
+
 
 int chosen_item = -1;
 
@@ -136,17 +125,13 @@ int chosen_item = -1;
 		wipe_partition(ui_text_visible(), "Are you sure?", "Yes - wipe DATA", "data");
 		break;
 		
+	case WIPE_AS:
+		wipe_partition(ui_text_visible(), "Are you sure?", "Yes - wipe ANDROID-SECURE", "android-secure");
+	    break;
+		
 	case WIPE_BOOT:
 		wipe_partition(ui_text_visible(), "Are you sure?", "Yes - wipe BOOT", "boot");
 	    break;	
-
-	case WIPE_CACHE:    
-		wipe_partition(ui_text_visible(), "Are you sure?", "Yes - wipe CACHE", "cache");
-	    break;
-		
-	case WIPE_MISC:
-		wipe_partition(ui_text_visible(), "Are you sure?", "Yes - wipe MISC", "misc");
-	    break;
 
 	case WIPE_BATT:
 		wipe_partition(ui_text_visible(), "Are you sure?", "Yes - wipe BATTERY STATS", "batts");
