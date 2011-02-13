@@ -15,25 +15,22 @@
 #include "install_menu.h"
 #include "wipe_menu.h"
 
-//save colors in case recovery is not exited from one of my functions
-write_rgb();
-
 void reboot_android() {
 	ui_print("\n-- Rebooting into Android...\n");
-	write_rgb();
+	write_files();
 	sync();
 	__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, NULL);
 }
 void reboot_recovery() {
 	ui_print("\n-- Rebooting into recovery...\n");
-	write_rgb();
+	write_files();
 	sync();
 	__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "recovery");
 }
 
 void poweroff() {
 	ui_print("\n-- Shutting down...");
-	write_rgb();
+	write_files();
 	sync();
 	__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_POWER_OFF, NULL);
 }
@@ -55,7 +52,6 @@ void prompt_and_wait() {
 		      "Backup/Restore",
 		      "Install",
 			  "Extras",
-		      "Help",
 		      NULL };
 
 
@@ -71,7 +67,6 @@ void prompt_and_wait() {
 #define ITEM_NANDROID_MENU   5
 #define ITEM_INSTALL         6
 #define ITEM_OPTIONS		 7
-#define ITEM_HELP		     8   
 
     int chosen_item = -1;
     for (;;) {
@@ -105,28 +100,11 @@ void prompt_and_wait() {
 	    show_nandroid_menu();
 	    break;
 	case ITEM_INSTALL:
-	    choose_file_menu("/sdcard/", ".zip", ".tgz", ".tar", "rec.img", "boot.img");
+	    choose_file_menu("/sdcard/");
 	    break;
 	case ITEM_OPTIONS:
 		show_options_menu();
 		break;
-	case ITEM_HELP:
-		ui_print("\n*HELP/FEATURES*\n");
-		ui_print("1.1ghz low voltage kernel w/ battery charging\n");
-		ui_print("arbitrary unsigned update.zip install\n");
-		ui_print("arbitrary kernel/recovery img install\n");
-		ui_print("One level of subfolders under /sdcard/updates\n");
-		ui_print("rom.tar/tgz scripted install support\n");
-		ui_print("Recovery images must be in /sdcard/recovery &\n");
-		ui_print("end in rec.img\n");
-		ui_print("Kernel images must be in /sdcard/kernels &\n");
-		ui_print("end in boot.img or kernel.img\n");
-		ui_print("Wipe menu: wipes any partition on device\n");
-		ui_print("also includes battery statistics &\n");
-		ui_print("dalvik-cache wipe.\n");
-		ui_print("Options: customize colors, OTA updates\n");
-		ui_print("display battery statistics\n");
-	    break;
         }
     }
 }
