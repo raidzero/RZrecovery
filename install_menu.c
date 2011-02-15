@@ -165,18 +165,22 @@ void install_update_package(char* filename) {
 		ui_print("\nZIP detected.\n");
 		remove("/block_update");
 		install_update_zip(filename);
+		return;
 	} 
 	if (strcmp(extension, "tar") == 0 || strcmp(extension, "tgz") == 0 ) { 
 		ui_print("\nTAR detected.\n");
 		install_rom_from_tar(filename);
+		return;
 	}
 	if (strcmp(rec_extension, "rec.img") == 0 ) {
 		ui_print("\nRECOVERY IMAGE detected.\n");
 		install_img(filename, "recovery");
+		return;
 	}
 	if (strcmp(boot_extension, "boot.img") == 0 ) {
 		ui_print("\nBOOT IMAGE detected.\n");
 		install_img(filename, "boot");
+		return;
 	}
 }
 	
@@ -195,11 +199,13 @@ int install_update_zip(char* filename) {
 	if (status != INSTALL_SUCCESS) {
 		ui_set_background(BACKGROUND_ICON_ERROR);
 		ui_print("Installation aborted.\n");
+		return 0;
 	} else if (!ui_text_visible()) {
 		return 0;  // reboot if logs aren't visible
 	} else {
 	if (firmware_update_pending()) {
 	    ui_print("\nReboot via menu to complete\ninstallation.\n");
+		return 0;
 	} else {
 	    ui_print("\nInstall from sdcard complete.\n");
 		ui_print("\nThanks for using RZrecovery.\n");
@@ -264,14 +270,14 @@ void preinstall_menu(char* filename) {
 			return;
 		case ITEM_BACKUP:
 			ui_print("Backing up before installing...\n");
-			nandroid_backup("preinstall",BSD|PROGRESS);
+			nandroid_backup("preinstall",BSDA|PROGRESS);
 			break;
 		case ITEM_WIPE:
 			wipe_partition(ui_text_visible(), "Are you sure?", "Yes - wipe DATA", "data");
 			break;
 		case ITEM_INSTALL:
 			install_update_package(filename);		
-			break;
+			return;
 		}
 	}
 }

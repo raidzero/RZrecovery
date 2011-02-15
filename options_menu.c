@@ -8,10 +8,11 @@
 void disable_OTA() {
 	ui_print("\nDisabling OTA updates in ROM...");
 	ensure_root_path_mounted("SYSTEM:");
-	ensure_root_path_mounted("CACHE:");
 	remove("/system/etc/security/otacerts.zip");
 	remove("/cache/signed-*.*");
 	ui_print("\nOTA-updates disabled.\n");
+	ensure_root_path_unmounted("SYSTEM:");
+	return;
 }	
 
 void show_battstat() {
@@ -31,12 +32,21 @@ void show_battstat() {
 }
 
 void flashlight() {
-    char* argv[] = { "/sbin/flashlight",
-		     NULL };
-
-    char* envp[] = { NULL };
-  
-	int status = runve("/sbin/flashlight",argv,envp,1); 	
+	char brightness[3];
+	int bi;
+	FILE* flr = fopen("/sys/class/leds/spotlight/brightness","r");
+    fgets(brightness, 3, flr);
+	bi = atoi(brightness);
+	FILE* flw = fopen("/sys/class/leds/spotlight/brightness","w");
+	if (bi == 0) {
+		fputs("255",flw);
+		fputs("\n",flw);
+	} else { 
+		fputs("0",flw);
+		fputs("\n",flw);
+	}
+	fclose(flr);
+	fclose(flw);
 }
 
 void fix_permissions() {
@@ -46,6 +56,7 @@ void fix_permissions() {
     char* envp[] = { NULL };
   
 	int status = runve("/sbin/fix_permissions",argv,envp,1); 	
+	return;
 }
 
 void root_menu(int confirm) {
@@ -55,10 +66,9 @@ void root_menu(int confirm) {
         if (title_headers == NULL) {
             char* headers[] = { "ROOT installed ROM?",
 								" ",
-                                "Rooting without the superuser app to keep apps",
-                                "in check is dangerous! It is STRONGLY",
-								"recommended to install the superuser app from",
-								"the market! (by ChainsDD)",
+                                "Rooting without the superuser app installed",
+                                "does nothing. Please install the superuser app",
+								"from the market! (by ChainsDD)",
 								" ",
                                 NULL };
             title_headers = prepend_title(headers);
@@ -82,16 +92,9 @@ void root_menu(int confirm) {
 	remove("/system/recovery-from-boot.p");
     int status = runve("/sbin/actroot",argv,envp,1);
 	ui_print("\nFlash Recovery Service disabled.\n");
+	ensure_root_path_unmounted("SYSTEM:");
+	return;
 }
-
-
-void sel_key_set(char* sel) {
-	remove("/sdcard/RZR/sel");
-	FILE *sk = fopen ("/sdcard/RZR/sel", "w");
-	fprintf(sel, 1, 1, sk);
-	fclose(sk);
-}
-
 
 void show_options_menu()
 {
@@ -101,11 +104,11 @@ void show_options_menu()
 			       NULL };
 
     char* items[] = { "Custom Colors",
-				"Disable OTA updates in ROM",
+				"Disable OTA Update Downloads in ROM",
 				"Show Battery Status",
 				"Toggle Flashlight",
 				"Activate Root Access in ROM",
-				"Overclocking",
+				"Recovery Overclocking",
 		      NULL };
 			  
 #define COLORS         0

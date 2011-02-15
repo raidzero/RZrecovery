@@ -12,7 +12,7 @@
 #include "nandroid_menu.h"
 
 
-int restore_cw_nandroid(char* filename) 
+void restore_cw_nandroid(char* filename) 
 {
 	ui_print("Preparing to restore clockwork backup");
 	ui_print("\n");
@@ -30,7 +30,7 @@ int restore_cw_nandroid(char* filename)
   
     int status = runve("/sbin/cw_restore.sh",argv,envp,1);
 	sync();
-	return 0;
+	return;
 }
 
 

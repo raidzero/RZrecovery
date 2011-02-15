@@ -37,7 +37,9 @@ int chosen_item = -1;
 
     while(chosen_item!=ITEM_BACK) {
 	chosen_item = get_menu_selection(headers,items,1,chosen_item<0?0:chosen_item);
-
+	if (chosen_item == ITEM_BACK) {
+        return;
+	}
 
         switch (chosen_item) {
 	case oc600:
@@ -47,19 +49,19 @@ int chosen_item = -1;
 	case oc800:
 		set_oc("800000");
 		ui_print("Max clockspeed set to 800 MHz\n");
-		break;
+		return;
 	case oc900:
 		set_oc("900000");
 		ui_print("Max clockspeed set to 900 MHz\n");
-		break;
+		return;
 	case oc1000:
 		set_oc("1000000");
 		ui_print("Max clockspeed set to 1000 MHz\n");
-		break;
+		return;
 	case oc1100:
 		set_oc("1100000");
 		ui_print("Max clockspeed set to 1100 MHz\n");
-		break;
+		return;
         }
     }
 }

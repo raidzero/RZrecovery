@@ -17,13 +17,13 @@ void nandroid_backup(char* subname, char partitions)
     
     int boot  = partitions&BOOT;
     int data  = partitions&DATA;
-	int secure = partitions&SECURE;
+	int asecure = partitions&ASECURE;
     int system = partitions&SYSTEM;
     int progress = partitions&PROGRESS;
 
     int args = 4;
     if (!boot) args++;
-	if (!secure) args++;
+	if (!asecure) args++;
     if (!system) args++;
     if (!data) args++;
     if (progress) args++;
@@ -39,7 +39,7 @@ void nandroid_backup(char* subname, char partitions)
     if(!boot) {
 	argv[i++]="--noboot";
     }
-	if(!secure) {
+	if(!asecure) {
 	argv[i++]="--nosecure";
 	}
     if(!system) {
@@ -73,13 +73,13 @@ void nandroid_restore(char* subname, char partitions)
 {
     int boot  = partitions&BOOT;
     int data  = partitions&DATA;
-	int secure = partitions&SECURE;
+	int asecure = partitions&ASECURE;
     int system = partitions&SYSTEM;
     int progress = partitions&PROGRESS;
 
     int args = 4;
     if (!boot) args++;
-	if (!secure) args++;
+	if (!asecure) args++;
     if (!system) args++;
     if (!data) args++;
     if (progress) args++;
@@ -95,7 +95,7 @@ void nandroid_restore(char* subname, char partitions)
     if(!boot) {
 	argv[i++]="--noboot";
     }
-	if(!secure) {
+	if(!asecure) {
 	argv[i++]="--nosecure";
 	}
     if(!system) {
@@ -260,15 +260,15 @@ out:
 void get_nandroid_adv_menu_opts(char** list, char p, char* br)
 {
 
-    char** tmp = malloc(7*sizeof(char*));
+    char** tmp = malloc(8*sizeof(char*));
     int i;
     for (i=0; i<5; i++) {
-	tmp[i]=malloc((strlen("(*)  RECOVERY")+strlen(br)+1)*sizeof(char));
+	tmp[i]=malloc((strlen("(*)  ANDROID-SECURE")+strlen(br)+1)*sizeof(char));
     }
 	
     sprintf(tmp[0],"(%c) %s BOOT",     p&BOOT?    '*':' ', br);
     sprintf(tmp[1],"(%c) %s DATA",     p&DATA?    '*':' ', br);
-	sprintf(tmp[2],"(%c) %s SECURE",   p&SECURE?  '*':' ', br);
+	sprintf(tmp[2],"(%c) %s ANDROID-SECURE",   p&ASECURE?  '*':' ', br);
     sprintf(tmp[3],"(%c) %s SYSTEM",   p&SYSTEM?  '*':' ', br);
     tmp[4]=NULL;
 
@@ -305,7 +305,7 @@ void show_nandroid_adv_r_menu()
 
     char filename[PATH_MAX];
     filename[0]=NULL;
-    char partitions = (char) BSD;
+    char partitions = (char) BSDA;
     int chosen_item = -1;
 
     while(chosen_item!=ITEM_BACK) {
@@ -328,7 +328,7 @@ void show_nandroid_adv_r_menu()
 	    partitions^=DATA;
 	    break;
 	case ITEM_A:
-	    partitions^=SECURE;
+	    partitions^=ASECURE;
 	    break;	
 	case ITEM_S:
 	    partitions^=SYSTEM;
@@ -363,7 +363,7 @@ void show_nandroid_adv_b_menu()
     filename[0]=NULL;
     int chosen_item = -1;
 
-    char partitions = BSD;
+    char partitions = BSDA;
 
     while(chosen_item!=ITEM_BACK) {
 	get_nandroid_adv_menu_opts(items+2,partitions,"backup"); // put the menu options in items[] starting at index 2
@@ -386,7 +386,7 @@ void show_nandroid_adv_b_menu()
 	    partitions^=DATA;
 	    break;
 	case ITEM_A:
-	    partitions^=SECURE;
+	    partitions^=ASECURE;
 	    break;
 	case ITEM_S:
 	    partitions^=SYSTEM;
@@ -400,18 +400,18 @@ void show_nandroid_menu()
     static char* headers[] = { "Select an option or press POWER to return",
 			       "",
 			       NULL };
-    static char* items[] = { "Simple Nandroid backup",
-			     "Simple Nandroid restore (latest)",
-			     "Advanced Nandroid backup",
-			     "Advanced Nandroid restore",
-				 "Clockwork Nandroid restore",
+    static char* items[] = { /*"Simple Nandroid backup",
+			     "Simple Nandroid restore (latest)",*/
+			     "Nandroid Backup",
+			     "Nandroid Restore",
+				 "Clockwork Nandroid Restore",
 			     NULL };
 
-#define ITEM_DEF_BACKUP  0
-#define ITEM_DEF_RESTORE 1
-#define ITEM_ADV_BACKUP  2
-#define ITEM_ADV_RESTORE 3
-#define ITEM_CW_RESTORE	 4
+//#define ITEM_DEF_BACKUP  0
+//#define ITEM_DEF_RESTORE 1
+#define ITEM_ADV_BACKUP  0
+#define ITEM_ADV_RESTORE 1
+#define ITEM_CW_RESTORE	 2
 
   
     
@@ -421,12 +421,12 @@ void show_nandroid_menu()
 	chosen_item = get_menu_selection(headers,items,1,chosen_item<0?0:chosen_item);
       
 	switch(chosen_item) {
-	case ITEM_DEF_BACKUP:
-	    nandroid_simple_backup();
-	    break;
-	case ITEM_DEF_RESTORE:
-	    nandroid_simple_restore();
-	    break;
+//	case ITEM_DEF_BACKUP:
+//	    nandroid_simple_backup();
+//	    break;
+//	case ITEM_DEF_RESTORE:
+//	    nandroid_simple_restore();
+//	    break;
 	case ITEM_ADV_BACKUP:
 	    show_nandroid_adv_b_menu();
 	    break;
