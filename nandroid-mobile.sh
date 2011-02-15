@@ -3,11 +3,11 @@
 echo $*
 
 ##
-## nandroid v2.2.1 ported to the Droid by SirPsychoS.  99% of credit or more goes to infernix, brainaid, and cyanogen!  My modifications are surrounded by lines starting with double-hashes, and my comment lines start with two hashes.
+## nandroid v2.2.1 ported to the Droid by SirPsychoS, modded by raidzero.  99% of credit or more goes to infernix, brainaid, and cyanogen!  My modifications are surrounded by lines starting with double-hashes, and my comment lines start with two hashes.
 ##
 
 
-# nandroid v2.2.1 - an Android backup tool for the G1 by infernix and brainaid
+# nandroid v2.2.1 - an Android backup tool for the  by infernix and brainaid
 # restore capability added by cyanogen
 
 # pensive modified to allow to add prefixes to backups, and to restore specific backups
@@ -51,30 +51,6 @@ echo $*
 #mtd5: 04ac0000 00020000 "userdata"
 #mtd6 is everything, dump splash1 with: dd if=/dev/mtd/mtd6ro of=/sdcard/splash1.img skip=19072 bs=2048 count=150
 
-##
-## Reference data:
-##
-## dev:    size   erasesize  name
-## mtd0: 000a0000 00020000 "mbm"
-## mtd1: 00060000 00020000 "cdt"
-## mtd2: 00060000 00020000 "lbl"
-## mtd3: 00060000 00020000 "misc"
-## mtd4: 00380000 00020000 "boot"
-## mtd5: 00480000 00020000 "recovery"
-## mtd6: 08c60000 00020000 "system"
-## mtd7: 05ca0000 00020000 "cache"
-## mtd8: 105c0000 00020000 "userdata"
-## mtd9: 00200000 00020000 "kpanic"
-##
-
-
-
-
-# We don't dump misc or cache because they do not contain any useful data that we are aware of at this time.
-
-##
-## Dumping splash1 and splash2 is not supported on the droid because the offsets are not known and the kernel does not expose the entire MTD.
-##
 
 # Logical steps (v2.2.1):
 #
@@ -109,12 +85,10 @@ DEVICEID=foo
 RECOVERY=foo
 
 SUBNAME=""
-NORECOVERY=0
 NOBOOT=0
 NODATA=0
 NOSYSTEM=0
-NOMISC=0
-NOCACHE=0
+NOSECURE=0
 NOSPLASH1=0
 NOSPLASH2=0
 EXT2=0
@@ -190,8 +164,8 @@ batteryAtLeast()
 	ENERGY=100
     fi
     if [ ! $ENERGY -ge $REQUIREDLEVEL ]; then
-	$ECHO "Error: not enough battery power, need at least $REQUIREDLEVEL%."
-	$ECHO "Connect charger or USB power and try again"
+	echo "* print Error: not enough battery power, need at least $REQUIREDLEVEL%."
+	echo "* print Connect charger or USB power and try again"
 	exit 1
     fi
 }
@@ -220,7 +194,7 @@ esac
 ECHO=echo
 OUTPUT=""
 
-for option in $(getopt --name="nandroid-mobile v2.2.1" -l progress -l bundle-rom: -l verbose -l install-rom: -l norecovery -l noboot -l nodata -l nosystem -l nocache -l nomisc -l nosplash1 -l nosplash2 -l subname: -l backup -l restore -l compress -l getupdate -l delete -l path -l webget: -l webgettarget: -l nameserver: -l nameserver2: -l bzip2: -l defaultinput -l autoreboot -l autoapplyupdate -l ext2 -l save: -l switchto: -l listbackup -l listupdate -l silent -l quiet -l help -- "cbruds:p:eqli:" "$@"); do
+for option in $(getopt --name="nandroid-mobile v2.2.1" -l progress -l bundle-rom: -l verbose -l install-rom: -l noboot -l nodata -l nosystem -l nosecure -l nosplash1 -l nosplash2 -l subname: -l backup -l restore -l compress -l getupdate -l delete -l path -l webget: -l webgettarget: -l nameserver: -l nameserver2: -l bzip2: -l defaultinput -l autoreboot -l autoapplyupdate -l ext2 -l save: -l switchto: -l listbackup -l listupdate -l silent -l quiet -l help -- "cbruds:p:eqli:" "$@"); do
     case $option in
         --silent)
             ECHO=echo2log
@@ -249,151 +223,105 @@ for option in $(getopt --name="nandroid-mobile v2.2.1" -l progress -l bundle-rom
 	    ;;
         --help)
             ECHO=echo
-            $ECHO "Usage: $0 {--backup|--restore|--getupdate|--delete|--compress|--bzip2:ARG|--webget:URL|--listbackup|--listupdate} [options]"
-            $ECHO ""
+            echo "* print Usage: $0 {--backup|--restore|--getupdate|--delete|--compress|--bzip2:ARG|--webget:URL|--listbackup|--listupdate} [options]"
+            echo "* print "
             $ECHO "--help                     Display this help"
-            $ECHO ""
+            echo "* print "
             $ECHO "-s | --subname: SUBSTRING  In case of --backup the SUBSTRING is"
-            $ECHO "                           the prefix used with backup name"
-            $ECHO "                           in case of --restore or -c|--compress|--bzip2 or"
-            $ECHO "                           --delete SUBSTRING specifies backups on which to"
-            $ECHO "                           operate"
-            $ECHO ""
+            echo "* print                            the prefix used with backup name"
+            echo "* print                            in case of --restore or -c|--compress|--bzip2 or"
+            echo "* print                            --delete SUBSTRING specifies backups on which to"
+            echo "* print                            operate"
+            echo "* print "
             $ECHO "-u | --getupdate           Will search /sdcard/download for files named"
-            $ECHO "                           *update*.zip, will prompt the user"
-            $ECHO "                           to narrow the choice if more than one is found,"
-            $ECHO "                           and then move the latest, if not unique,"
-            $ECHO "                           to sdcard root /sdcard with the update.zip name"
-            $ECHO "                           It is assumed the browser was used to put the *.zip"
-            $ECHO "                           in the /sdcard/download folder. -p|--path option"
-            $ECHO "                           would override /sdcard/download with the path of your"
-            $ECHO "                           choosing."
-            $ECHO ""
+            echo "* print                            *update*.zip, will prompt the user"
+            echo "* print                            to narrow the choice if more than one is found,"
+            echo "* print                            and then move the latest, if not unique,"
+            echo "* print                            to sdcard root /sdcard with the update.zip name"
+            echo "* print                            It is assumed the browser was used to put the *.zip"
+            echo "* print                            in the /sdcard/download folder. -p|--path option"
+            echo "* print                            would override /sdcard/download with the path of your"
+            echo "* print                            choosing."
+            echo "* print "
             $ECHO "-p | --path DIR            Requires an ARGUMENT, which is the path to where "
-            $ECHO "                           the backups are stored, can be used"
-            $ECHO "                           when the default path /sdcard/nandroid/$DEVICEID "
-            $ECHO "                           needs to be changed"
-            $ECHO ""
+            echo "* print                            the backups are stored, can be used"
+            echo "* print                            when the default path /sdcard/nandroid/$DEVICEID "
+            echo "* print                            needs to be changed"
+            echo "* print "
             $ECHO "-b | --backup              Will store a full system backup on $BACKUPPATH"
-            $ECHO "                           One can suppress backup of any image however with options"
-            $ECHO "                           starting with --no[partionname]"
-            $ECHO ""
-##
-##            $ECHO "-e | --ext2                Preserve the contents of the ext2 partition along with"
-##            $ECHO "                           the other partitions being backed up, to easily switch roms."
-##            $ECHO ""
-##
+            echo "* print                            One can suppress backup of any image however with options"
+            echo "* print                            starting with --no[partionname]"
+            echo "* print "
             $ECHO "-r | --restore             Will restore the last made backup which matches --subname"
-            $ECHO "                           ARGUMENT for boot, system, recovery and data"
-            $ECHO "                           unless suppressed by other options"
-            $ECHO "                           if no --subname is supplied and the user fails to"
-            $ECHO "                           provide any input then the latest backup is used"
-            $ECHO "                           When restoring compressed backups, the images will remain"
-            $ECHO "                           decompressed after the restore, you need to use -c|-compress"
-            $ECHO "                           or --bzip2 to compress the backup again"
-            $ECHO ""
+            echo "* print                            ARGUMENT for boot, system, recovery and data"
+            echo "* print                            unless suppressed by other options"
+            echo "* print                            if no --subname is supplied and the user fails to"
+            echo "* print                            provide any input then the latest backup is used"
+            echo "* print                            When restoring compressed backups, the images will remain"
+            echo "* print                            decompressed after the restore, you need to use -c|-compress"
+            echo "* print                            or --bzip2 to compress the backup again"
+            echo "* print "
             $ECHO "-d | --delete              Will remove backups whose names match --subname ARGUMENT"
-            $ECHO "                           Will allow to narrow down, will ask if the user is certain."
-            $ECHO "                           Removes one backup at a time, repeat to remove multiple backups"
-            $ECHO ""
+            echo "* print                            Will allow to narrow down, will ask if the user is certain."
+            echo "* print                            Removes one backup at a time, repeat to remove multiple backups"
+            echo "* print "
             $ECHO "-c | --compress            Will operate on chosen backups to compress image files,"
-            $ECHO "                           resulting in saving of about 40MB out of 90+mb,"
-            $ECHO "                           i.e. up to 20 backups can be stored in 1 GIG, if this "
-            $ECHO "                           option is turned on with --backup, the resulting backup will"
-            $ECHO "                           be compressed, no effect if restoring since restore will"
-            $ECHO "                           automatically uncompress compressed images if space is available"
-            $ECHO ""
+            echo "* print                            resulting in saving of about 40MB out of 90+mb,"
+            echo "* print                            i.e. up to 20 backups can be stored in 1 GIG, if this "
+            echo "* print                            option is turned on with --backup, the resulting backup will"
+            echo "* print                            be compressed, no effect if restoring since restore will"
+            echo "* print                            automatically uncompress compressed images if space is available"
+            echo "* print "
             $ECHO "--bzip2: -#                Turns on -c|--compress and uses bzip2 for compression instead"
-            $ECHO "                           of gzip, requires an ARG -[1-9] compression level"
-            $ECHO ""
-##
-##            $ECHO "--webget: URL|\"\"         Requires an argument, a valid URL for an *update*.zip file"
-##            $ECHO "                           If a null string is passed then the default URL is used"
-##            $ECHO "                           Will also create an update.MD5sum file and update.name with the"
-##            $ECHO "                           original file name."
-##            $ECHO ""
-##            $ECHO "--nameserver: IP addr      Provide the first nameserver IP address, to override the default"
-##            $ECHO ""
-##            $ECHO "--nameserver2: IP addr     Provide the second nameserver IP address, to override the default"
-##            $ECHO ""
-##            $ECHO "--webgettarget: DIR        Target directory to deposit the fetched update, default is"
-##            $ECHO "                           /sdcard"
-##            $ECHO ""
-##
-            $ECHO "--norecovery               Will suppress restore/backup of the recovery partition"
-            $ECHO "                           If recovery.img was not part of the backup, no need to use this"
-            $ECHO "                           option as the nandroid will not attempt to restore it, same goes"
-            $ECHO "                           for all the options below"
-            $ECHO ""
+            echo "* print                            of gzip, requires an ARG -[1-9] compression level"
+            echo "* print "
             $ECHO "--noboot                   Will suppress restore/backup of the boot partition"
-            $ECHO ""
+            echo "* print "
             $ECHO "--nodata                   Will suppress restore/backup of the data partition"
-            $ECHO ""
+            echo "* print "
             $ECHO "--nosystem                 Will suppress restore/backup of the system partition"
-            $ECHO ""
-            $ECHO "--nocache                  Will suppress restore/backup of the cache partition"
-            $ECHO ""
-            $ECHO "--nomisc                   Will suppress restore/backup of the misc partition"
-            $ECHO ""
-## As stated above, these are disabled on the Droid.
-##
-##            $ECHO "--nosplash1                Will suppress restore/backup of the splash1 partition"
-##            $ECHO ""
-##            $ECHO "--nosplash2                Will suppress restore/backup of the splash2 partition"
-##            $ECHO ""
-##
+            echo "* print "
             $ECHO "--defaultinput             Makes nandroid-mobile non-interactive, assumes default"
-            $ECHO "                           inputs from the user."
-            $ECHO ""
+            echo "* print                            inputs from the user."
+            echo "* print "
             $ECHO "--autoreboot               Automatically reboot the phone after a backup, especially"
-            $ECHO "                           useful when the compression options are on -c|--compress| "
-            $ECHO "                           --bzip2 -level since the compression op takes time and"
-            $ECHO "                           you may want to go to sleep or do something else, and"
-            $ECHO "                           when a backup is over you want the calls and mms coming"
-            $ECHO "                           through, right?"
-            $ECHO ""
+            echo "* print                            useful when the compression options are on -c|--compress| "
+            echo "* print                            --bzip2 -level since the compression op takes time and"
+            echo "* print                            you may want to go to sleep or do something else, and"
+            echo "* print                            when a backup is over you want the calls and mms coming"
+            echo "* print                            through, right?"
+            echo "* print "
             $ECHO "--autoapplyupdate          Once the specific update is downloaded or chosen from the"
-            $ECHO "                           sdcard, apply it immediately. This option is valid as a "
-            $ECHO "                           modifier for either --webget or --getupdate options."
-            $ECHO ""
-##
-##            $ECHO "-e|--ext2                  Save the contents of ext2 partition in the backup folder too."
-##            $ECHO "                           Enables to keep different sets of apps for different ROMS and"
-##            $ECHO "                           switch easily between them."
-##            $ECHO ""
-##
+            echo "* print                            sdcard, apply it immediately. This option is valid as a "
+            echo "* print                            modifier for either --webget or --getupdate options."
+            echo "* print "
             $ECHO "--save: ROMTAG             Preserve EVERYTHING under ROMTAG name, a composite option,"
-            $ECHO "                           it uses several other options."
-            $ECHO ""
+            echo "* print                            it uses several other options."
+            echo "* print "
             $ECHO "--switchto: ROMTAG         Restores your entire environment including app2sd apps, cache"
-            $ECHO "                           to the ROM environment named ROMTAG."
-            $ECHO ""
+            echo "* print                            to the ROM environment named ROMTAG."
+            echo "* print "
             $ECHO "-q|--quiet|--silent        Direct all the output to the recovery log, and assume default"
-            $ECHO "                           user inputs."
-            $ECHO ""
+            echo "* print                            user inputs."
+            echo "* print "
             $ECHO "-l|--listbackup            Will search the entire SDCARD for backup folders and will dump"
-            $ECHO "                           the list to stdout for use by the UI. Should be run with --silent"
-            $ECHO ""
+            echo "* print                            the list to stdout for use by the UI. Should be run with --silent"
+            echo "* print "
             $ECHO "--listupdate               Will search the entire SDCARD for updates and will dump"
-            $ECHO "                           the list to stdout for use by the UI. Should be run with --silent"
-	    $ECHO ""
+            echo "* print                            the list to stdout for use by the UI. Should be run with --silent"
+	    echo "* print "
 	    $ECHO "-i|--install-tar: FILE     Attempts to install the file specified as a ROM"
-	    $ECHO ""
+	    echo "* print "
 	    $ECHO "--bundle-rom               Turns the current /system and /data into a ROM and prompts for some metadata"
-	    $ECHO ""
+	    echo "* print "
 	    $ECHO "--verbose                  Enables verbose output from tar when making backups so that"
-	    $ECHO "                           hung files can be diagnosed and fixed"
+	    echo "* print                            hung files can be diagnosed and fixed"
             exit 0
             ;;
 	--verbose)
 	    VERBOSE=1
 	    shift
 	    ;;
-        --norecovery)
-            NORECOVERY=1
-            #$ECHO "No recovery"
-            shift
-            ;;
         --noboot)
             NOBOOT=1
             #$ECHO "No boot"
@@ -409,28 +337,11 @@ for option in $(getopt --name="nandroid-mobile v2.2.1" -l progress -l bundle-rom
             #$ECHO "No system"
             shift
             ;;
-        --nocache)
-            NOCACHE=1
-            #$ECHO "No cache"
+        --nosecure)
+            NOSECURE=1
+            #$ECHO "No secure"
             shift
             ;;
-        --nomisc)
-            NOMISC=1
-            #$ECHO "No misc"
-            shift
-            ;;
-##
-##        --nosplash1)
-##            NOSPLASH1=1
-##            #$ECHO "No splash1"
-##            shift
-##            ;;
-##        --nosplash2)
-##            NOSPLASH2=1
-##            #$ECHO "No splash2"
-##            shift
-##            ;;
-##
         --backup)
             BACKUP=1
             #$ECHO "backup"
@@ -441,16 +352,7 @@ for option in $(getopt --name="nandroid-mobile v2.2.1" -l progress -l bundle-rom
             #$ECHO "backup"
             shift
             ;;
-##
-##        -e)
-##            EXT2=1
-##            shift
-##            ;;
-##        --ext2)
-##            EXT2=1
-##            shift
-##            ;;
-##
+			
         --restore)
             RESTORE=1
             #$ECHO "restore"
@@ -554,41 +456,7 @@ for option in $(getopt --name="nandroid-mobile v2.2.1" -l progress -l bundle-rom
             DELETE=1
             shift
             ;;
-##
-##        --webgettarget)
-##            if [ "$2" == "$option" ]; then
-##                shift
-##            fi
-##            WEBGETTARGET="$2"
-##            shift
-##            ;;
-##        --webget)
-##            if [ "$2" == "$option" ]; then
-##                shift
-##            fi
-##            #$ECHO "WEBGET"
-##            # if the argument is "" stick with the default: /sdcard
-##            if [ ! "$2" == "" ]; then
-##                WEBGETSOURCE="$2"
-##            fi
-##            WEBGET=1
-##            shift
-##            ;;
-##        --nameserver)
-##            if [ "$2" == "$option" ]; then
-##                shift
-##            fi
-##            NAMESERVER1="$2"
-##            shift
-##            ;;
-##        --nameserver2)
-##            if [ "$2" == "$option" ]; then
-##                shift
-##            fi
-##            NAMESERVER2="$2"
-##            shift
-##            ;;
-##
+
         --defaultinput)
             ASSUMEDEFAULTUSERINPUT=1
             shift
@@ -641,10 +509,9 @@ for option in $(getopt --name="nandroid-mobile v2.2.1" -l progress -l bundle-rom
     esac
 done
 
-## added '(droid port)'
-$ECHO ""
-$ECHO "nandroid-mobile v2.2.1 (droid port)"
-$ECHO ""
+echo "* print "
+echo "* print nandroid-mobile v2.2.1 (RZ Hack)"
+echo "* print "
 ##
 
 [ "$PROGRESS" == "1" ] && $ECHO "* show_indeterminate_progress"
@@ -671,8 +538,8 @@ let OPS=$OPS+$BUNDLE_ROM
 if [ "$OPS" -ge 2 ]; then
     ECHO=echo
     $ECHO "--backup, --restore, --delete, --webget, --getupdate, --listbackup, --listupdate  are mutually exclusive operations."
-    $ECHO "Please, choose one and only one option!"
-    $ECHO "Aborting."
+    echo "* print Please, choose one and only one option!"
+    echo "* print Aborting."
     exit 2
 fi
 
@@ -680,8 +547,8 @@ let OPS=$OPS+$COMPRESS
 
 if [ "$OPS" -lt 1 ]; then
     ECHO=echo
-    $ECHO "Usage: $0 {-b|--backup|-r|--restore|-d|--delete|-u|--getupdate|--webget|-c|--compress|--bzip2 -level|-l|--listbackup|--listupdate} [options]"
-    $ECHO "At least one operation must be defined, try $0 --help for more information."
+    echo "* print Usage: $0 {-b|--backup|-r|--restore|-d|--delete|-u|--getupdate|--webget|-c|--compress|--bzip2 -level|-l|--listbackup|--listupdate} [options]"
+    echo "* print At least one operation must be defined, try $0 --help for more information."
     exit 0
 fi
 
@@ -694,7 +561,7 @@ if [ "$LISTBACKUP" == 1 ]; then
         echo "Error: sdcard not mounted, aborting."
         exit 3
     else
-        find /sdcard | grep nandroid.md5 | sed s/.gz//g | sed s/.bz2//g | sed s/nandroid.md5//g
+        find /sdcard | sed s/.gz//g | sed s/.bz2//g 
         umount /sdcard 2>/dev/null
         exit 0
     fi
@@ -720,61 +587,51 @@ touch /cache/recovery/log
 
 if [ "$AUTOAPPLY" == 1 -a "$WEBGET" == 0 -a "$GETUPDATE" == 0 ]; then
     ECHO=echo
-    $ECHO "The --autoapplyupdate option is valid only in conjunction with --webget or --getupdate."
-    $ECHO "Aborting."
+    echo "* print The --autoapplyupdate option is valid only in conjunction with --webget or --getupdate."
+    echo "* print Aborting."
     exit 5
 fi
 
 if [ "$COMPRESS" == 1 ]; then
-    $ECHO "Compressing with $DEFAULTCOMPRESSOR, level $DEFAULTLEVEL"
+    echo "* print Compressing with $DEFAULTCOMPRESSOR, level $DEFAULTLEVEL"
 fi
 
 if [ "$WEBGET" == 1 ]; then
-    $ECHO "Fetching $WEBGETSOURCE to target folder: $WEBGETTARGET"
+    echo "* print Fetching $WEBGETSOURCE to target folder: $WEBGETTARGET"
 fi
 
 if [ ! "$SUBNAME" == "" ]; then
     if [ "$BACKUP" == 1 ]; then
         if [ "$COMPRESS" == 1 ]; then
-            $ECHO "Using $SUBNAME- prefix to create a compressed backup folder"
+            echo "* print Using $SUBNAME- prefix to create a compressed backup folder"
         else
-            $ECHO "Using $SUBNAME- prefix to create a backup folder"
+            echo "* print Using $SUBNAME- prefix to create a backup folder"
         fi
     else
         if [ "$RESTORE" == 1 -o "$DELETE" == 1 -o "$COMPRESS" == 1 ]; then
-            $ECHO "Searching for backup directories, matching $SUBNAME, to delete or restore"
-            $ECHO "or compress"
-            $ECHO ""
+            echo "* print Searching for backup directories, matching $SUBNAME, to delete or restore"
+            echo "* print or compress"
+            echo "* print "
         fi
     fi
 else
     if [ "$BACKUP" == 1 ]; then
-        $ECHO "Using G1 keyboard, enter a prefix substring and then <CR>"
-        $ECHO -n "or just <CR> to accept default: "
         if [ "$ASSUMEDEFAULTUSERINPUT" == 0 ]; then
             read SUBNAME
-        else
-            $ECHO "Accepting default."
         fi
-        $ECHO ""
+        echo "* print "
         if [ "$COMPRESS" == 1 ]; then
-            $ECHO "Using $SUBNAME- prefix to create a compressed backup folder"
+            echo "* print Using $SUBNAME- prefix to create a compressed backup folder"
         else
-            $ECHO "Using $SUBNAME- prefix to create a backup folder"
+            echo "* print Using $SUBNAME- prefix to create a backup folder"
         fi
-        $ECHO ""
+        echo "* print "
     else
         if [ "$RESTORE" == 1 -o "$DELETE" == 1 -o "$COMPRESS" == 1 ]; then
-            $ECHO "Using G1 keyboard, enter a directory name substring and then <CR>"
-            $ECHO -n "to find matches or just <CR> to accept default: "
             if [ "$ASSUMEDEFAULTUSERINPUT" == 0 ]; then
                 read SUBNAME
-            else
-                $ECHO "Accepting default."
             fi
-            $ECHO ""
-            $ECHO "Using $SUBNAME string to search for matching backup directories"
-            $ECHO ""
+
         fi
     fi
 fi
@@ -792,7 +649,7 @@ if [ "$BACKUP" == 1 ]; then
     if [ "$mkyaffs2image" == "" ]; then
 	mkyaffs2image=`which mkyaffs2image-arm-uclibc`
 	if [ "$mkyaffs2image" == "" ]; then
-	    $ECHO "error: mkyaffs2image or mkyaffs2image-arm-uclibc not found in path"
+	    echo "* print error: mkyaffs2image or mkyaffs2image-arm-uclibc not found in path"
 	    exit 6
 	fi
     fi
@@ -800,7 +657,7 @@ if [ "$BACKUP" == 1 ]; then
     if [ "$dump_image" == "" ]; then
 	dump_image=`which dump_image-arm-uclibc`
 	if [ "$dump_image" == "" ]; then
-	    $ECHO "error: dump_image or dump_image-arm-uclibc not found in path"
+	    echo "* print error: dump_image or dump_image-arm-uclibc not found in path"
 	    exit 7
 	fi
     fi
@@ -819,7 +676,7 @@ if [ "$RESTORE" == 1 ]; then
     if [ "$flash_image" == "" ]; then
 	flash_image=`which flash_image-arm-uclibc`
 	if [ "$flash_image" == "" ]; then
-	    $ECHO "error: flash_image or flash_image-arm-uclibc not found in path"
+	    echo "* print error: flash_image or flash_image-arm-uclibc not found in path"
 	    exit 8
 	fi
     fi
@@ -827,7 +684,7 @@ if [ "$RESTORE" == 1 ]; then
     if [ "$unyaffs" == "" ]; then
 	unyaffs=`which unyaffs-arm-uclibc`
 	if [ "$unyaffs" == "" ]; then
-	    $ECHO "error: unyaffs or unyaffs-arm-uclibc not found in path"
+	    echo "* print error: unyaffs or unyaffs-arm-uclibc not found in path"
 	    exit 9
 	fi
     fi
@@ -835,11 +692,11 @@ fi
 if [ "$COMPRESS" == 1 ]; then
     compressor=`busybox | grep $DEFAULTCOMPRESSOR`
     if [ "$compressor" == "" ]; then
-        $ECHO "Warning: busybox/$DEFAULTCOMPRESSOR is not found"
-        $ECHO "No compression operations will be performed"
+        echo "* print Warning: busybox/$DEFAULTCOMPRESSOR is not found"
+        echo "* print No compression operations will be performed"
         COMPRESS=0
     else
-        $ECHO "Found $DEFAULTCOMPRESSOR, will compress the backup"
+        echo "* print Found $DEFAULTCOMPRESSOR, will compress the backup"
     fi
 fi
 
@@ -847,16 +704,16 @@ fi
 DEVICEID=`cat /proc/cmdline | sed "s/.*serialno=//" | cut -d" " -f1`
 RECOVERY=`cat /proc/cmdline | grep "androidboot.mode=recovery"`
 if [ "$RECOVERY" == "foo" ]; then
-    $ECHO "Error: Must be in recovery mode, aborting"
+    echo "* print Error: Must be in recovery mode, aborting"
     exit 10
 fi
 if [ "$DEVICEID" == "foo" ]; then
-    $ECHO "Error: device id not found in /proc/cmdline, aborting"
+    echo "* print Error: device id not found in /proc/cmdline, aborting"
     exit 11
 fi
 if [ ! "`id -u 2>/dev/null`" == "0" ]; then
     if [ "`whoami 2>&1 | grep 'uid 0'`" == "" ]; then
-	$ECHO "Error: must run as root, aborting"
+	echo "* print Error: must run as root, aborting"
 	exit 12
     fi
 fi
@@ -868,28 +725,28 @@ if [ "$INSTALL_ROM" == 1 ]; then
 
     $ECHO "* show_indeterminate_progress"
 
-    $ECHO "Installing ROM from $ROM_FILE..."
+    echo "* print Installing ROM from $ROM_FILE..."
 
     umount /sdcard 2>/dev/null
     mount /sdcard 2>/dev/null
 
     if [ -z "$(mount | grep sdcard)" ]; then
-	$ECHO "error: unable to mount /sdcard, aborting"
+	echo "* print error: unable to mount /sdcard, aborting"
 	exit 13
     fi
     
     if [ ! -f $ROM_FILE ]; then
-	$ECHO "error: specified ROM file does not exist"
+	echo "* print error: specified ROM file does not exist"
 	exit 14
     fi
 
     if echo "$ROM_FILE" | grep ".*gz" >/dev/null;
     then
 	$ECHO "* print Decompressing ROM..."
-	$ECHO "Decompressing $ROM_FILE..."
+	echo "* print Decompressing $ROM_FILE..."
 	busybox gzip -d "$ROM_FILE"
 	ROM_FILE=$(echo "$ROM_FILE" | sed -e 's/.tar.gz$/.tar/' -e 's/.tgz/.tar/')
-	$ECHO "Decompressed to $ROM_FILE"
+	echo "* print Decompressed to $ROM_FILE"
     fi
 
     cd /tmp
@@ -937,7 +794,7 @@ if [ "$INSTALL_ROM" == 1 ]; then
     fi
 
     if [ -d pre.d ]; then
-	$ECHO "Executing pre-install scripts..."
+	echo "* print Executing pre-install scripts..."
 	for sh in pre.d/[0-9]*.sh; do
 	    if [ -r "$sh" ]; then
 		. "$sh"
@@ -949,22 +806,22 @@ if [ "$INSTALL_ROM" == 1 ]; then
     do
 	if [ "$image" == "data" -a "$NODATA" == "1" ];
 	then
-	    $ECHO "Not flashing /data"
+	    echo "* print Not flashing /data"
 	    continue
 	fi
 
 	if [ "$image" == "system" -a "$NOSYSTEM" == "1" ];
 	then
-	    $ECHO "Not flashing /system"
+	    echo "* print Not flashing /system"
 	    continue
 	fi
 	
-	$ECHO "Flashing /$image from $image.tar"
+	echo "* print Flashing /$image from $image.tar"
 
 	mount /$image 2>/dev/null
 	
 	if [ "$(mount | grep $image)" == "" ]; then
-	    $ECHO "error: unable to mount /$image"
+	    echo "* print error: unable to mount /$image"
 	    exit 16
 	fi
 
@@ -986,7 +843,7 @@ if [ "$INSTALL_ROM" == 1 ]; then
     cd /tmp
 
     if [ -d post.d ]; then
-	$ECHO "Executing post-install scripts..."
+	echo "* print Executing post-install scripts..."
 	for sh in post.d/[0-9]*.sh; do
 	    if [ -r "$sh" ]; then
 		. "$sh"
@@ -994,7 +851,7 @@ if [ "$INSTALL_ROM" == 1 ]; then
 	done
     fi
 
-    $ECHO "Installed ROM from $ROM_FILE"
+    echo "* print Installed ROM from $ROM_FILE"
 
     umount /system 2>/dev/null
     umount /data 2>/dev/null
@@ -1003,9 +860,9 @@ if [ "$INSTALL_ROM" == 1 ]; then
 fi
 
 if [ "$BUNDLE_ROM" == 1 ]; then
-    $ECHO "Packaging current system to $ROM_FILE."
-    $ECHO "This will create a ROM that installs your /system and wipes /data when installed"
-    $ECHO "To include your own metadata or pre- and post-install scripts, or to avoid wiping /data on install, please make the tar archive manually."
+    echo "* print Packaging current system to $ROM_FILE."
+    echo "* print This will create a ROM that installs your /system and wipes /data when installed"
+    echo "* print To include your own metadata or pre- and post-install scripts, or to avoid wiping /data on install, please make the tar archive manually."
     
     umount /sdcard 2>/dev/null
     mount /sdcard 2>/dev/null
@@ -1016,12 +873,12 @@ if [ "$BUNDLE_ROM" == 1 ]; then
     TAR_OPTS="${TAR_OPTS}f"
 
     if [ -z "$(mount | grep sdcard)" ]; then
-	$ECHO "error: unable to mount /sdcard, aborting"
+	echo "* print error: unable to mount /sdcard, aborting"
 	exit 17
     fi
 
     if [ -z "$(mount | grep system)" ]; then
-	$ECHO "error: unable to mount /system, aborting"
+	echo "* print error: unable to mount /system, aborting"
 	exit 18
     fi
 
@@ -1046,52 +903,34 @@ fi
 
 if [ "$RESTORE" == 1 ]; then
     batteryAtLeast 30
-#		ENERGY=`cat /sys/class/power_supply/battery/capacity`
-#		if [ "`cat /sys/class/power_supply/battery/status`" == "Charging" ]; then
-#			ENERGY=100
-#		fi
-#		if [ ! $ENERGY -ge 30 ]; then
-#			$ECHO "Error: not enough battery power"
-#			$ECHO "Connect charger or USB power and try again"
-#			exit 1
-#		fi
-
 
     umount /sdcard 2>/dev/null
     mount /sdcard 2>/dev/null
     if [ "`mount | grep sdcard`" == "" ]; then
-	$ECHO "error: unable to mount /sdcard, aborting"
+	echo "* print error: unable to mount /sdcard, aborting"
 	exit 20
     fi
 
-		# find the latest backup, but show the user other options
-    $ECHO ""
-    $ECHO "Looking for the latest backup, will display other choices!"
-    $ECHO ""
+
 
     RESTOREPATH=`ls -trd $BACKUPPATH/*$SUBNAME* 2>/dev/null | tail -1`
-    $ECHO " "
+    echo "* print  "
 
     if [ "$RESTOREPATH" = "" ];
     then
-	$ECHO "Error: no backups found"
+	echo "* print Error: no backups found"
 	exit 21
     else
-        $ECHO "Default backup is the latest: $RESTOREPATH"
-        $ECHO ""
-        $ECHO "Other available backups are: "
-        $ECHO ""
+        echo "* print Default backup is the latest: $RESTOREPATH"
         ls -trd $BACKUPPATH/*$SUBNAME* 2>/dev/null | grep -v $RESTOREPATH $OUTPUT
-        $ECHO ""
-        $ECHO "Using G1 keyboard, enter a unique name substring to change it and <CR>"
-        $ECHO -n "or just <CR> to accept: "
+        echo "* print "
+
         if [ "$ASSUMEDEFAULTUSERINPUT" == 0 ]; then
             read SUBSTRING
         else
-            $ECHO "Accepting default."
             SUBSTRING=""
         fi
-        $ECHO ""
+        echo "* print "
 
         if [ ! "$SUBSTRING" == "" ]; then
             RESTOREPATH=`ls -trd $BACKUPPATH/*$SUBNAME* 2>/dev/null | grep $SUBSTRING | tail -1`
@@ -1099,23 +938,23 @@ if [ "$RESTORE" == 1 ]; then
             RESTOREPATH=`ls -trd $BACKUPPATH/*$SUBNAME* 2>/dev/null | tail -1`
         fi
         if [ "$RESTOREPATH" = "" ]; then
-            $ECHO "Error: no matching backups found, aborting"
+            echo "* print Error: no matching backups found, aborting"
             exit 22
         fi
     fi
     
-    $ECHO "Restore path: $RESTOREPATH"
-    $ECHO ""
+    echo "* print Restore path: $RESTOREPATH"
+    echo "* print "
 
     umount /system /data 2>/dev/null
     mount /system 2>/dev/null
     mount /data 2>/dev/null
     if [ "`mount | grep data`" == "" ]; then
-	$ECHO "error: unable to mount /data, aborting"	
+	echo "* print error: unable to mount /data, aborting"	
 	exit 23
     fi
     if [ "`mount | grep system`" == "" ]; then
-	$ECHO "error: unable to mount /system, aborting"	
+	echo "* print error: unable to mount /system, aborting"	
 	exit 24
     fi
     
@@ -1134,57 +973,46 @@ if [ "$RESTORE" == 1 ]; then
         DEFAULTEXT=.gz
     fi
 
-    if [ ! -f $RESTOREPATH/nandroid.md5$DEFAULTEXT ]; then
-	$ECHO "error: $RESTOREPATH/nandroid.md5 not found, cannot verify backup data"
-	exit 25
-    fi
+
 
     if [ `ls *.bz2 2>/dev/null|wc -l` -ge 1 -o `ls *.gz 2>/dev/null|wc -l` -ge 1 ]; then
-        $ECHO "This backup is compressed with $DEFAULTCOMPRESSOR."
+        echo "* print This backup is compressed with $DEFAULTCOMPRESSOR."
 
                     # Make sure that $DEFAULT[DE]COMPRESSOR exists
         if [ `busybox | grep $DEFAULTCOMPRESSOR | wc -l` -le 0 -a\
                             `busybox | grep $DEFAULTDECOMPRESSOR | wc -l` -le 0 ]; then
 
-            $ECHO "You do not have either the $DEFAULTCOMPRESSOR or the $DEFAULTDECOMPRESSOR"
-            $ECHO "to unpack this backup, cleaning up and aborting!"
+            echo "* print You do not have either the $DEFAULTCOMPRESSOR or the $DEFAULTDECOMPRESSOR"
+            echo "* print to unpack this backup, cleaning up and aborting!"
             umount /system 2>/dev/null
             umount /data 2>/dev/null
             umount /sdcard 2>/dev/null
             exit 26
         fi
-        $ECHO "Checking free space /sdcard for the decompression operation."
+        echo "* print Checking free space /sdcard for the decompression operation."
         FREEBLOCKS="`df -k /sdcard| grep sdcard | awk '{ print $4 }'`"
                     # we need about 100MB for gzip to uncompress the files
         if [ $FREEBLOCKS -le 100000 ]; then
-            $ECHO "Error: not enough free space available on sdcard (need about 100mb)"
-            $ECHO "to perform restore from the compressed images, aborting."
+            echo "* print Error: not enough free space available on sdcard (need about 100mb)"
+            echo "* print to perform restore from the compressed images, aborting."
             umount /system 2>/dev/null
             umount /data 2>/dev/null
             umount /sdcard 2>/dev/null
             exit 27
         fi
-        $ECHO "Decompressing images, please wait...."
-        $ECHO ""
+        echo "* print Decompressing images, please wait...."
+        echo "* print "
                     # Starting from the largest while we still have more space to reduce
                     # space requirements
         $DEFAULTCOMPRESSOR -d `ls -S *$DEFAULTEXT`
-        $ECHO "Backup images decompressed"
-        $ECHO ""
+        echo "* print Backup images decompressed"
+        echo "* print "
     fi
 
-    $ECHO "Verifying backup images..."
-    md5sum -c nandroid.md5
-    if [ $? -eq 1 ]; then
-	$ECHO "Error: md5sum mismatch, aborting"
-	exit 28
-    fi
+    echo "* print Processing backup images..."
 
     if [ `ls boot* 2>/dev/null | wc -l` == 0 ]; then
         NOBOOT=1
-    fi
-    if [ `ls recovery* 2>/dev/null | wc -l` == 0 ]; then
-        NORECOVERY=1
     fi
     if [ `ls data* 2>/dev/null | wc -l` == 0 ]; then
         NODATA=1
@@ -1192,43 +1020,53 @@ if [ "$RESTORE" == 1 ]; then
     if [ `ls system* 2>/dev/null | wc -l` == 0 ]; then
         NOSYSTEM=1
     fi
+	if [ `ls secure* 2>/dev/null | wc -l` == 0 ]; then
+        NOSECURE=1
+    fi
 
-    for image in boot recovery; do
+    for image in boot; do
         if [ "$NOBOOT" == "1" -a "$image" == "boot" ]; then
-            $ECHO ""
-            $ECHO "Not flashing boot image!"
-            $ECHO ""
+            echo "* print "
+            echo "* print Not flashing boot image!"
+            echo "* print "
             continue
         fi
-        if [ "$NORECOVERY" == "1" -a "$image" == "recovery" ]; then
-            $ECHO ""
-            $ECHO "Not flashing recovery image!"
-            $ECHO ""
-            continue
-        fi
-        $ECHO "Flashing $image..."
+        echo "* print Flashing $image..."
 	$flash_image $image $image.img $OUTPUT
     done
 
-    for image in data system; do
-        if [ "$NODATA" == "1" -a "$image" == "data" ]; then
-            $ECHO ""
-            $ECHO "Not restoring data image!"
-            $ECHO ""
+    for image in data system secure; do
+        if [ "$NODATA" == 1 -a "$image" == "data" ]; then
+            echo "* print "
+            echo "* print Not restoring data image!"
+            echo "* print "
             continue
-        fi
-        if [ "$NOSYSTEM" == "1" -a "$image" == "system" ]; then
-            $ECHO ""
-            $ECHO "Not restoring system image!"
-            $ECHO ""
+        elif [ "$NODATA" == 0 -a "$image" == "data" ]; then
+			image="data"	
+			tarfile="data"
+		fi
+        if [ "$NOSYSTEM" == 1 -a "$image" == "system" ]; then
+            echo "* print "
+            echo "* print Not restoring system image!"
+            echo "* print "
             continue
-        fi
-	$ECHO "Erasing /$image..."
+        elif [ "$NOSYSTEM" == 0 -a "$image" == "system" ]; then
+			image="system"	
+			tarfile="system"
+		fi
+        if [ "$NOSECURE" == 1 -a "$image" == "secure" ]; then
+            echo "* print "
+            echo "* print Not restoring .android_secure!"
+            echo "* print "
+            continue
+        elif [ "$NOSECURE" == 0 -a "$image" == "secure" ]; then
+			image="sdcard/.android_secure"	
+			tarfile="secure"
+		fi
+	echo "* print Erasing /$image..."
 	cd /$image
 	rm -rf * 2>/dev/null
-	$ECHO "Unpacking $image image..."
-## Changed to use tar and remove stale socket/fifo files
-##
+
 	TAR_OPTS="x"
 	[ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"
 	TAR_OPTS="${TAR_OPTS}f"
@@ -1236,67 +1074,19 @@ if [ "$RESTORE" == 1 ]; then
 	PTOTAL=$(tar tf $RESTOREPATH/$image.tar | wc -l)
 	[ "$PROGRESS" == "1" ] && $ECHO "* print Unpacking $image image..."
 
-	tar $TAR_OPTS $RESTOREPATH/$image.tar $OUTPUT | pipeline $PTOTAL
+	tar $TAR_OPTS $RESTOREPATH/$tarfile.tar -C /$image | pipeline $PTOTAL
 	if [ "$image" == "data" ]
 	then
 	    rm /data/misc/ril/pppd-notifier.fifo
 	fi
+
 ##
 	cd /
 	sync
 	umount /$image 2> /dev/null
     done
-
-## It appears that this does not exist on the Droid.
-##
-##                if [ "$EXT2" == 1 ]; then
-##                    $ECHO "Restoring the ext2 contents."
-##                    CWD=`pwd`
-##                    cd /
-##                    if [ `mount | grep /system | wc -l` == 0 ]; then
-##                        mount /system
-##                    else
-##                        mount -o rw,remount /system
-##                    fi
-##                    if [ `mount | grep /system/sd | wc -l` == 0 ]; then
-##                        mount /system/sd
-##                    fi
-##                    cd $CWD
-##                     CHECK=`mount | grep /system/sd`
-##                     if [ "$CHECK" == "" ]; then
-##                         $ECHO "Warning: --ext2 specified but unable to mount the ext2 partition."
-##                         $ECHO "Warning: your phone may be in an inconsistent state on reboot."
-##                         exit 1
-##                     else
-##                         CWD=`pwd`
-##                         cd /system/sd
-##                         # Depending on whether the ext2 backup is compressed we do either or.
-##                         if [ -e $RESTOREPATH/ext2.tar ]; then 
-##                             rm -rf * 2>/dev/null
-##                             tar -x$TARFLAGS -f $RESTOREPATH/ext2.tar
-##                         else
-##                             if [ -e $RESTOREPATH/ext2.tgz ]; then
-##                                 rm -rf * 2>/dev/null
-##                                 tar -x$TARFLAGS -zf $RESTOREPATH/ext2.tgz
-##                             else
-##                                 if [ -e $RESTOREPATH/ext2.tar.bz2 ]; then
-##                                     rm -rf * 2>/dev/null
-##                                     tar -x$TARFLAGS -jf $RESTOREPATH/ext2.tar.bz2
-##                                 else
-##                                     $ECHO "Warning: --ext2 specified but cannot find the ext2 backup."
-##                                     $ECHO "Warning: your phone may be in an inconsistent state on reboot."
-##                                 fi
-##                             fi
-##                         fi
-##                         cd $CWD
-##                         sync
-##                         umount /system/sd
-##                         umount /system
-##
-##                     fi
-##                 fi
     
-    $ECHO "Restore done"
+    echo "* print Restore done"
     exit 0
 fi
 
@@ -1314,25 +1104,25 @@ if [ "$BACKUP" == 1 ]; then
             ENERGY=100
         fi
         if [ ! $ENERGY -ge 30 ]; then
-            $ECHO "Warning: Not enough battery power to perform compression."
+            echo "* print Warning: Not enough battery power to perform compression."
             COMPRESS=0
-            $ECHO "Turning off compression option, you can compress the backup later"
-            $ECHO "with the compression options."
+            echo "* print Turning off compression option, you can compress the backup later"
+            echo "* print with the compression options."
         fi
     fi
 
-    $ECHO "mounting system and data read-only, sdcard read-write"
+    echo "* print mounting system and data read-only, sdcard read-write"
     umount /system 2>/dev/null
     umount /data 2>/dev/null
     umount /sdcard 2>/dev/null
-    mount /system || FAIL=1
-    mount /data || FAIL=2
-    mount /sdcard 2> /dev/null || mount /dev/block/mmcblk0p1 /sdcard 2> /dev/null || FAIL=3
-    case $FAIL in
-	1) $ECHO "Error mounting system read-only"; umount /system /data /sdcard; exit 29;;
-	2) $ECHO "Error mounting data read-only"; umount /system /data /sdcard; exit 30;;
-	3) $ECHO "Error mounting sdcard read-write"; umount /system /data /sdcard; exit 31;;
-    esac
+    mount /system #|| FAIL=1
+    mount /data #|| FAIL=2
+    mount /sdcard 2> /dev/null || mount /dev/block/mmcblk0p1 /sdcard 2> /dev/null #|| FAIL=3
+    #case $FAIL in
+	#1) echo "* print Error mounting system read-only"; umount /system /data /sdcard; exit 29;;
+	#2) echo "* print Error mounting data read-only"; umount /system /data /sdcard; exit 30;;
+	#3) echo "* print Error mounting sdcard read-write"; umount /system /data /sdcard; exit 31;;
+    #esac
 
     if [ ! "$SUBNAME" == "" ]; then
 	SUBNAME=$SUBNAME-
@@ -1342,38 +1132,18 @@ if [ "$BACKUP" == 1 ]; then
     if [ "$NOBOOT" == 0 ]; then
 	BACKUPLEGEND=$BACKUPLEGEND"B"
     fi
-    if [ "$NOCACHE" == 0 ]; then
-	BACKUPLEGEND=$BACKUPLEGEND"C"
-    fi
     if [ "$NODATA" == 0 ]; then
 	BACKUPLEGEND=$BACKUPLEGEND"D"
     fi
     if [ "$EXT2" == 1 ]; then
 	BACKUPLEGEND=$BACKUPLEGEND"E"
     fi
-    if [ "$NOMISC" == 0 ]; then
-	BACKUPLEGEND=$BACKUPLEGEND"M"
-    fi
-    if [ "$NORECOVERY" == 0 ]; then
-	BACKUPLEGEND=$BACKUPLEGEND"R"
-    fi
     if [ "$NOSYSTEM" == 0 ]; then
 	BACKUPLEGEND=$BACKUPLEGEND"S"
     fi
-
-##
-##if [ ! -e /dev/mtd/mtd6ro ]; then
-##    NOSPLASH1=1
-##    NOSPLASH2=1
-##fi
-##
-##if [ "$NOSPLASH1" == 0 ]; then
-##    BACKUPLEGEND=$BACKUPLEGEND"1"
-##fi
-##if [ "$NOSPLASH2" == 0 ]; then
-##    BACKUPLEGEND=$BACKUPLEGEND"2"
-##fi
-##
+	if [ "$NOSECURE" == 0 ]; then
+	BACKUPLEGEND=$BACKUPLEGEND"A"
+    fi
 
     if [ ! "$BACKUPLEGEND" == "" ]; then
 	BACKUPLEGEND=$BACKUPLEGEND-
@@ -1385,7 +1155,7 @@ if [ "$BACKUP" == 1 ]; then
     if [ ! -d $DESTDIR ]; then 
 	mkdir -p $DESTDIR
 	if [ ! -d $DESTDIR ]; then 
-	    $ECHO "error: cannot create $DESTDIR"
+	    echo "* print error: cannot create $DESTDIR"
 	    umount /system 2>/dev/null
 	    umount /data 2>/dev/null
 	    umount /sdcard 2>/dev/null
@@ -1394,7 +1164,7 @@ if [ "$BACKUP" == 1 ]; then
     else
 	touch $DESTDIR/.nandroidwritable
 	if [ ! -e $DESTDIR/.nandroidwritable ]; then
-	    $ECHO "error: cannot write to $DESTDIR"
+	    echo "* print error: cannot write to $DESTDIR"
 	    umount /system 2>/dev/null
 	    umount /data 2>/dev/null
 	    umount /sdcard 2>/dev/null
@@ -1404,11 +1174,11 @@ if [ "$BACKUP" == 1 ]; then
     fi
 
 # 3.
-    $ECHO "checking free space on sdcard"
+    echo "* print checking free space on sdcard"
     FREEBLOCKS="`df -k /sdcard| grep sdcard | awk '{ print $4 }'`"
 # we need about 130MB for the dump
     if [ $FREEBLOCKS -le 130000 ]; then
-	$ECHO "Error: not enough free space available on sdcard (need 130mb), aborting."
+	echo "* print Error: not enough free space available on sdcard (need 130mb), aborting."
 	umount /system 2>/dev/null
 	umount /data 2>/dev/null
 	umount /sdcard 2>/dev/null
@@ -1416,63 +1186,23 @@ if [ "$BACKUP" == 1 ]; then
     fi
 
 
-##
-## This section is not correct on the Droid.  It is commented out because 
-## the droid kernel does not provide a character device that corresponds 
-## to the entire MTD, and the offsets for splash1 and splash2 are not 
-## known on the droid.
-##
-
-##
-##if [ -e /dev/mtd/mtd6ro ]; then
-##    if [ "$NOSPLASH1" == 0 ]; then
-##	$ECHO -n "Dumping splash1 from device over tcp to $DESTDIR/splash1.img..."
-##	dd if=/dev/mtd/mtd6ro of=$DESTDIR/splash1.img skip=19072 bs=2048 count=150 2>/dev/null
-##	$ECHO "done"
-##	sleep 1s
-##    else
-##        $ECHO "Dump of the splash1 image suppressed."
-##    fi
-##    if [ "$NOSPLASH2" == 0 ]; then
-##	$ECHO -n "Dumping splash2 from device over tcp to $DESTDIR/splash2.img..."
-##	dd if=/dev/mtd/mtd6ro of=$DESTDIR/splash2.img skip=19456 bs=2048 count=150 2>/dev/null
-##	$ECHO "done"
-##    else
-##        $ECHO "Dump of the splash2 image suppressed."
-##    fi
-##fi
-##
-
 # 5.
-    for image in boot recovery misc; do
+    for image in boot; do
 
 	case $image in
             boot)
 		if [ "$NOBOOT" == 1 ]; then
-                    $ECHO "Dump of the boot partition suppressed."
-                    continue
-		fi
-		;;
-            recovery)
-		if [ "$NORECOVERY" == 1 ]; then
-                    $ECHO "Dump of the recovery partition suppressed."
-                    continue
-		fi
-		;;
-            misc)
-		if [ "$NOMISC" == 1 ]; then
-                    $ECHO "Dump of the misc partition suppressed."
+                    echo "* print Dump of the boot partition suppressed."
                     continue
 		fi
 		;;
 	esac
 
-	# 5a
 	DEVICEMD5=`$dump_image $image - | md5sum | awk '{ print $1 }'`
 	sleep 1s
 	MD5RESULT=1
 	# 5b
-	$ECHO "Dumping $image to $DESTDIR/$image.img..."
+	echo "* print Dumping $image to $DESTDIR/$image.img..."
 	ATTEMPT=0
 	while [ $MD5RESULT -eq 1 ]; do
 	    let ATTEMPT=$ATTEMPT+1
@@ -1487,117 +1217,78 @@ if [ "$BACKUP" == 1 ]; then
 		MD5RESULT=0
 	    fi
 	    if [ "$ATTEMPT" == "5" ]; then
-		$ECHO "Fatal error while trying to dump $image, aborting."
+		echo "* print Fatal error while trying to dump $image, aborting."
 		umount /system
 		umount /data
 		umount /sdcard
 		exit 35
 	    fi
 	done
-	$ECHO "done"
+	echo "* print done."
     done
 
 # 6
-    for image in system data cache; do
+    for image in system data secure; do
 	case $image in
             system)
 		if [ "$NOSYSTEM" == 1 ]; then
-                    $ECHO "Dump of the system partition suppressed."
+                    echo "* print Dump of the system partition suppressed."
                     continue
+		elif [ "$NOSYSTEM" == 0 ]; then
+					dest="system"
+					image="system"
 		fi
 		;;
             data)
 		if [ "$NODATA" == 1 ]; then
-                    $ECHO "Dump of the data partition suppressed."
+                    echo "* print Dump of the data partition suppressed."
                     continue
+		elif [ "$NODATA" != 1 ]; then
+					dest="data"
+					image="data"
 		fi
 		;;
-            cache)
-		if [ "$NOCACHE" == 1 ]; then
-                    $ECHO "Dump of the cache partition suppressed."
+            secure)
+		if [ "$NOSECURE" == 1 ]; then
+                    echo "* print Dump of .android_secure suppressed."
                     continue
+		elif [ "$NOSECURE" != 1 ]; then
+					image="/sdcard/.android_secure"
+					dest="secure"
 		fi
 		;;
 	esac
 
 	# 6a
-	$ECHO "Dumping $image to $DESTDIR/$image.tar..."
+	echo "* print Dumping $image to $DESTDIR/$image.tar..."
 ## Modified to use tar
 ##
+
 	cd /$image
 
 	PTOTAL=$(find . | wc -l)
-	[ "$PROGRESS" == "1" ] && $ECHO "* print Dumping $image.tar"
+	[ "$PROGRESS" == "1" ]
 
-	tar $TAR_OPTS $DESTDIR/$image.tar . 2>/dev/null | pipeline $PTOTAL
+	tar $TAR_OPTS $DESTDIR/$dest.tar . 2>/dev/null | pipeline $PTOTAL
+	
+
 ##
 	sync
-	$ECHO "done"
+	echo "* print done"
     done
 
-##
-### Backing up the ext2 partition, not really for the backup but to switch ROMS and apps at the same time.
-##
-##if [ "$EXT2" == 1 ]; then
-##    $ECHO "Storing the ext2(Apps, Dalvik-cache) contents in the backup folder."
-##
-##    CHECK1=`mount | grep /system`
-##    if [ "$CHECK1" == "" ]; then
-##        mount /system 2>/dev/null
-##    fi
-##    CHECK2=`mount | grep /system/sd`
-##    if [ "$CHECK2" == "" ]; then
-##        mount /system/sd 2>/dev/null
-##    fi
-##    
-##    CHECK1=`mount | grep /system`
-##    CHECK2=`mount | grep /system/sd`
-##    if [ "$CHECK1" == "" -o "$CHECK2" == "" ]; then
-##          $ECHO "Warning: --ext2 specified but unable to mount the ext2 partition."
-##          exit 1
-##    else
-##        
-##        CWD=`pwd`
-##        cd /system/sd
-##        # Depending on the whether we want it compressed we do either or.
-##        if [ "$COMPRESS" == 0 ]; then 
-##            tar -cvf $DESTDIR/ext2.tar ./
-##        else
-##            if [ "$DEFAULTCOMPRESSOR" == "bzip2" ]; then
-##                tar -cvjf $DESTDIR/ext2.tar.bz2 ./
-##            else
-##                tar -cvzf $DESTDIR/ext2.tgz ./
-##            fi
-##        fi
-##        cd $CWD
-##        umount /system/sd
-##    fi
-##fi
-##
-
-
-# 7.
-    $ECHO -n "generating md5sum file..."
-    CWD=$PWD
-    cd $DESTDIR
-## Inclide tar files in nandroid.md5
-##
-    imgs=$(ls | grep "img$")
-    tars=$(ls | grep "tar$")
-    md5sum $imgs $tars > nandroid.md5
-##
 
 # 7b.
     if [ "$COMPRESS" == 1 ]; then
-	$ECHO "Compressing the backup, may take a bit of time, please wait..."
+	echo "* print Compressing the backup, may take a bit of time, please wait..."
 ##
-##	$ECHO "checking free space on sdcard for the compression operation."
+##	echo "* print checking free space on sdcard for the compression operation."
 ##
 	FREEBLOCKS="`df -k /sdcard| grep sdcard | awk '{ print $4 }'`"
     # we need about 70MB for the intermediate storage needs
 	if [ $FREEBLOCKS -le 70000 ]; then
-	    $ECHO "error: not enough free space available on sdcard for compression operation (need 70mb)"
-            $ECHO "leaving this backup uncompressed."
+	    echo "* print error: not enough free space available on sdcard for compression operation (need 70mb)"
+            echo "* print leaving this backup uncompressed."
 	else
         # we are already in $DESTDIR, start compression from the smallest files
         # to maximize space for the largest's compression, less likely to fail.
@@ -1607,300 +1298,48 @@ if [ "$BACKUP" == 1 ]; then
     fi
 
     cd $CWD
-    $ECHO "done"
+    echo "* print done"
 
 # 8.
-    $ECHO "unmounting system, data and sdcard"
+    echo "* print unmounting system, data and sdcard"
     umount /system
     umount /data
     umount /sdcard
 
 # 9.
-    $ECHO "Backup successful."
+    echo "* print Backup successful."
     if [ "$AUTOREBOOT" == 1 ]; then
 	reboot
     fi
     exit 0
 fi
 
-## Since all the updates currently published are for the G1, this is currently disabled on the Droid.
-##
-### ----------------------------------GETTING UPDATES DIRECT FROM THE WEB USING WIFI-------------
-##
-## if [ "$WEBGET" == 1 ]; then
-##     $ECHO "mounting system and data read-only, sdcard read-write"
-##     umount /system 2>/dev/null
-##     umount /data 2>/dev/null
-##     umount /sdcard 2>/dev/null
-##
-##     # Since we are in recovery, these file-systems have to be mounted
-##     $ECHO "Mounting /system and /data for starting WiFi"
-##     mount -o ro /system || FAIL=1
-##     # Need to write to this system to setup nameservers for the wifi
-##     mount -o rw /data || FAIL=2
-##     mount /sdcard || mount /dev/block/mmcblk0 /sdcard || FAIL=3
-##
-##     case $FAIL in
-## 	1) $ECHO "Error mounting system read-only"; umount /system /data /sdcard; exit 1;;
-## 	2) $ECHO "Error mounting data read-write"; umount /system /data /sdcard; exit 1;;
-## 	3) $ECHO "Error mounting sdcard read-write"; umount /system /data /sdcard; exit 1;;
-##     esac
-##
-##     if [ "$WEBGETSOURCE" == "" ]; then 
-##         # Set the URL to the current latest update
-##         if [ "$ITSANUPDATE" == 1 ]; then
-##             WEBGETSOURCE=$DEFAULTWEBUPDATE
-##         else
-##             WEBGETSOURCE=$DEFAULTWEBIMAGE
-##         fi
-##     fi
-##
-##     if [ "$AUTOAPPLY" == 0 ]; then
-##         # Need to check space on sdcard only if we dump the update there.
-##         $ECHO "Checking free space on sdcard for the update download."
-##         FREEBLOCKS="`df -k /sdcard| grep sdcard | awk '{ print $4 }'`"
-##         # we need about 50MB for the storage needs
-##         if [ $FREEBLOCKS -le 50000 ]; then
-##             $ECHO "Error: not enough free space available on sdcard for the update operation (need 50mb)"
-##             $ECHO "Please free up space before invoking this option again."
-##             $ECHO "Cleaning up, unmounting file systems, aborting."
-##             umount /system /data /sdcard
-##             exit 1
-##         fi
-##     fi
-##
-##     if [ ! `basename $WEBGETSOURCE` == `basename $WEBGETSOURCE .zip` ]; then
-##         # It is a zip, not img.
-##         ITSANUPDATE=1
-##     else
-##         if [ ! `basename $WEBGETSOURCE` == `basename $WEBGETSOURCE .img` ]; then
-##            # It is an img file.
-##            ITSANIMAGE=1
-##         else
-##             # Unknown file type
-##             $ECHO "Unknown file type, cleaning up, aborting."
-##             umount /system /data /sdcard
-##             exit 1
-##         fi
-##     fi
-##
-##
-##     if [ "$ITSANUPDATE" == 1 -a "$AUTOAPPLY" == 0 ]; then
-##          # Move the previous update aside, if things go badly with the new update, it is good
-##          # to have the last one still around :-)
-##
-##          # If we cannot figure out what the file name used to be, create this new one with a time stamp
-##         OLDNAME="OLD-update-`date +%Y%m%d-%H%M`"
-##
-##         if [ -e $WEBGETTARGET/update.zip ]; then
-##             $ECHO "There is already an update.zip in $WEBGETTARGET, backing it up to"
-##             if [ -e $WEBGETTARGET/update.name ]; then
-##                 OLDNAME=`cat $WEBGETTARGET/update.name`
-##                 # Backup the name file (presumably contains the old name of the update.zip
-##                 mv -f $WEBGETTARGET/update.name $WEBGETTARGET/`basename $OLDNAME .zip`.name
-##             fi
-##             $ECHO "`basename $OLDNAME .zip`.zip"
-##             mv -f $WEBGETTARGET/update.zip $WEBGETTARGET/`basename $OLDNAME .zip`.zip
-##
-##             # Backup the MD5sum file
-##             if [ -e $WEBGETTARGET/update.MD5sum ]; then
-##                 mv -f $WEBGETTARGET/update.MD5sum $WEBGETTARGET/`basename $OLDNAME .zip`.MD5sum
-##             fi
-##         fi
-##     fi
-##
-##     $ECHO "Starting WiFI, please wait..."
-##     insmod /system/lib/modules/wlan.ko
-##
-##     wlan_loader -f /system/etc/wifi/Fw1251r1c.bin -e /proc/calibration -i /system/etc/wifi/tiwlan.ini
-##
-##     CWD=`pwd`
-##     cd /data/local/tmp
-##
-##     wpa_supplicant -f -Dtiwlan0 -itiwlan0 -c/data/misc/wifi/wpa_supplicant.conf&
-##
-##     sleep 5
-##     $ECHO "wpa_supplicant started"
-##     $ECHO ""
-##
-##     echo "nameserver $NAMESERVER1" >/etc/resolv.conf
-##     echo "nameserver $NAMESERVER2" >>/etc/resolv.conf
-##
-##     #We want the wifi to assign a dynamic address
-##     $ECHO "Starting DHCPCD server (dynamic address assignment)"
-##     # -BKL flags????
-##     dhcpcd -d tiwlan0 2>/dev/null &
-##
-##     # Have to wait for it to init stuff
-##     sleep 10
-##
-##
-##     CHECK1=`ps | grep -v grep | grep dhcpcd`
-##     CHECK2=`ps | grep -v grep | grep wpa_supplicant`
-##     if [ "$CHECK1" == "" -o "$CHECK2" == "" ]; then
-##          $ECHO "Error: wpa_supplicant or DHCPCD server is not running, cleaning up, aborting"
-##          rm -- -Dtiwlan0
-##          cd $CWD
-##
-##          $ECHO "unmounting /system, /data and /sdcard"
-##          umount /system
-##          umount /data
-##          umount /sdcard
-##          exit 2
-##     fi
-##
-##     $ECHO "DHCPCD server started"
-##     $ECHO ""
-##
-##     $ECHO "WiFi is running!"
-##     $ECHO ""
-##
-##     if [ "$AUTOAPPLY" == 1 ]; then
-##         $ECHO "Autoapply is on, retrieving the update into /cache/`basename $WEBGETSOURCE`"
-##
-##         wget -O /cache/`basename $WEBGETSOURCE` $WEBGETSOURCE $OUTPUT
-##
-##         if [ ! -e /cache/recovery ]; then
-##             mkdir /cache/recovery
-##             chmod 777 /cache/recovery
-##         fi
-##         if [ -e /cache/recovery/command ]; then
-##             echo "--update_package=CACHE:`basename $WEBGETSOURCE`" >>/cache/recovery/command
-##         else
-##             echo "--update_package=CACHE:`basename $WEBGETSOURCE`" >/cache/recovery/command
-##         fi
-##         chmod 555 /cache/recovery/command
-##         # Once rebooted the update will be applied.
-##
-##     else
-##
-##         if [ "$ITSANUPDATE" == 1 ]; then
-##             $ECHO "Retrieving system update into $WEBGETTARGET/update.zip, please wait..."
-##             wget -O $WEBGETTARGET/update.zip $WEBGETSOURCE $OUTPUT
-##
-##             echo "`basename $WEBGETSOURCE`" > $WEBGETTARGET/update.name
-##             $ECHO ""
-##             $ECHO "Update retrieved, if concerned, please compare the md5sum with the number"
-##             $ECHO "you see on the web page, if it is NOT the same, the retrieval"
-##             $ECHO "has failed and has to be repeated."
-##             $ECHO ""
-##             $ECHO `md5sum $WEBGETTARGET/update.zip | tee $WEBGETTARGET/update.MD5sum`
-##             $ECHO ""
-##             $ECHO "MD5sum has been stored in $WEBGETTARGET/update.MD5sum"
-##         else
-##             $ECHO "Retrieving the image into $WEBGETTARGET/`basename $WEBGETSOURCE`, please wait..."
-##             wget -O $WEBGETTARGET/`basename $WEBGETSOURCE` $WEBGETSOURCE $OUTPUT
-##             $ECHO ""
-##             $ECHO "$WEBGETSOURCE retrieved, if concerned, please compare the md5sum with the number"
-##             $ECHO "you see on the web page, if it is NOT the same, the retrieval"
-##             $ECHO "has failed and has to be repeated."
-##             $ECHO ""
-##             md5sum $WEBGETTARGET/`basename $WEBGETSOURCE` | tee $WEBGETTARGET/`basename $WEBGETSOURCE .img`.MD5sum $OUTPUT
-##             $ECHO ""
-##             $ECHO "MD5sum has been stored in $WEBGETTARGET/`basename $WEBGETSOURCE .img`.MD5sum"
-##             $ECHO ""
-##             $ECHO -n "Would you like to flash this image into boot or recovery? (or no for no flash) "
-##             read ANSWER
-##             if [ "$ANSWER" == "boot" ]; then
-##                  $ECHO "Flashing $WEBGETTARGET/`basename $WEBGETSOURCE` into the boot partition."
-##                 $flash_image boot $WEBGETTARGET/`basename $WEBGETSOURCE`
-##             else
-##                 if [ "$ANSWER" == "recovery" ]; then
-##                     $ECHO "Moving $WEBGETTARGET/`basename $WEBGETSOURCE` into the /data/recovery.img"
-##                     $ECHO "and /system/recovery.img"
-##                     cp -f $WEBGETTARGET/`basename $WEBGETSOURCE` /data/recovery.img
-##                     mount -o rw,remount /system
-##                     cp -f $WEBGETTARGET/`basename $WEBGETSOURCE` /system/recovery.img
-##                     $ECHO "Depending on the settings of your specific ROM, the recovery.img will be"
-##                     $ECHO "flashed at the normal bootup time either from /system or /data."
-##                 else
-##                     $ECHO "Not flashing the image."
-##                 fi
-##             fi
-##         fi
-##         $ECHO ""
-##
-##     fi
-##
-##     $ECHO "Shutting down DHCPCD service and wpa_supplicant"
-##     killall -TERM dhcpcd
-##     TEMPVAR=`ps | grep -v grep | grep wpa_supplicant`
-##     TEMPVAR=`echo $TEMPVAR | cut -f 1 -d ' '`
-##     kill -TERM $TEMPVAR
-##
-##     while true; do
-##         CHECK=`ps | grep -v grep | grep dhcpcd`
-##         if [ ! "$CHECK" == "" ]; then
-##             sleep 1
-##         else
-##             break
-##         fi
-##     done
-##
-##     while true; do
-##         CHECK=`ps | grep -v grep | grep wpa_supplicant`
-##         if [ ! "$CHECK" == "" ]; then
-##             sleep 1
-##         else
-##             break
-##         fi
-##     done
-##     #sleep 5
-##
-##     $ECHO "Cleaning up..."
-##     # Looks like cannot clean up wlan module since chdir is missing
-##     #rmmod wlan
-##     rm -- -Dtiwlan0
-##     cd $CWD
-##
-##     $ECHO "unmounting /system, /data and /sdcard"
-##     umount /system
-##     umount /data
-##     umount /sdcard
-##
-##     if [ "$AUTOAPPLY" == 1 ]; then
-##         $ECHO "Auto apply update is on, rebooting into recovery to apply the update."
-##         $ECHO "When the update is complete reboot into the normal mode."
-##         $ECHO "The device will reboot and the update will be applied in 10 seconds!"
-##         sleep 10
-##         reboot recovery
-##     else
-##         if [ "$ITSANUPDATE" == 1 ]; then
-##             $ECHO "If you put the update into a folder other than /sdcard you need to use --getupdate to"
-##             $ECHO "prepare the update for application."
-##             $ECHO "You may want to execute 'reboot recovery' and choose update option to flash the update."
-##             $ECHO "Or in the alternative, shutdown your phone with reboot -p, and then press <CAMERA>+<POWER>"
-##             $ECHO "to initiate a normal system update procedure, if you have stock SPL."
-##         fi
-##         exit 0
-##     fi
-##fi
-##
+
 
 # -------------------------------------DELETION, COMPRESSION OF BACKUPS---------------------------------
 if [ "$COMPRESS" == 1 -o "$DELETE" == 1 ]; then
-    $ECHO "Unmounting /system and /data to be on the safe side, mounting /sdcard read-write."
+    echo "* print Unmounting /system and /data to be on the safe side, mounting /sdcard read-write."
     umount /system 2>/dev/null
     umount /data 2>/dev/null
     umount /sdcard 2>/dev/null
 
     FAIL=0
     # Since we are in recovery, these file-system have to be mounted
-    $ECHO "Mounting /sdcard to look for backups."
+    echo "* print Mounting /sdcard to look for backups."
     mount /sdcard || mount /dev/block/mmcblk0 /sdcard || FAIL=1
 
     if [ "$FAIL" == 1 ]; then
-	$ECHO "Error mounting /sdcard read-write, cleaning up..."; umount /system /data /sdcard; exit 36
+	echo "* print Error mounting /sdcard read-write, cleaning up..."; umount /system /data /sdcard; exit 36
     fi
 
-    $ECHO "The current size of /sdcard FAT32 filesystem is `du /sdcard | tail -1 | cut -f 1 -d '/'`Kb"
-    $ECHO ""
+    echo "* print The current size of /sdcard FAT32 filesystem is `du /sdcard | tail -1 | cut -f 1 -d '/'`Kb"
+    echo "* print "
 
     # find the oldest backup, but show the user other options
-    $ECHO "Looking for the oldest backup to delete, newest to compress,"
-    $ECHO "will display all choices!"
-    $ECHO ""
-    $ECHO "Here are the backups you have picked within this repository $BACKUPPATH:"
+    echo "* print Looking for the oldest backup to delete, newest to compress,"
+    echo "* print will display all choices!"
+    echo "* print "
+    echo "* print Here are the backups you have picked within this repository $BACKUPPATH:"
 
     if [ "$DELETE" == 1 ]; then
         RESTOREPATH=`ls -td $BACKUPPATH/*$SUBNAME* 2>/dev/null | tail -1`
@@ -1909,32 +1348,29 @@ if [ "$COMPRESS" == 1 -o "$DELETE" == 1 ]; then
         RESTOREPATH=`ls -trd $BACKUPPATH/*$SUBNAME* 2>/dev/null | tail -1`
         ls -trd $BACKUPPATH/*$SUBNAME* 2>/dev/null $OUTPUT
     fi
-    $ECHO " "
+    echo "* print  "
 
     if [ "$RESTOREPATH" = "" ];	then
-	$ECHO "Error: no backups found"
+	echo "* print Error: no backups found"
 	exit 37
     else
         if [ "$DELETE" == 1 ]; then
-            $ECHO "Default backup to delete is the oldest: $RESTOREPATH"
-            $ECHO ""
-            $ECHO "Other candidates for deletion are: "
+            echo "* print Default backup to delete is the oldest: $RESTOREPATH"
+            echo "* print "
+            echo "* print Other candidates for deletion are: "
             ls -td $BACKUPPATH/*$SUBNAME* 2>/dev/null | grep -v $RESTOREPATH $OUTPUT
         fi
         if [ "$COMPRESS" == 1 ]; then
-            $ECHO "Default backup to compress is the latest: $RESTOREPATH"
-            $ECHO ""
-            $ECHO "Other candidates for compression are: "
+            echo "* print Default backup to compress is the latest: $RESTOREPATH"
+            echo "* print "
+            echo "* print Other candidates for compression are: "
             ls -trd $BACKUPPATH/*$SUBNAME* 2>/dev/null | grep -v $RESTOREPATH $OUTPUT
         fi
 
-        $ECHO ""
-        $ECHO "Using G1 keyboard, enter a unique name substring to change it and <CR>"
-        $ECHO -n "or just <CR> to accept: "
+        echo "* print "
         if [ "$ASSUMEDEFAULTUSERINPUT" == 0 ]; then
             read SUBSTRING
         else
-            $ECHO "Accepting default."
             SUBSTRING=""
         fi
 
@@ -1944,33 +1380,32 @@ if [ "$COMPRESS" == 1 -o "$DELETE" == 1 ]; then
             RESTOREPATH=`ls -td $BACKUPPATH/*$SUBNAME* 2>/dev/null | tail -1`
         fi
         if [ "$RESTOREPATH" = "" ]; then
-            $ECHO "Error: no matching backup found, aborting"
+            echo "* print Error: no matching backup found, aborting"
             exit 38
         fi
     fi
     
     if [ "$DELETE" == 1 ]; then
-        $ECHO "Deletion path: $RESTOREPATH"
-        $ECHO ""
-        $ECHO "WARNING: Deletion of a backup is an IRREVERSIBLE action!!!"
+        echo "* print Deletion path: $RESTOREPATH"
+        echo "* print "
+        echo "* print WARNING: Deletion of a backup is an IRREVERSIBLE action!!!"
         $ECHO -n "Are you absolutely sure? {yes | YES | Yes | no | NO | No}: "
         if [ "$ASSUMEDEFAULTUSERINPUT" == 0 ]; then
             read ANSWER
         else
             ANSWER=yes
-            $ECHO "Accepting default."
         fi
-        $ECHO ""
+        echo "* print "
         if [ "$ANSWER" == "yes" -o "$ANSWER" == "YES" -o "$ANSWER" == "Yes" ]; then
             rm -rf $RESTOREPATH
-            $ECHO ""
+            echo "* print "
             $ECHO "$RESTOREPATH has been permanently removed from your SDCARD."
-            $ECHO "Post deletion size of the /sdcard FAT32 filesystem is `du /sdcard | tail -1 | cut -f 1 -d '/'`Kb"
+            echo "* print Post deletion size of the /sdcard FAT32 filesystem is `du /sdcard | tail -1 | cut -f 1 -d '/'`Kb"
         else 
             if [ "$ANSWER" == "no" -o "$ANSWER" == "NO" -o "$ANSWER" == "No" ]; then
-                $ECHO "The chosen backup will NOT be removed."
+                echo "* print The chosen backup will NOT be removed."
             else 
-                $ECHO "Invalid answer: assuming NO."
+                echo "* print Invalid answer: assuming NO."
             fi
         fi
     fi
@@ -1981,32 +1416,32 @@ if [ "$COMPRESS" == 1 -o "$DELETE" == 1 ]; then
         cd $RESTOREPATH
 
         if [ `ls *.bz2 2>/dev/null|wc -l` -ge 1 -o `ls *.gz 2>/dev/null|wc -l` -ge 1 ]; then
-            $ECHO "This backup is already compressed, cleaning up, aborting..."
+            echo "* print This backup is already compressed, cleaning up, aborting..."
             cd $CWD
             umount /sdcard 2>/dev/null
             exit 0
         fi
 
-        $ECHO "checking free space on sdcard for the compression operation."
+        echo "* print checking free space on sdcard for the compression operation."
         FREEBLOCKS="`df -k /sdcard| grep sdcard | awk '{ print $4 }'`"
          # we need about 70MB for the intermediate storage needs
         if [ $FREEBLOCKS -le 70000 ]; then
-            $ECHO "Error: not enough free space available on sdcard for compression operation (need 70mb)"
-            $ECHO "leaving this backup uncompressed."
+            echo "* print Error: not enough free space available on sdcard for compression operation (need 70mb)"
+            echo "* print leaving this backup uncompressed."
         else
              # we are already in $DESTDIR, start compression from the smallest files
              # to maximize space for the largest's compression, less likely to fail.
              # To decompress reverse the order.
-            $ECHO "Pre compression size of the /sdcard FAT32 filesystem is `du /sdcard | tail -1 | cut -f 1 -d '/'`Kb"
-            $ECHO ""
-            $ECHO "Compressing the backup may take a bit of time, please wait..."
+            echo "* print Pre compression size of the /sdcard FAT32 filesystem is `du /sdcard | tail -1 | cut -f 1 -d '/'`Kb"
+            echo "* print "
+            echo "* print Compressing the backup may take a bit of time, please wait..."
             $DEFAULTCOMPRESSOR $DEFAULTLEVEL `ls -S -r *`
-            $ECHO ""
-            $ECHO "Post compression size of the /sdcard FAT32 filesystem is `du /sdcard | tail -1 | cut -f 1 -d '/'`Kb"
+            echo "* print "
+            echo "* print Post compression size of the /sdcard FAT32 filesystem is `du /sdcard | tail -1 | cut -f 1 -d '/'`Kb"
         fi
     fi
 
-    $ECHO "Cleaning up."
+    echo "* print Cleaning up."
     cd $CWD
     umount /sdcard 2>/dev/null
     exit 0
@@ -2014,48 +1449,45 @@ if [ "$COMPRESS" == 1 -o "$DELETE" == 1 ]; then
 fi
 
 if [ "$GETUPDATE" == 1 ]; then
-    $ECHO "Unmounting /system and /data to be on the safe side, mounting /sdcard read-write."
+    echo "* print Unmounting /system and /data to be on the safe side, mounting /sdcard read-write."
     umount /system 2>/dev/null
     umount /data 2>/dev/null
     umount /sdcard 2>/dev/null
 
     FAIL=0
     # Since we are in recovery, these file-system have to be mounted
-    $ECHO "Mounting /sdcard to look for updates to flash."
+    echo "* print Mounting /sdcard to look for updates to flash."
     mount /sdcard || mount /dev/block/mmcblk0 /sdcard || FAIL=1
 
     if [ "$FAIL" == 1 ]; then
-	$ECHO "Error mounting /sdcard read-write, cleaning up..."; umount /system /data /sdcard; exit 39
+	echo "* print Error mounting /sdcard read-write, cleaning up..."; umount /system /data /sdcard; exit 39
     fi
 
-    $ECHO "The current size of /sdcard FAT32 filesystem is `du /sdcard | tail -1 | cut -f 1 -d '/'`Kb"
-    $ECHO ""
+    echo "* print The current size of /sdcard FAT32 filesystem is `du /sdcard | tail -1 | cut -f 1 -d '/'`Kb"
+    echo "* print "
 
     # find all the files with update in them, but show the user other options
-    $ECHO "Looking for all *update*.zip candidate files to flash."
-    $ECHO ""
-    $ECHO "Here are the updates limited by the subname $SUBNAME found"
-    $ECHO "within the repository $DEFAULTUPDATEPATH:"
-    $ECHO ""
+    echo "* print Looking for all *update*.zip candidate files to flash."
+    echo "* print "
+    echo "* print Here are the updates limited by the subname $SUBNAME found"
+    echo "* print within the repository $DEFAULTUPDATEPATH:"
+    echo "* print "
     RESTOREPATH=`ls -trd $DEFAULTUPDATEPATH/*$SUBNAME*.zip 2>/dev/null | grep update | tail -1`
     if [ "$RESTOREPATH" == "" ]; then
-        $ECHO "Error: found no matching updates, cleaning up, aborting..."
+        echo "* print Error: found no matching updates, cleaning up, aborting..."
         umount /sdcard 2>/dev/null
         exit 40
     fi
     ls -trd $DEFAULTUPDATEPATH/*$SUBNAME*.zip 2>/dev/null | grep update $OUTPUT
-    $ECHO ""
-    $ECHO "The default update is the latest $RESTOREPATH"
-    $ECHO ""
-    $ECHO "Using G1 keyboard, enter a unique name substring to change it and <CR>"
-    $ECHO -n "or just <CR> to accept: "
+    echo "* print "
+    echo "* print The default update is the latest $RESTOREPATH"
+    echo "* print "
     if [ "$ASSUMEDEFAULTUSERINPUT" == 0 ]; then
         read SUBSTRING
     else
-        $ECHO "Accepting default."
         SUBSTRING=""
     fi
-    $ECHO ""
+    echo "* print "
 
     if [ ! "$SUBSTRING" == "" ]; then
         RESTOREPATH=`ls -trd $DEFAULTUPDATEPATH/*$SUBNAME*.zip 2>/dev/null | grep update | grep $SUBSTRING | tail -1`
@@ -2063,12 +1495,12 @@ if [ "$GETUPDATE" == 1 ]; then
         RESTOREPATH=`ls -trd $DEFAULTUPDATEPATH/*$SUBNAME*.zip 2>/dev/null | grep update | tail -1`
     fi
     if [ "$RESTOREPATH" = "" ]; then
-        $ECHO "Error: no matching backups found, aborting"
+        echo "* print Error: no matching backups found, aborting"
         exit 41
     fi
 
     if [ "$RESTOREPATH" == "/sdcard/update.zip" ]; then
-        $ECHO "You chose update.zip, it is ready for flashing, there nothing to do."
+        echo "* print You chose update.zip, it is ready for flashing, there nothing to do."
     else
 
         # Things seem ok so far.
@@ -2080,7 +1512,7 @@ if [ "$GETUPDATE" == 1 ]; then
         OLDNAME="OLD-update-`date +%Y%m%d-%H%M`"
 
         if [ -e /sdcard/update.zip ]; then
-            $ECHO "There is already an update.zip in /sdcard, backing it up to"
+            echo "* print There is already an update.zip in /sdcard, backing it up to"
             if [ -e /sdcard/update.name ]; then
                 OLDNAME=`cat /sdcard/update.name`
                 # Backup the name file (presumably contains the old name of the update.zip
@@ -2099,9 +1531,9 @@ if [ "$GETUPDATE" == 1 ]; then
             mv -f $DEFAULTUPDATEPATH/`basename $RESTOREPATH .zip`.MD5sum /sdcard/update.MD5sum
         else
             $ECHO `md5sum $RESTOREPATH | tee /sdcard/update.MD5sum`
-            $ECHO ""
-            $ECHO "MD5sum has been stored in /sdcard/update.MD5sum"
-            $ECHO ""
+            echo "* print "
+            echo "* print MD5sum has been stored in /sdcard/update.MD5sum"
+            echo "* print "
         fi
         if [ -e $DEFAULTUPDATEPATH/`basename $RESTOREPATH .zip`.name ]; then
             mv -f $DEFAULTUPDATEPATH/`basename $RESTOREPATH .zip`.name /sdcard/update.name
@@ -2112,15 +1544,15 @@ if [ "$GETUPDATE" == 1 ]; then
         mv -i $RESTOREPATH /sdcard/update.zip
 
 
-        $ECHO "Your file $RESTOREPATH has been moved to the root of sdcard, and is ready for flashing!!!"
+        echo "* print Your file $RESTOREPATH has been moved to the root of sdcard, and is ready for flashing!!!"
 
     fi
 
-    $ECHO "You may want to execute 'reboot recovery' and then choose the update option to flash the update."
-    $ECHO "Or in the alternative, shutdown your phone with reboot -p, and then press <CAMERA>+<POWER> to"
-    $ECHO "initiate a standard update procedure if you have stock SPL."
-    $ECHO ""
-    $ECHO "Cleaning up and exiting."
+    echo "* print You may want to execute 'reboot recovery' and then choose the update option to flash the update."
+    echo "* print Or in the alternative, shutdown your phone with reboot -p, and then press <CAMERA>+<POWER> to"
+    echo "* print initiate a standard update procedure if you have stock SPL."
+    echo "* print "
+    echo "* print Cleaning up and exiting."
     umount /sdcard 2>/dev/null
     exit 0
 fi
