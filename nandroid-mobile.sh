@@ -1118,11 +1118,11 @@ if [ "$BACKUP" == 1 ]; then
     mount /system #|| FAIL=1
     mount /data #|| FAIL=2
     mount /sdcard 2> /dev/null || mount /dev/block/mmcblk0p1 /sdcard 2> /dev/null #|| FAIL=3
-    case $FAIL in
-	1) echo "* print Error mounting system read-only"; umount /system /data /sdcard; exit 29;;
-	2) echo "* print Error mounting data read-only"; umount /system /data /sdcard; exit 30;;
-	3) echo "* print Error mounting sdcard read-write"; umount /system /data /sdcard; exit 31;;
-    esac
+    #case $FAIL in
+	#1) echo "* print Error mounting system read-only"; umount /system /data /sdcard; exit 29;;
+	#2) echo "* print Error mounting data read-only"; umount /system /data /sdcard; exit 30;;
+	#3) echo "* print Error mounting sdcard read-write"; umount /system /data /sdcard; exit 31;;
+    #esac
 
     if [ ! "$SUBNAME" == "" ]; then
 	SUBNAME=$SUBNAME-
