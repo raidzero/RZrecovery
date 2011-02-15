@@ -56,11 +56,11 @@ void choose_file_menu(char* sdpath) {
 		LOGE("Please make sure it exists!");
 		return;
     }
-    //count the nummber of valid files:
+    //count the number of valid files:
     while ((de=readdir(dir)) != NULL) {
 		if (de->d_type == DT_DIR) {
 				total++;
-		} else if (de->d_type == DT_REG) {
+		} else {
 			if (strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0) {
 				total++;
 			}
@@ -96,21 +96,28 @@ void choose_file_menu(char* sdpath) {
 
 		i = 0;
 		while ((de = readdir(dir)) != NULL) {
+			//display dirs
+			if (de->d_type == DT_DIR) {
+				files[i] = (char*) malloc(strlen(sdpath)+strlen(de->d_name)+1);
+				strcpy(files[i], sdpath);
+				strcat(files[i], de->d_name);
+				list[i] = (char*) malloc(strlen(de->d_name)+1);
+				strcat(de->d_name, "/"); //add "/" since these are dirs
+				strcpy(list[i], de->d_name);				
+					i++;				
+			}
 			//display valid files
-			if (((de->d_name[0] != '.') != 0 || de->d_name[1] != '.') && de->d_type == DT_DIR || (de->d_type == DT_REG && (strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".tar")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".tgz")==0 || strcmp(de->d_name+strlen(de->d_name)-7,"rec.img")==0 || strcmp(de->d_name+strlen(de->d_name)-8,"boot.img")==0) || strcmp(de->d_name,"..") == 0 )) {
+			if ((de->d_type == DT_REG && (strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".tar")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".tgz")==0 || strcmp(de->d_name+strlen(de->d_name)-7,"rec.img")==0 || strcmp(de->d_name+strlen(de->d_name)-8,"boot.img")==0) || strcmp(de->d_name,"..") == 0 )) {
 				
 				files[i] = (char*) malloc(strlen(sdpath)+strlen(de->d_name)+1);
 				strcpy(files[i], sdpath);
 				strcat(files[i], de->d_name);
 				list[i] = (char*) malloc(strlen(de->d_name)+1);
-				
-				if (de->d_type == DT_DIR) { //if is a dir, add / to it
-					strcat(de->d_name, "/");
-				}
 				strcpy(list[i], de->d_name);				
-					i++;				
+					i++;		
 			}
 		}
+		
 
 		if (closedir(dir) <0) {
 			LOGE("Failure closing directory\n");

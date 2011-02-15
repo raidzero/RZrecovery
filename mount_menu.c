@@ -5,19 +5,15 @@
 #include "roots.h"
 #include "recovery_ui.h"
 
-static char* get_mounted_partitions_string(char* destination, int mc, int md, int msd, int ms)
+static char* get_mounted_partitions_string(char* destination, int md, int msd, int ms)
 {
     static const char* mounted_prefix = "Mounted partitions: ";
-    static const char* mounted_cache = "/cache ";
     static const char* mounted_data = "/data ";
     static const char* mounted_sdcard = "/sdcard ";
     static const char* mounted_system = "/system";
     static const char* newline = "\n";
 
     strcpy(destination,mounted_prefix);
-    if(mc) {
-	strcat(destination,mounted_cache);
-    }
     if(md) {
 	strcat(destination,mounted_data);
     }
@@ -46,27 +42,24 @@ static int is_usb_storage_enabled()
     }
 }
 
-static void get_mount_menu_options(char** items, int mc, int md, int msd, int ms, int usb)
+static void get_mount_menu_options(char** items, int md, int msd, int ms, int usb)
 {
     static char* items1[] = { "Mount /system",
 			      "Mount /data",
-			      "Mount /cache",
 			      "Mount /sdcard",
 			      "Enable USB Mass Storage",
 			      NULL };
     static char* items2[] = { "Umount /system",
 			      "Umount /data",
-			      "Umount /cache",
 			      "Umount /sdcard",
 			      "Disable USB Mass Storage",
 			      NULL };
 
     items[0]=ms?items2[0]:items1[0];
     items[1]=md?items2[1]:items1[1];
-    items[2]=mc?items2[2]:items1[2];
-    items[3]=msd?items2[3]:items1[3];
-    items[4]=usb?items2[4]:items1[4];
-    items[5]=NULL;
+    items[2]=msd?items2[2]:items1[2];
+    items[3]=usb?items2[3]:items1[3];
+    items[4]=NULL;
 }
 
 static void enable_usb_mass_storage()
@@ -94,12 +87,11 @@ void show_mount_menu()
 			       "",
 			       NULL };
     
-    // "Mounted partitions: /cache /data /sdcard /system\n"
+    // "Mounted partitions: /data /sdcard /system\n"
     //  123456789012345678901234567890123456789012345678
-    //  0        1         2         3         4
+    //  0        1         2         3        
     char* mounted = malloc(50*sizeof(char));
 
-    int mc = is_root_path_mounted("CACHE:");
     int md = is_root_path_mounted("DATA:");
     int msd = is_root_path_mounted("SDCARD:");
     int ms = is_root_path_mounted("SYSTEM:");
@@ -107,15 +99,14 @@ void show_mount_menu()
     
     char** items = malloc(6*sizeof(char*));
     
-    get_mount_menu_options(items,mc,md,msd,ms,usb);
+    get_mount_menu_options(items,md,msd,ms,usb);
 
-    headers[3]=get_mounted_partitions_string(mounted,mc,md,msd,ms);
+    headers[3]=get_mounted_partitions_string(mounted,md,msd,ms);
     
 #define ITEM_S   0
 #define ITEM_D   1
-#define ITEM_C   2
-#define ITEM_SD  3
-#define ITEM_USB 4
+#define ITEM_SD  2
+#define ITEM_USB 3
 
     int chosen_item = -1;
 
@@ -151,18 +142,6 @@ void show_mount_menu()
 	    ui_print("ounted /data\n");
 	    md^=1;
 	    break;
-	case ITEM_C:
-	    if(mc) {
-		ensure_root_path_unmounted("CACHE:");
-		ui_print("Unm");
-	    }
-	    else {
-		ensure_root_path_mounted("CACHE:");
-		ui_print("M");
-	    }
-	    ui_print("ounted /cache\n");
-	    mc^=1;
-	    break;
 	case ITEM_SD:
 	    if(msd) {
 		ensure_root_path_unmounted("SDCARD:");
@@ -188,8 +167,8 @@ void show_mount_menu()
 	    usb^=1;
 	    break;
 	}
-	get_mounted_partitions_string(mounted,mc,md,msd,ms);
-	get_mount_menu_options(items,mc,md,msd,ms,usb);
+	get_mounted_partitions_string(mounted,md,msd,ms);
+	get_mount_menu_options(items,md,msd,ms,usb);
     }
 } 
 

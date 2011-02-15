@@ -126,13 +126,10 @@ static const int MAX_ARGS = 100;
 #include <stdio.h>
 #include <stdlib.h>
 void set_cpufreq(char* speed) {
-	char* argv[] = { "/sbin/setfreq",
-	speed,
-	NULL };
-
-	char* envp[] = { NULL };
-  
-	int status = runve("/sbin/setfreq",argv,envp,1);
+	FILE* fs = fopen("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq","w");
+	fputs(speed,fs);
+	fputs("\n",fs);
+	fclose(fs);
 }
 
 //write recovery files from cache to sdcard

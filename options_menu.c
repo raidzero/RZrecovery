@@ -24,11 +24,24 @@ void show_battstat() {
     char* bcap = calloc(4,sizeof(char));
     fgets(bcap, 4, fc);
 	
+	FILE* ft = fopen("/sys/class/power_supply/battery/temp","r");
+    char* btemp = calloc(3,sizeof(char));
+    fgets(btemp, 3, ft);
+	
+	btemp = strcat(btemp," C");
+	bcap = strcat(bcap,"%%");
+	ui_print("\n");
 	ui_print("\nBattery Status: ");
 	ui_print(bstat);
 	ui_print("Charge Level: ");
 	ui_print(bcap);
-	ui_print(" %");
+	ui_print("\nTemperature: ");
+	ui_print(btemp);
+
+	
+	fclose(ft);
+	fclose(fc);
+	fclose(fs);
 }
 
 void flashlight() {

@@ -14,10 +14,19 @@ void set_oc(char* speed) {
 }
 	
 void show_overclock_menu() {
+	FILE* fs = fopen("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq","r");
+    char* freq = calloc(7,sizeof(char));
+    fgets(freq, 7, fs);
+	fclose(fs);
 	
-    static char* headers[] = { "Overclock Menu",
+	freq = strcat(freq," kHz");
+	ui_print("\nCurrent Max Frequency: ");
+	ui_print(freq);
+	ui_print("\n");
+	
+    static char* headers[] = { "Recovery Overclock Menu",
 			       "Make a selection of press POWER/DEL to return",
-			       "",
+			       " ",
 			       NULL };
 
     char* items[] = { "600 MHz",
