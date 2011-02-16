@@ -42,8 +42,12 @@ void choose_file_menu(char* sdpath) {
     DIR *dir;
     struct dirent *de;
     int total = 0;
-    int i;
-    char** files;
+	int ftotal = 0;
+	int dtotal = 0;
+	int i;
+	int j;
+    char** flist;
+	char** dlist;
     char** list; 
     if (ensure_root_path_mounted("SDCARD:") != 0) {
 	LOGE ("Can't mount /sdcard\n");
@@ -59,26 +63,26 @@ void choose_file_menu(char* sdpath) {
     //count the number of valid files:
     while ((de=readdir(dir)) != NULL) {
 		if (de->d_type == DT_DIR) {
-				total++;
+				dtotal++;
 		} else {
 			if (strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0) {
-				total++;
+				ftotal++;
 			}
 			if (strcmp(de->d_name+strlen(de->d_name)-4,".tar")==0) {
-				total++;
+				ftotal++;
 			}
 			if (strcmp(de->d_name+strlen(de->d_name)-4,".tgz")==0) {
-				total++;
+				ftotal++;
 			}
 			if (strcmp(de->d_name+strlen(de->d_name)-7,"rec.img")==0) {
-				total++;
+				ftotal++;
 			}
 			if (strcmp(de->d_name+strlen(de->d_name)-8,"boot.img")==0) {
-				total++;
+				ftotal++;
 			}
 		}
 	}
-
+	total = ftotal + dtotal;
     if (total==0) {
 		LOGE("No valid files found!\n");
 		if(closedir(dir) < 0) {
@@ -86,8 +90,11 @@ void choose_file_menu(char* sdpath) {
 	    return;
 		}
     } else {
-		files = (char**) malloc((total+1)*sizeof(char*));
-		files[total]=NULL;
+		flist = (char**) malloc((ftotal+1)*sizeof(char*));
+		flist[ftotal]=NULL;
+
+		dlist = (char**) malloc((dtotal+1)*sizeof(char*));
+		dlist[dtotal]=NULL;
 
 		list = (char**) malloc((total+1)*sizeof(char*));
 		list[total]=NULL;
@@ -95,26 +102,26 @@ void choose_file_menu(char* sdpath) {
 		rewinddir(dir);
 
 		i = 0;
+		j = 0;
 		while ((de = readdir(dir)) != NULL) {
-			//add dirs to list
+			//create dirs list
 			if (de->d_type == DT_DIR) {
-				files[i] = (char*) malloc(strlen(sdpath)+strlen(de->d_name)+1);
-				strcpy(files[i], sdpath);
-				strcat(files[i], de->d_name);
-				list[i] = (char*) malloc(strlen(de->d_name)+1);
+				dlist[i] = (char*) malloc(strlen(sdpath)+strlen(de->d_name)+1);
+				strcpy(dlist[i], sdpath);
+				strcat(dlist[i], de->d_name);
+				dlist[i] = (char*) malloc(strlen(de->d_name)+1);
 				strcat(de->d_name, "/"); //add "/" since these are dirs
-				strcpy(list[i], de->d_name);				
+				strcpy(dlist[i], de->d_name);				
 					i++;				
 			}
-			//add valid files to list
-			if ((de->d_type == DT_REG && (strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".tar")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".tgz")==0 || strcmp(de->d_name+strlen(de->d_name)-7,"rec.img")==0 || strcmp(de->d_name+strlen(de->d_name)-8,"boot.img")==0))) {
-				
-				files[i] = (char*) malloc(strlen(sdpath)+strlen(de->d_name)+1);
-				strcpy(files[i], sdpath);
-				strcat(files[i], de->d_name);
-				list[i] = (char*) malloc(strlen(de->d_name)+1);
-				strcpy(list[i], de->d_name);				
-					i++;		
+			//create files list
+			if ((de->d_type == DT_REG && (strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".tar")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".tgz")==0 || strcmp(de->d_name+strlen(de->d_name)-7,"rec.img")==0 || strcmp(de->d_name+strlen(de->d_name)-8,"boot.img")==0))) {			
+				flist[j] = (char*) malloc(strlen(sdpath)+strlen(de->d_name)+1);
+				strcpy(flist[j], sdpath);
+				strcat(flist[j], de->d_name);
+				flist[j] = (char*) malloc(strlen(de->d_name)+1);
+				strcpy(flist[j], de->d_name);				
+					j++;		
 			}
 		}
 		
@@ -123,17 +130,28 @@ void choose_file_menu(char* sdpath) {
 			LOGE("Failure closing directory\n");
 			return;
 		}
-
+		//join the file and dir list, with dirs on top - thanks cvpcs
+		i = 0;
+		j = 0;
+		int k;
+		for(k = 0; k < total; k++) {
+			if(i < dtotal) {
+				list[k] = strdup(dlist[i++]);
+			} else {
+				list[k] = strdup(flist[j++]);
+			}
+		}
+		
 		int chosen_item = -1;
 		while (chosen_item < 0) {
 			chosen_item = get_menu_selection(headers, list, 1, chosen_item<0?0:chosen_item);
 			if (chosen_item >= 0 && chosen_item != ITEM_BACK ) {
-				if (opendir(files[chosen_item]) == NULL) {
-					preinstall_menu(files[chosen_item]);
+				if (opendir(flist[chosen_item]) == NULL) {
+					preinstall_menu(flist[chosen_item]);
 				}
-				if (opendir(files[chosen_item]) != NULL) { 					
+				if (opendir(flist[chosen_item]) != NULL) { 					
 					char actualpath[PATH_MAX];
-					char* folder = realpath(files[chosen_item], actualpath);
+					char* folder = realpath(flist[chosen_item], actualpath);
 					strcat(folder, "/"); //append "/" to end 
 					choose_file_menu(folder);			 
 				} 
