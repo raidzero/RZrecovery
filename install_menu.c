@@ -96,7 +96,7 @@ void choose_file_menu(char* sdpath) {
 
 		i = 0;
 		while ((de = readdir(dir)) != NULL) {
-			//display dirs
+			//add dirs to list
 			if (de->d_type == DT_DIR) {
 				files[i] = (char*) malloc(strlen(sdpath)+strlen(de->d_name)+1);
 				strcpy(files[i], sdpath);
@@ -106,8 +106,8 @@ void choose_file_menu(char* sdpath) {
 				strcpy(list[i], de->d_name);				
 					i++;				
 			}
-			//display valid files
-			if ((de->d_type == DT_REG && (strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".tar")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".tgz")==0 || strcmp(de->d_name+strlen(de->d_name)-7,"rec.img")==0 || strcmp(de->d_name+strlen(de->d_name)-8,"boot.img")==0) || strcmp(de->d_name,"..") == 0 )) {
+			//add valid files to list
+			if ((de->d_type == DT_REG && (strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".tar")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".tgz")==0 || strcmp(de->d_name+strlen(de->d_name)-7,"rec.img")==0 || strcmp(de->d_name+strlen(de->d_name)-8,"boot.img")==0))) {
 				
 				files[i] = (char*) malloc(strlen(sdpath)+strlen(de->d_name)+1);
 				strcpy(files[i], sdpath);
