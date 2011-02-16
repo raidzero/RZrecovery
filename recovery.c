@@ -136,7 +136,7 @@ void set_cpufreq(char* speed) {
 void write_files() {
 	ensure_root_path_mounted("SDCARD:");
 	char* argv[] = { "/sbin/busybox",
-	"mv",
+	"cp",
 	"/cache/rgb",
 	"/sdcard/RZR/rgb",
 	NULL };
@@ -145,7 +145,7 @@ void write_files() {
 	int statusrgb = runve("/sbin/busybox",argv,envp,1);
 	
 	char* argw[] = { "/sbin/busybox",
-	"mv",
+	"cp",
 	"/cache/oc",
 	"/sdcard/RZR/oc",
 	NULL };
@@ -159,7 +159,7 @@ void read_files() {
 	ensure_root_path_mounted("SDCARD:");
 	if( access("/sdcard/RZR/rgb", F_OK ) != -1 ) {
 		char* argv[] = { "/sbin/busybox",
-		"mv",
+		"cp",
 		"/sdcard/RZR/rgb",
 		"/cache/rgb",
 		NULL };
@@ -175,7 +175,7 @@ void read_files() {
 	
 	if( access("/sdcard/RZR/oc", F_OK ) != -1 ) {
 		char* argw[] = { "/sbin/busybox",
-		"mv",
+		"cp",
 		"/sdcard/RZR/oc",
 		"/cache/oc",
 		NULL };
