@@ -103,10 +103,10 @@ void choose_file_menu(char* sdpath) {
 	total = ftotal + dtotal;
     if (total==0) {
 		LOGE("No valid files found!\n");
-		if(closedir(dir) < 0) {
+		/*if(closedir(dir) < 0) {
 			LOGE("Failed to close directory\n");
 	    return;
-		}
+		}*/
     } else {
 		flist = (char**) malloc((ftotal+1)*sizeof(char*));
 		flist[ftotal]=NULL;
@@ -123,7 +123,7 @@ void choose_file_menu(char* sdpath) {
 		j = 0; //file iterator
 		while ((de = readdir(dir)) != NULL) {
 			//create dirs list
-			if (de->d_type == DT_DIR && de->d_name[0] != '.') {
+			if (de->d_type == DT_DIR && strcmp(de->d_name,".") != 0) {
 				dlist[i] = (char*) malloc(strlen(sdpath)+strlen(de->d_name)+1);
 				strcpy(dlist[i], sdpath);
 				strcat(dlist[i], de->d_name);
@@ -174,12 +174,13 @@ void choose_file_menu(char* sdpath) {
 				strcpy(install_string, sdpath);
 				strcat(install_string, list[chosen_item]);
 				
-				if ((chosen_item == ITEM_BACK) && strcmp(sdpath, "/sdcard/") == 0) {	//handle power button
-					return;
-				} 
-				if ((chosen_item == ITEM_BACK) && strcmp(sdpath, "/sdcard/") != 0) {
-					strcat(install_string, "../");
-					choose_file_menu(install_string);
+				if (ui_key_pressed == KEY_END) {
+					if (strcmp(sdpath, "/sdcard/") == 0) {	//handle power button
+						return;
+					} else {
+						strcat(install_string, "../");
+						choose_file_menu(install_string);
+					}
 				}
 				
 				if (opendir(install_string) == NULL) { //handle selection
