@@ -167,6 +167,35 @@ static void nandroid_simple_restore()
     ui_reset_progress();
 }
 
+static void nandroid_bundle_rom()
+{   
+	char rom_name[PATH_MAX];
+	char filename[255];
+	ui_print("\nType special characters by holding down\nthe Alt & Shift keys.\n");	
+	ui_print("Please enter the desired filename: ");
+	ui_read_line_n(filename, 255);
+	strcpy(rom_name,"/sdcard/");
+	strcat(rom_name, filename);
+	strcat(rom_name,".tar");
+	ui_print("\nDumping system to ");
+	ui_print(rom_name);
+	
+    char* argv[] = { "/sbin/nandroid-mobile.sh",
+		     "--bundle-rom",
+			 rom_name,
+			 "--progress",
+		     NULL };
+    char* envp[] = { NULL };
+    int status = runve("/sbin/nandroid-mobile.sh",argv,envp,80);
+    if (!WIFEXITED(status) || WEXITSTATUS(status)!=0) {
+	ui_printf_int("ERROR: Nandroid exited with status %d\n",WEXITSTATUS(status));
+    }
+    else {
+	ui_print("(done)\n");
+    }
+    ui_reset_progress();
+}
+
 void nandroid_adv_r_choose_file(char* filename, char* nandroid_folder)
 {
     static char* headers[] = { "Choose a backup prefix or press",

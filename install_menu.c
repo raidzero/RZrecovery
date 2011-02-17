@@ -80,7 +80,7 @@ void choose_file_menu(char* sdpath) {
     }
     //count the number of valid files:
     while ((de=readdir(dir)) != NULL) {
-		if (de->d_type == DT_DIR && de->d_name[0] != '.') {
+		if (de->d_type == DT_DIR && strcmp(de->d_name,".") != 0) {
 				dtotal++;
 		} else {
 			if (strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0) {
@@ -102,11 +102,7 @@ void choose_file_menu(char* sdpath) {
 	}
 	total = ftotal + dtotal;
     if (total==0) {
-		LOGE("No valid files found!\n");
-		/*if(closedir(dir) < 0) {
-			LOGE("Failed to close directory\n");
-	    return;
-		}*/
+		ui_print("\nNo valid files found!\n");
     } else {
 		flist = (char**) malloc((ftotal+1)*sizeof(char*));
 		flist[ftotal]=NULL;
@@ -127,8 +123,8 @@ void choose_file_menu(char* sdpath) {
 				dlist[i] = (char*) malloc(strlen(sdpath)+strlen(de->d_name)+1);
 				strcpy(dlist[i], sdpath);
 				strcat(dlist[i], de->d_name);
-				dlist[i] = (char*) malloc(strlen(de->d_name)+1);
-				strcat(de->d_name, "/"); //add "/" since these are dirs
+				dlist[i] = (char*) malloc(strlen(de->d_name)+2);
+				strcat(de->d_name, "/\0"); //add "/" followed by terminating character since these are dirs
 				strcpy(dlist[i], de->d_name);				
 					i++;				
 			}
@@ -173,15 +169,6 @@ void choose_file_menu(char* sdpath) {
 				char install_string[PATH_MAX]; //create real path from selection
 				strcpy(install_string, sdpath);
 				strcat(install_string, list[chosen_item]);
-				
-				if (ui_key_pressed == KEY_END) {
-					if (strcmp(sdpath, "/sdcard/") == 0) {	//handle power button
-						return;
-					} else {
-						strcat(install_string, "../");
-						choose_file_menu(install_string);
-					}
-				}
 				
 				if (opendir(install_string) == NULL) { //handle selection
 					preinstall_menu(install_string);
