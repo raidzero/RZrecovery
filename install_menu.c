@@ -168,29 +168,17 @@ void choose_file_menu(char* sdpath) {
 		int chosen_item = -1;
 		while (chosen_item < 0) {
 			chosen_item = get_menu_selection(headers, list, 1, chosen_item<0?0:chosen_item);
-			//handle the power  button
-			if (chosen_item == ITEM_BACK) {
-				if (strcmp("/sdcard/", sdpath) != 0) {
-					char actualpath[PATH_MAX];
-					char* folder = realpath(list[chosen_item], actualpath);
-					strcat(folder, "/../"); //append "/../" to end, go up a dir 		
-					//choose_file_menu(folder);
-					return NO_ACTION;
-				} else {
-					return ITEM_BACK;
-				}
-			}
-			//handle a regular file
+			//make the selected item into a true path
+			char install_string[PATH_MAX];
+			strcpy(install_string, sdpath);
+			strcat(install_string, list[chosen_item]);
+			
 			if (chosen_item >= 0 && chosen_item != ITEM_BACK ) {
-				if (opendir(list[chosen_item]) == NULL) {
-					preinstall_menu(list[chosen_item]);
-				}
-			//handle a dir
-				if (opendir(list[chosen_item]) != NULL) { 					
-					char actualpath[PATH_MAX];
-					char* folder = realpath(list[chosen_item], actualpath);
-					strcat(folder, "/"); //append "/" to the end 
-					choose_file_menu(folder);			 
+				if (opendir(install_string) == NULL) {
+					preinstall_menu(install_string);
+				} else {						
+					strcat(install_string, "/"); //append "/" to end
+					choose_file_menu(install_string);					
 				} 
 			} 
 		} 
