@@ -119,8 +119,8 @@ void choose_file_menu(char* sdpath) {
 	
 		rewinddir(dir);
 
-		i = 0;
-		j = 0;
+		i = 0; //dir iterator
+		j = 0; //file iterator
 		while ((de = readdir(dir)) != NULL) {
 			//create dirs list
 			if (de->d_type == DT_DIR && de->d_name[0] != '.') {
@@ -168,19 +168,26 @@ void choose_file_menu(char* sdpath) {
 		int chosen_item = -1;
 		while (chosen_item < 0) {
 			chosen_item = get_menu_selection(headers, list, 1, chosen_item<0?0:chosen_item);
-			//make the selected item into a true path
-			char install_string[PATH_MAX];
-			strcpy(install_string, sdpath);
-			strcat(install_string, list[chosen_item]);
-			
 			if (chosen_item >= 0 && chosen_item != ITEM_BACK ) {
-				if (opendir(install_string) == NULL) {
+			
+				char install_string[PATH_MAX]; //create real path from selection
+				strcpy(install_string, sdpath);
+				strcat(install_string, list[chosen_item]);
+				
+				if ((chosen_item == ITEM_BACK) && strcmp(sdpath, "/sdcard/") == 0) {	//handle power button
+					return;
+				} 
+				if ((chosen_item == ITEM_BACK) && strcmp(sdpath, "/sdcard/") != 0) {
+					strcat(install_string, "../");
+					choose_file_menu(install_string);
+				}
+				
+				if (opendir(install_string) == NULL) { //handle selection
 					preinstall_menu(install_string);
 				} else {						
-					strcat(install_string, "/"); //append "/" to end
 					choose_file_menu(install_string);					
-				} 
-			} 
+				}
+			}
 		} 
 	}
 }
