@@ -33,6 +33,24 @@ char *replace_str(char *str, char *orig, char *rep) // Helper function - search 
   return buffer;
 }
 
+char** sortlist(char** list, int total) {
+	int i = 0;
+	if (list != NULL) {
+		for (i = 0; i < total; i++) {
+			int curMax = -1;
+			int j;
+			for (j = 0; j < total - i; j++) {
+				if (curMax == -1 || strcmp(list[curMax], list[j]) < 0)
+					curMax = j;
+				}
+				char* temp = list[curMax];
+				list[curMax] = list[total - i - 1];
+				list[total - i - 1] = temp;
+		}	
+	}
+	return list;
+}
+
 void choose_file_menu(char* sdpath) {
     static char* headers[] = { "Choose item or press POWER to return",
 			       "",
@@ -62,7 +80,7 @@ void choose_file_menu(char* sdpath) {
     }
     //count the number of valid files:
     while ((de=readdir(dir)) != NULL) {
-		if (de->d_type == DT_DIR) {
+		if (de->d_type == DT_DIR && de->d_name[0] != '.') {
 				dtotal++;
 		} else {
 			if (strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0) {
@@ -105,7 +123,7 @@ void choose_file_menu(char* sdpath) {
 		j = 0;
 		while ((de = readdir(dir)) != NULL) {
 			//create dirs list
-			if (de->d_type == DT_DIR) {
+			if (de->d_type == DT_DIR && de->d_name[0] != '.') {
 				dlist[i] = (char*) malloc(strlen(sdpath)+strlen(de->d_name)+1);
 				strcpy(dlist[i], sdpath);
 				strcat(dlist[i], de->d_name);
@@ -125,11 +143,16 @@ void choose_file_menu(char* sdpath) {
 			}
 		}
 		
+		
 
 		if (closedir(dir) <0) {
 			LOGE("Failure closing directory\n");
 			return;
 		}
+		//sort lists
+		sortlist(flist, ftotal);
+		sortlist(dlist, dtotal);
+		
 		//join the file and dir list, with dirs on top - thanks cvpcs
 		i = 0;
 		j = 0;
@@ -145,14 +168,28 @@ void choose_file_menu(char* sdpath) {
 		int chosen_item = -1;
 		while (chosen_item < 0) {
 			chosen_item = get_menu_selection(headers, list, 1, chosen_item<0?0:chosen_item);
-			if (chosen_item >= 0 && chosen_item != ITEM_BACK ) {
-				if (opendir(flist[chosen_item]) == NULL) {
-					preinstall_menu(flist[chosen_item]);
-				}
-				if (opendir(flist[chosen_item]) != NULL) { 					
+			//handle the power  button
+			if (chosen_item == ITEM_BACK) {
+				if (strcmp("/sdcard/", sdpath) != 0) {
 					char actualpath[PATH_MAX];
-					char* folder = realpath(flist[chosen_item], actualpath);
-					strcat(folder, "/"); //append "/" to end 
+					char* folder = realpath(list[chosen_item], actualpath);
+					strcat(folder, "/../"); //append "/../" to end, go up a dir 		
+					//choose_file_menu(folder);
+					return NO_ACTION;
+				} else {
+					return ITEM_BACK;
+				}
+			}
+			//handle a regular file
+			if (chosen_item >= 0 && chosen_item != ITEM_BACK ) {
+				if (opendir(list[chosen_item]) == NULL) {
+					preinstall_menu(list[chosen_item]);
+				}
+			//handle a dir
+				if (opendir(list[chosen_item]) != NULL) { 					
+					char actualpath[PATH_MAX];
+					char* folder = realpath(list[chosen_item], actualpath);
+					strcat(folder, "/"); //append "/" to the end 
 					choose_file_menu(folder);			 
 				} 
 			} 
