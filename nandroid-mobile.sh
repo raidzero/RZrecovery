@@ -861,8 +861,10 @@ fi
 
 if [ "$BUNDLE_ROM" == 1 ]; then
     echo "* print Packaging current system to $ROM_FILE."
-    echo "* print This will create a ROM that installs your /system and wipes /data when installed"
-    echo "* print To include your own metadata or pre- and post-install scripts, or to avoid wiping /data on install, please make the tar archive manually."
+    echo "* print This will create a ROM.tar that installs your"
+	echo "* print /system and does not wipe /data."
+    echo "* print To include your own metadata or pre/post-install"
+	echo "* print scripts please make the tar archive manually."
     
     umount /sdcard 2>/dev/null
     mount /sdcard 2>/dev/null
@@ -883,8 +885,6 @@ if [ "$BUNDLE_ROM" == 1 ]; then
     fi
 
     mkdir /tmp/rom
-    cd /tmp/rom
-    tar $TAR_OPTS data.tar . 2>/dev/null | pipeline # make an empty data.tar
     
     cd /system
 
@@ -895,8 +895,9 @@ if [ "$BUNDLE_ROM" == 1 ]; then
     
     cd /tmp/rom
     mkdir metadata
-    echo "description=generated with nandroid-mobile.sh" >> metadata/info
-
+    echo "description=generated from RZrecovery's nandroid-mobile.sh" >> metadata/info
+	
+	TAR_OPTS="${TAR_OPTS}"
     PTOTAL=$(find . | wc -l)
     tar $TAR_OPTS "$ROM_FILE" . | pipeline $PTOTAL
 fi
@@ -1065,7 +1066,17 @@ if [ "$RESTORE" == 1 ]; then
 		fi
 	echo "* print Erasing /$image..."
 	cd /$image
-	rm -rf * 2>/dev/null
+	if [ "$image" == "system" ]; then
+		format SYSTEM:
+	fi
+	if [ "$image" == "data" ]; then
+		format DATA:
+	fi
+	if [ "$image" == "sdcard/.android_secure" ]; then
+		cd /sdcard/.android_secure
+		rm -rf * 2>/dev/null
+	fi
+	
 
 	TAR_OPTS="x"
 	[ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"
@@ -1115,15 +1126,9 @@ if [ "$BACKUP" == 1 ]; then
     umount /system 2>/dev/null
     umount /data 2>/dev/null
     umount /sdcard 2>/dev/null
-    mount /system #|| FAIL=1
-    mount /data #|| FAIL=2
-    mount /sdcard 2> /dev/null || mount /dev/block/mmcblk0p1 /sdcard 2> /dev/null #|| FAIL=3
-    #case $FAIL in
-	#1) echo "* print Error mounting system read-only"; umount /system /data /sdcard; exit 29;;
-	#2) echo "* print Error mounting data read-only"; umount /system /data /sdcard; exit 30;;
-	#3) echo "* print Error mounting sdcard read-write"; umount /system /data /sdcard; exit 31;;
-    #esac
-
+    mount /system 
+    mount /data 
+    mount /sdcard 2> /dev/null || mount /dev/block/mmcblk0p1 /sdcard 2> /dev/null 
     if [ ! "$SUBNAME" == "" ]; then
 	SUBNAME=$SUBNAME-
     fi
