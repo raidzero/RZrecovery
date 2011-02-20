@@ -50,7 +50,7 @@ char** sortlist(char** list, int total) {
 	}
 	return list;
 }
-
+	
 void choose_file_menu(char* sdpath) {
     static char* headers[] = { "Choose item or press POWER to return",
 			       "",
@@ -80,7 +80,7 @@ void choose_file_menu(char* sdpath) {
     }
     //count the number of valid files:
     while ((de=readdir(dir)) != NULL) {
-		if (de->d_type == DT_DIR && strcmp(de->d_name,".") != 0) {
+		if (de->d_type == DT_DIR && strcmp(de->d_name,".") != 0 && strcmp(de->d_name,"nandroid") != 0) {
 				dtotal++;
 		} else {
 			if (strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0) {
@@ -119,11 +119,11 @@ void choose_file_menu(char* sdpath) {
 		j = 0; //file iterator
 		while ((de = readdir(dir)) != NULL) {
 			//create dirs list
-			if (de->d_type == DT_DIR && strcmp(de->d_name,".") != 0) {
+			if (de->d_type == DT_DIR && strcmp(de->d_name,".") != 0 && strcmp(de->d_name,"nandroid") != 0) {
 				dlist[i] = (char*) malloc(strlen(sdpath)+strlen(de->d_name)+1);
 				strcpy(dlist[i], sdpath);
 				strcat(dlist[i], de->d_name);
-				dlist[i] = (char*) malloc(strlen(de->d_name)+2);
+				dlist[i] = (char*) malloc(strlen(de->d_name)+2); //need one extra byte for the termnitaing char
 				strcat(de->d_name, "/\0"); //add "/" followed by terminating character since these are dirs
 				strcpy(dlist[i], de->d_name);				
 					i++;				
