@@ -43,6 +43,11 @@ void wipe_partition(int confirm, char* title, char* operation, char* partition) 
 		erase_root("BOOT:");
 		ui_print("Boot wipe complete.\n");
 	}
+	if( strcmp( partition, "cache" ) == 0 ) {
+		ui_print("\n-- Wiping cache...\n");
+		erase_root("CACHE:");
+		ui_print("Cache wipe complete.\n");
+	}
 	if( strcmp( partition, "batts" ) == 0 ) {
 		ui_print("\n-- Wiping battery statistics...\n");
 		remove("/data/system/batterystats.bin");
@@ -67,6 +72,9 @@ void wipe_partition(int confirm, char* title, char* operation, char* partition) 
 		ui_print("\n-- Wiping data...\n");
 		erase_root("DATA:");
 		ui_print("Data wipe complete.\n");
+		ui_print("\n-- Wiping cache...\n");
+		erase_root("CACHE:");
+		ui_print("Cache wipe complete.\n");
 		ui_print("\n-- Wiping .android-secure...\n");
 		ensure_root_path_mounted("SDCARD:"); 
 		remove("/sdcard/.android-secure/*");
@@ -93,6 +101,7 @@ void show_wipe_menu()
 		      "Wipe data",
 			  "Wipe .android-secure",
 		      "Wipe boot",
+			  "Wipe cache",
 			  "Wipe battery stats",
 			  "Wipe dalvik-cache",
 		      NULL };
@@ -102,8 +111,9 @@ void show_wipe_menu()
 #define WIPE_DATA       	2
 #define WIPE_AS				3
 #define WIPE_BOOT      		4
-#define WIPE_BATT			5
-#define WIPE_DK				6
+#define WIPE_CACHE			5
+#define WIPE_BATT			6
+#define WIPE_DK				7
 
 
 int chosen_item = -1;
@@ -133,6 +143,10 @@ int chosen_item = -1;
 		wipe_partition(ui_text_visible(), "Are you sure?", "Yes - wipe BOOT", "boot");
 	    break;	
 
+	case WIPE_CACHE:
+		wipe_partition(ui_text_visible(), "Are you sure?", "Yes - wipe CACHE", "cache");
+	    break;	
+		
 	case WIPE_BATT:
 		wipe_partition(ui_text_visible(), "Are you sure?", "Yes - wipe BATTERY STATS", "batts");
 	    break;
