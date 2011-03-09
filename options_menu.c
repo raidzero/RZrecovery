@@ -29,6 +29,11 @@ void show_battstat() {
     fgets(btemp, 3, ft);
 	
 	btemp = strcat(btemp," C");
+	int caplen = strlen(bcap);
+	if( bcap[caplen-1] == '\n' ) {
+		bcap[caplen-1] = 0;
+	}
+	
 	bcap = strcat(bcap,"%%");
 	ui_print("\n");
 	ui_print("\nBattery Status: ");
@@ -42,6 +47,25 @@ void show_battstat() {
 	fclose(ft);
 	fclose(fc);
 	fclose(fs);
+}
+
+
+void keylight() {
+	char brightness[3];
+	int bi;
+	FILE* flr = fopen("/sys/class/leds/keyboard-backlight/brightness","r");
+    fgets(brightness, 3, flr);
+	bi = atoi(brightness);
+	FILE* flw = fopen("/sys/class/leds/keyboard-backlight/brightness","w");
+	if (bi == 0) {
+		fputs("255",flw);
+		fputs("\n",flw);
+	} else { 
+		fputs("0",flw);
+		fputs("\n",flw);
+	}
+	fclose(flr);
+	fclose(flw);
 }
 
 void flashlight() {
@@ -104,7 +128,6 @@ void root_menu(int confirm) {
 	ensure_root_path_mounted("SYSTEM:");
 	remove("/system/recovery-from-boot.p");
     int status = runve("/sbin/actroot",argv,envp,1);
-	ui_print("\nFlash Recovery Service disabled.\n");
 	ensure_root_path_unmounted("SYSTEM:");
 	return;
 }
@@ -122,6 +145,7 @@ void show_options_menu()
 				"Toggle Flashlight",
 				"Activate Root Access in ROM",
 				"Recovery Overclocking",
+				"Toggle keyboard light",
 		      NULL };
 			  
 #define COLORS         0
@@ -130,6 +154,7 @@ void show_options_menu()
 #define FLASHLIGHT     3
 #define ROOT_MENU	   4
 #define OVERCLOCK	   5
+#define KEYLIGHT	   6
 
 int chosen_item = -1;
 
@@ -155,6 +180,9 @@ int chosen_item = -1;
 		break;
 	case OVERCLOCK:
 		show_overclock_menu();
+		break;
+	case KEYLIGHT:
+		keylight();
 		break;
         }
     }

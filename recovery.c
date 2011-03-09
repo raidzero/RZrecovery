@@ -135,64 +135,26 @@ void set_cpufreq(char* speed) {
 //write recovery files from cache to sdcard
 void write_files() {
 	ensure_root_path_mounted("SDCARD:");
-	char* argv[] = { "/sbin/busybox",
-	"cp",
-	"/cache/rgb",
-	"/sdcard/RZR/rgb",
-	NULL };
-
-	char* envp[] = { NULL };	
-	int statusrgb = runve("/sbin/busybox",argv,envp,1);
-	
-	char* argw[] = { "/sbin/busybox",
-	"cp",
-	"/cache/oc",
-	"/sdcard/RZR/oc",
-	NULL };
-
-	char* envq[] = { NULL };	
-	int statusoc = runve("/sbin/busybox",argw,envq,1);	
+	system("cp /cache/rgb /sdcard/RZR/rgb");
+	system("cp /cache/oc /sdcard/RZR/oc");
 }
 
+//read recovery files from sdcard to cache
 void read_files() {
-	int status;
 	ensure_root_path_mounted("SDCARD:");
 	if( access("/sdcard/RZR/rgb", F_OK ) != -1 ) {
-		char* argv[] = { "/sbin/busybox",
-		"cp",
-		"/sdcard/RZR/rgb",
-		"/cache/rgb",
-		NULL };
-
-		char* envp[] = { NULL };
-	  
-		int statusrgb = runve("/sbin/busybox",argv,envp,1);
-		
+		system("cp /sdcard/RZR/rgb /cache/rgb");		
 	} else {
 		mkdir("/sdcard/RZR");
 		set_color(54,74,255);
 	}
 	
 	if( access("/sdcard/RZR/oc", F_OK ) != -1 ) {
-		char* argw[] = { "/sbin/busybox",
-		"cp",
-		"/sdcard/RZR/oc",
-		"/cache/oc",
-		NULL };
-
-		char* envq[] = { NULL };
-		  
-		int statusmvoc = runve("/sbin/busybox",argw,envq,1);
-		
-		char* argv[] = { "/sbin/clockset",
-		NULL };
-
-		char* envr[] = { NULL };
-		  
-		int statusoc = runve("/sbin/clockset",argv,envr,1);	
+		system("cp /sdcard/RZR/oc /cache/oc");
 	} else {
 		mkdir("/sdcard/RZR");
 	}
+	system("/sbin/clockset");
 	ensure_root_path_unmounted("SDCARD:");
 }
 

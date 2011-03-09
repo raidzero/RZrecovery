@@ -175,6 +175,12 @@ void choose_file_menu(char* sdpath) {
 				} else {						
 					choose_file_menu(install_string);					
 				}
+				if (ui_key_pressed(32)) { //D = 32
+					remove(install_string);
+					ui_print(install_string);
+					ui_print(" removed.");
+					choose_file_menu(sdpath);
+				}
 			}
 		} 
 	}

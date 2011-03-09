@@ -30,11 +30,13 @@ void wipe_partition(int confirm, char* title, char* operation, char* partition) 
     }
 	if( strcmp( partition, "system" ) == 0 ) {
 		ui_print("\n-- Wiping system...\n");
+		ensure_root_path_unmounted("SYSTEM:");
 		erase_root("SYSTEM:");
 		ui_print("System wipe complete.\n");
 	}
 	if( strcmp( partition, "data" ) == 0 ) {
 		ui_print("\n-- Wiping data...\n");
+		ensure_root_path_unmounted("DATA:");
 		erase_root("DATA:");
 		ui_print("Data wipe complete.\n");
 	}
@@ -45,8 +47,13 @@ void wipe_partition(int confirm, char* title, char* operation, char* partition) 
 	}
 	if( strcmp( partition, "cache" ) == 0 ) {
 		ui_print("\n-- Wiping cache...\n");
-		erase_root("CACHE:");
-		ui_print("Cache wipe complete.\n");
+		ui_print("-- May take a while on gingerbread...\n");
+		write_files();
+		ensure_root_path_unmounted("CACHE:");
+		system("format CACHE:");
+		ensure_root_path_mounted("CACHE:");
+		read_files();
+		ui_print("Cache wipe complete.");
 	}
 	if( strcmp( partition, "batts" ) == 0 ) {
 		ui_print("\n-- Wiping battery statistics...\n");
@@ -56,7 +63,9 @@ void wipe_partition(int confirm, char* title, char* operation, char* partition) 
 	if( strcmp( partition, "dalvik-cache" ) == 0 ) {
 		ui_print("\n-- Wiping dalvik-cache...\n");
 		ensure_root_path_mounted("DATA:"); 
-		remove("/data/dalvik-cache/*");
+		system("rm -rf /data/dalvik-cache/*");	
+		ensure_root_path_mounted("CACHE:");
+		system("rm -rf /cache/dalvik-cache/*");		
 		ui_print("\n dalvik-cache cleared.\n");
 	}	
 	if( strcmp( partition, "android-secure" ) == 0 ) {
@@ -67,14 +76,20 @@ void wipe_partition(int confirm, char* title, char* operation, char* partition) 
 	}
 	if( strcmp( partition, "all" ) == 0 ) {
 		ui_print("\n-- Wiping System...\n");
+		ensure_root_path_unmounted("SYSTEM:");
 		erase_root("SYSTEM:");
 		ui_print("System wipe complete.\n");
 		ui_print("\n-- Wiping data...\n");
+		ensure_root_path_unmounted("DATA:");
 		erase_root("DATA:");
 		ui_print("Data wipe complete.\n");
 		ui_print("\n-- Wiping cache...\n");
-		erase_root("CACHE:");
-		ui_print("Cache wipe complete.\n");
+		ui_print("-- May take a while on gingerbread...\n");
+		write_files();
+		ensure_root_path_unmounted("CACHE:");
+		system("format CACHE:");
+		ensure_root_path_mounted("CACHE:");
+		read_files();
 		ui_print("\n-- Wiping .android-secure...\n");
 		ensure_root_path_mounted("SDCARD:"); 
 		remove("/sdcard/.android-secure/*");
