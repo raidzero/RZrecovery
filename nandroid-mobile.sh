@@ -1066,18 +1066,8 @@ if [ "$RESTORE" == 1 ]; then
 		fi
 	echo "* print Erasing /$image..."
 	cd /$image
-	if [ "$image" == "system" ]; then
-		format SYSTEM:
-	fi
-	if [ "$image" == "data" ]; then
-		format DATA:
-	fi
-	if [ "$image" == "sdcard/.android_secure" ]; then
-		cd /sdcard/.android_secure
-		rm -rf * 2>/dev/null
-	fi
+	rm -rf * 2>/dev/null
 	
-
 	TAR_OPTS="x"
 	[ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"
 	TAR_OPTS="${TAR_OPTS}f"
@@ -1097,7 +1087,8 @@ if [ "$RESTORE" == 1 ]; then
 	umount /$image 2> /dev/null
     done
     
-    echo "* print Restore done"
+    echo "* print Restore complete!"
+	echo "* print Thanks for using RZRecovery."
     exit 0
 fi
 
@@ -1279,7 +1270,8 @@ if [ "$BACKUP" == 1 ]; then
 
 ##
 	sync
-	echo "* print done"
+	echo "* print Backup complete!"
+	echo "* print Thanks for using RZRecovery."
     done
 
 

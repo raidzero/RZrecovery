@@ -22,15 +22,16 @@ fi
 
 if [ "$sysp" == "1" ]; then
 	echo "* print Restoring system..."
+	umount /system
 	format SYSTEM:
 	mount /system
 	cd /system
 	echo "* "
 	unyaffs-arm-uclibc $1/system.img
 	echo "* print system partition restored."
-	echo "* print Fixing root permissions..."
-	chmod 6755 /system/bin/su
-	chown 0:0 /system/bin/su
+	echo "* print Fixing su permissions..."
+	busybox chmod 6755 /system/bin/su
+	busybox chmod 6755 /system/xbin/su
 fi
 
 if [ "$asp" == "1" ]; then
@@ -44,6 +45,7 @@ fi
 
 if [ "$datap" == "1" ]; then
 	echo "* print Restoring data..."
+	umount /data
 	format DATA:
 	mount /data
 	cd /data
@@ -54,13 +56,20 @@ fi
 	
 if [ "$cachp" == "1" ]; then
 	echo "* print Restoring cache..."
+	cp /cache/oc /sdcard/RZR/oc
+	cp /cache/rgb /sdcard/RZR/rgb
+	umount /cache
 	format CACHE:
 	cd /cache
 	echo "* "
 	unyaffs-arm-uclibc $1/cache.img
+	mount /cache
+	cp /sdcard/RZR/oc /cache/oc
+	cp /sdcard/RZR/rgb /cache/rgb
 	echo "* print cache partition restored."
 fi
-
+echo "* print Clockwork Nandroid Restore complete!"
+echo "* print Thanks for using RZRecovery."
 umount /data
 umount /system
 sync
