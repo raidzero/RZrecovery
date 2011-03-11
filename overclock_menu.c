@@ -15,11 +15,19 @@ void set_oc(char* speed) {
 	
 void show_overclock_menu() {
 	FILE* fs = fopen("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq","r");
-    char* freq = calloc(7,sizeof(char));
-    fgets(freq, 7, fs);
+    char* freq = calloc(8,sizeof(char));
+    fgets(freq, 8, fs);
 	fclose(fs);
 	
+	int freqlen = strlen(freq);
+	if( freq[freqlen-1] == '\n' ) {
+		freq[freqlen-1] = 0;
+	}
 	freq = strcat(freq," kHz");
+	freqlen = strlen(freq);
+	if( freq[freqlen-1] == '\n' ) {
+		freq[freqlen-1] = 0;
+	}
 	ui_print("\nCurrent Max Frequency: ");
 	ui_print(freq);
 	ui_print("\n");

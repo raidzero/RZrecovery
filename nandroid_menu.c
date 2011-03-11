@@ -434,6 +434,8 @@ void show_nandroid_menu()
 			     "Nandroid Backup",
 			     "Nandroid Restore",
 				 "Clockwork Nandroid Restore",
+				 "Backup Apps",
+				 "Restore Apps",
 			     NULL };
 
 //#define ITEM_DEF_BACKUP  0
@@ -441,6 +443,8 @@ void show_nandroid_menu()
 #define ITEM_ADV_BACKUP  0
 #define ITEM_ADV_RESTORE 1
 #define ITEM_CW_RESTORE	 2
+#define ITEM_BACK_APPS   3
+#define ITEM_REST_APPS	 4
 
   
     
@@ -464,6 +468,13 @@ void show_nandroid_menu()
 	    break;
 	case ITEM_CW_RESTORE:
 	    show_choose_cwnand_menu();
+	    break;
+	case ITEM_BACK_APPS:
+		ui_print("\nBacking up apps & appdata...\n");
+	    system("app_backup.sh");
+	    break;
+	case ITEM_REST_APPS:
+	    show_choose_app_menu();
 	    break;
 	}
     }
