@@ -8,11 +8,20 @@ commands_recovery_local_path := $(LOCAL_PATH)
 
 LOCAL_SRC_FILES := \
     recovery.c \
+    recovery_lib.c \
+    recovery_menu.c \
+    nandroid_menu.c \
+    install_menu.c \
+    mount_menu.c \
+    wipe_menu.c \
     bootloader.c \
+    cw_nandroid_menu.c \
     install.c \
+    options_menu.c \
     roots.c \
+    colors_menu.c \
     ui.c \
-    verifier.c
+    overclock_menu.c
 
 LOCAL_SRC_FILES += test_roots.c
 
@@ -36,25 +45,19 @@ ifeq ($(TARGET_RECOVERY_UI_LIB),)
 else
   LOCAL_STATIC_LIBRARIES += $(TARGET_RECOVERY_UI_LIB)
 endif
-LOCAL_STATIC_LIBRARIES += libminzip libunz libmtdutils libmincrypt
+LOCAL_STATIC_LIBRARIES += libminzip libunz libmtdutils 
 LOCAL_STATIC_LIBRARIES += libminui libpixelflinger_static libpng libcutils
 LOCAL_STATIC_LIBRARIES += libstdc++ libc
 
 include $(BUILD_EXECUTABLE)
 
-
 include $(CLEAR_VARS)
 
-LOCAL_SRC_FILES := verifier_test.c verifier.c
-
-LOCAL_MODULE := verifier_test
-
+LOCAL_SRC_FILES := format.c
+LOCAL_MODULE := format
 LOCAL_FORCE_STATIC_EXECUTABLE := true
-
 LOCAL_MODULE_TAGS := tests
-
-LOCAL_STATIC_LIBRARIES := libmincrypt libcutils libstdc++ libc
-
+LOCAL_STATIC_LIBRARIES := libcutils libstdc++ libc libmtdutils
 include $(BUILD_EXECUTABLE)
 
 
