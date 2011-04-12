@@ -137,8 +137,7 @@ static const int MAX_ARG_LENGTH = 4096;
 static const int MAX_ARGS = 100;
 
 // open a file given in root:path format, mounting partitions as necessary
-static FILE*
-fopen_root_path(const char *root_path, const char *mode) {
+FILE* fopen_root_path(const char *root_path, const char *mode) {
     if (ensure_root_path_mounted(root_path) != 0) {
         LOGE("Can't mount %s\n", root_path);
         return NULL;
@@ -159,8 +158,7 @@ fopen_root_path(const char *root_path, const char *mode) {
 }
 
 // close a file, log an error if the error indicator is set
-static void
-check_and_fclose(FILE *fp, const char *name) {
+void check_and_fclose(FILE *fp, const char *name) {
     fflush(fp);
     if (ferror(fp)) LOGE("Error in %s\n(%s)\n", name, strerror(errno));
     fclose(fp);

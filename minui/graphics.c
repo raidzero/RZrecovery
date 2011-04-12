@@ -293,7 +293,7 @@ void gr_exit(void)
 
     free(gr_mem_surface.data);
 
-    if (gr_vtt_fd >= 0) {	
+    if (gr_vt_fd >= 0) {	
 	ioctl(gr_vt_fd, KDSETMODE, (void*) KD_TEXT);
 	close(gr_vt_fd);
     }

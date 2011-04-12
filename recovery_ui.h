@@ -64,16 +64,14 @@ int device_wipe_data();
 #define HIGHLIGHT_UP        -2
 #define HIGHLIGHT_DOWN      -3
 #define SELECT_ITEM         -4
+#define ITEM_BACK		9999
+
 
 #define ITEM_REBOOT          0
 #define ITEM_APPLY_SDCARD    1
 #define ITEM_WIPE_DATA       2
 #define ITEM_WIPE_CACHE      3
-
-// Header text to display above the main menu.
-extern char* MENU_HEADERS[];
-
-// Text of menu items.
-extern char* MENU_ITEMS[];
+#define ITEM_MOUNT_MENU    4
+#define ITEM_NANDROID_MENU	5
 
 #endif
