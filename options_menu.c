@@ -49,43 +49,6 @@ void show_battstat() {
 	fclose(fs);
 }
 
-
-void keylight() {
-	char brightness[3];
-	int bi;
-	FILE* flr = fopen("/sys/class/leds/keyboard-backlight/brightness","r");
-    fgets(brightness, 3, flr);
-	bi = atoi(brightness);
-	FILE* flw = fopen("/sys/class/leds/keyboard-backlight/brightness","w");
-	if (bi == 0) {
-		fputs("255",flw);
-		fputs("\n",flw);
-	} else { 
-		fputs("0",flw);
-		fputs("\n",flw);
-	}
-	fclose(flr);
-	fclose(flw);
-}
-
-void flashlight() {
-	char brightness[3];
-	int bi;
-	FILE* flr = fopen("/sys/class/leds/spotlight/brightness","r");
-    fgets(brightness, 3, flr);
-	bi = atoi(brightness);
-	FILE* flw = fopen("/sys/class/leds/spotlight/brightness","w");
-	if (bi == 0) {
-		fputs("255",flw);
-		fputs("\n",flw);
-	} else { 
-		fputs("0",flw);
-		fputs("\n",flw);
-	}
-	fclose(flr);
-	fclose(flw);
-}
-
 void fix_permissions() {
     char* argv[] = { "/sbin/fix_permissions",
 		     NULL };
@@ -142,19 +105,13 @@ void show_options_menu()
     char* items[] = { "Custom Colors",
 				"Disable OTA Update Downloads in ROM",
 				"Show Battery Status",
-				"Toggle Flashlight",
 				"Activate Root Access in ROM",
-				"Recovery Overclocking",
-				"Toggle keyboard light",
 		      NULL };
 			  
 #define COLORS         0
 #define OTA			   1
 #define BATT		   2
-#define FLASHLIGHT     3
-#define ROOT_MENU	   4
-#define OVERCLOCK	   5
-#define KEYLIGHT	   6
+#define ROOT_MENU	   3
 
 int chosen_item = -1;
 
@@ -172,17 +129,8 @@ int chosen_item = -1;
 	case BATT:
 		show_battstat();
 		break;
-	case FLASHLIGHT:
-		flashlight();
-		break;
 	case ROOT_MENU:
 		root_menu(ui_text_visible());
-		break;
-	case OVERCLOCK:
-		show_overclock_menu();
-		break;
-	case KEYLIGHT:
-		keylight();
 		break;
         }
     }

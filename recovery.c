@@ -136,39 +136,11 @@ static const struct option OPTIONS[] = {
 static const int MAX_ARG_LENGTH = 4096;
 static const int MAX_ARGS = 100;
 
-// open a file given in root:path format, mounting partitions as necessary
-FILE* fopen_root_path(const char *root_path, const char *mode) {
-    if (ensure_root_path_mounted(root_path) != 0) {
-        LOGE("Can't mount %s\n", root_path);
-        return NULL;
-    }
-
-    char path[PATH_MAX] = "";
-    if (translate_root_path(root_path, path, sizeof(path)) == NULL) {
-        LOGE("Bad path %s\n", root_path);
-        return NULL;
-    }
-
-    // When writing, try to create the containing directory, if necessary.
-    // Use generous permissions, the system (init.rc) will reset them.
-    if (strchr("wa", mode[0])) dirCreateHierarchy(path, 0777, NULL, 1);
-
-    FILE *fp = fopen(path, mode);
-    return fp;
-}
-
-// close a file, log an error if the error indicator is set
-void check_and_fclose(FILE *fp, const char *name) {
-    fflush(fp);
-    if (ferror(fp)) LOGE("Error in %s\n(%s)\n", name, strerror(errno));
-    fclose(fp);
-}
 
 //write recovery files from cache to sdcard
 void write_files() {
 	ensure_root_path_mounted("SDCARD:");
 	system("cp /cache/rgb /sdcard/RZR/rgb");
-	system("cp /cache/oc /sdcard/RZR/oc");
 }
 
 //read recovery files from sdcard to cache
@@ -180,13 +152,6 @@ void read_files() {
 		mkdir("/sdcard/RZR");
 		set_color(54,74,255);
 	}
-	
-	if( access("/sdcard/RZR/oc", F_OK ) != -1 ) {
-		system("cp /sdcard/RZR/oc /cache/oc");
-	} else {
-		mkdir("/sdcard/RZR");
-	}
-	system("/sbin/clockset");
 	ensure_root_path_unmounted("SDCARD:");
 }
 
@@ -274,6 +239,8 @@ main(int argc, char **argv) {
     ui_init();
     get_args(&argc, &argv);
 
+	ui_print("Welcome to RZRecovery.  Use the volume up and   down buttons to move between menu options, the  camera button to select them, and the power     button to back out of a menu.\n\n\n");
+
     int previous_runs = 0;
     const char *send_intent = NULL;
     const char *update_package = NULL;
@@ -298,7 +265,7 @@ main(int argc, char **argv) {
         }
     }
 
-    device_recovery_start();
+    //device_recovery_start();
 
     fprintf(stderr, "Command:");
     for (arg = 0; arg < argc; arg++) {

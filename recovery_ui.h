@@ -73,5 +73,10 @@ int device_wipe_data();
 #define ITEM_WIPE_CACHE      3
 #define ITEM_MOUNT_MENU    4
 #define ITEM_NANDROID_MENU	5
+// Header text to display above the main menu.
+extern char* MENU_HEADERS[];
+
+// Text of menu items.
+extern char* MENU_ITEMS[];
 
 #endif

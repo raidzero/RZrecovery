@@ -125,48 +125,6 @@ void nandroid_restore(char* subname, char partitions)
     ui_reset_progress();
 }
 
-static void nandroid_simple_backup()
-{
-    ui_print("Attempting Nandroid default backup.\n");
-    
-    char* argv[] = { "/sbin/nandroid-mobile.sh",
-		     "--backup",
-		     "--defaultinput",
-		     "--progress",
-		     NULL };
-    char* envp[] = { NULL };
-    int status = runve("/sbin/nandroid-mobile.sh",argv,envp,60);
-    if (!WIFEXITED(status) || WEXITSTATUS(status)!=0) {
-	ui_printf_int("ERROR: Nandroid exited with status %d\n",WEXITSTATUS(status));
-    }
-    else {
-	ui_print("(done)\n");
-    }
-    ui_reset_progress();
-}
-
-static void nandroid_simple_restore()
-{
-    ui_print("This should do a default nandroid restore.\n");
-    
-    ui_print("Attempting Nandroid default restore.\n");
-    
-    char* argv[] = { "/sbin/nandroid-mobile.sh",
-		     "--restore",
-		     "--defaultinput",
-		     "--progress",
-		     NULL };
-    char* envp[] = { NULL };
-    int status = runve("/sbin/nandroid-mobile.sh",argv,envp,80);
-    if (!WIFEXITED(status) || WEXITSTATUS(status)!=0) {
-	ui_printf_int("ERROR: Nandroid exited with status %d\n",WEXITSTATUS(status));
-    }
-    else {
-	ui_print("(done)\n");
-    }
-    ui_reset_progress();
-}
-
 void nandroid_adv_r_choose_file(char* filename, char* nandroid_folder)
 {
     static char* headers[] = { "Choose a backup prefix or press",
@@ -241,7 +199,6 @@ void nandroid_adv_r_choose_file(char* filename, char* nandroid_folder)
 	int chosen_item = -1;
 	while (chosen_item < 0) {
 	    chosen_item = get_menu_selection(headers, list, 1, chosen_item<0?0:chosen_item);
-      
 	    if(chosen_item >= 0 && chosen_item != ITEM_BACK) {
 		strcpy(filename,list[chosen_item]);
 	    }
@@ -305,7 +262,7 @@ void show_nandroid_adv_r_menu()
 
     char filename[PATH_MAX];
     filename[0]=NULL;
-    char partitions = (char) BSDA;
+    char partitions = (char) BDAS;
     int chosen_item = -1;
 
     while(chosen_item!=ITEM_BACK) {
@@ -340,12 +297,10 @@ void show_nandroid_adv_r_menu()
 void show_nandroid_adv_b_menu()
 {
     char* headers[] = { "Choose an option or press POWER to return",
-			"prefix:",
-			"",
 			"",
 			NULL };
     char* items[] = { "Perform backup",
-		      NULL,
+			  NULL,
 		      NULL,
 		      NULL,
 		      NULL,
@@ -361,10 +316,10 @@ void show_nandroid_adv_b_menu()
     filename[0]=NULL;
     int chosen_item = -1;
 
-    char partitions = BSDA;
+    char partitions = (char) BDAS;
 
     while(chosen_item!=ITEM_BACK) {
-	get_nandroid_adv_menu_opts(items+2,partitions,"backup"); // put the menu options in items[] starting at index 2
+	get_nandroid_adv_menu_opts(items+1,partitions,"backup"); // put the menu options in items[] starting at index 1
 	chosen_item=get_menu_selection(headers,items,1,chosen_item<0?0:chosen_item);
 
 	switch(chosen_item) {
@@ -387,14 +342,13 @@ void show_nandroid_adv_b_menu()
     }
 }
 
+
 void show_nandroid_menu()
 {
     static char* headers[] = { "Select an option or press POWER to return",
 			       "",
 			       NULL };
-    static char* items[] = { /*"Simple Nandroid backup",
-			     "Simple Nandroid restore (latest)",*/
-			     "Nandroid Backup",
+    static char* items[] = { "Nandroid Backup",
 			     "Nandroid Restore",
 				 "Clockwork Nandroid Restore",
 			     NULL };
@@ -417,9 +371,6 @@ void show_nandroid_menu()
 	    break;
 	case ITEM_CW_RESTORE:
 	    show_choose_cwnand_menu();
-	    break;
-	case ITEM_REST_APPS:
-	    show_choose_app_menu();
 	    break;
 	}
     }

@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "recovery.h"
 #include "recovery_lib.h"
 #include "roots.h"
 #include "recovery_ui.h"

@@ -47,6 +47,10 @@ struct MtdWriteContext {
     char *buffer;
     size_t stored;
     int fd;
+
+    off_t* bad_block_offsets;
+    int bad_block_alloc;
+    int bad_block_count;
 };
 
 typedef struct {
@@ -283,19 +287,26 @@ static int read_block(const MtdPartition *partition, int fd, char *data)
         return -1;
     }
 
-    off_t pos = lseek(fd, 0, SEEK_CUR);
+    loff_t pos = lseek64(fd, 0, SEEK_CUR);
+
     ssize_t size = partition->erase_size;
+    int mgbb;
+
     while (pos + size <= (int) partition->size) {
-        if (lseek(fd, pos, SEEK_SET) != pos || read(fd, data, size) != size) {
-            fprintf(stderr, "mtd: read error at 0x%08lx (%s)\n",
+        if (lseek64(fd, pos, SEEK_SET) != pos || read(fd, data, size) != size) {
+            fprintf(stderr, "mtd: read error at 0x%08llx (%s)\n",
                     pos, strerror(errno));
         } else if (ioctl(fd, ECCGETSTATS, &after)) {
             fprintf(stderr, "mtd: ECCGETSTATS error (%s)\n", strerror(errno));
             return -1;
         } else if (after.failed != before.failed) {
-            fprintf(stderr, "mtd: ECC errors (%d soft, %d hard) at 0x%08lx\n",
+            fprintf(stderr, "mtd: ECC errors (%d soft, %d hard) at 0x%08llx\n",
                     after.corrected - before.corrected,
                     after.failed - before.failed, pos);
+        } else if ((mgbb = ioctl(fd, MEMGETBADBLOCK, &pos))) {
+            fprintf(stderr,
+                    "mtd: MEMGETBADBLOCK returned %d at 0x%08llx (errno=%d)\n",
+                    mgbb, pos, errno);
         } else {
             int i;
             for (i = 0; i < size; ++i) {
@@ -303,7 +314,7 @@ static int read_block(const MtdPartition *partition, int fd, char *data)
                     return 0;  // Success!
                 }
             }
-            fprintf(stderr, "mtd: read all-zero block at 0x%08lx; skipping\n",
+            fprintf(stderr, "mtd: read all-zero block at 0x%08llx; skipping\n",
                     pos);
         }
 
@@ -359,6 +370,10 @@ MtdWriteContext *mtd_write_partition(const MtdPartition *partition)
     MtdWriteContext *ctx = (MtdWriteContext*) malloc(sizeof(MtdWriteContext));
     if (ctx == NULL) return NULL;
 
+    ctx->bad_block_offsets = NULL;
+    ctx->bad_block_alloc = 0;
+    ctx->bad_block_count = 0;
+
     ctx->buffer = malloc(partition->erase_size);
     if (ctx->buffer == NULL) {
         free(ctx);
@@ -379,8 +394,20 @@ MtdWriteContext *mtd_write_partition(const MtdPartition *partition)
     return ctx;
 }
 
-static int write_block(const MtdPartition *partition, int fd, const char *data)
+static void add_bad_block_offset(MtdWriteContext *ctx, off_t pos) {
+    if (ctx->bad_block_count + 1 > ctx->bad_block_alloc) {
+        ctx->bad_block_alloc = (ctx->bad_block_alloc*2) + 1;
+        ctx->bad_block_offsets = realloc(ctx->bad_block_offsets,
+                                         ctx->bad_block_alloc * sizeof(off_t));
+    }
+    ctx->bad_block_offsets[ctx->bad_block_count++] = pos;
+}
+
+static int write_block(MtdWriteContext *ctx, const char *data)
 {
+    const MtdPartition *partition = ctx->partition;
+    int fd = ctx->fd;
+
     off_t pos = lseek(fd, 0, SEEK_CUR);
     if (pos == (off_t) -1) return 1;
 
@@ -388,6 +415,7 @@ static int write_block(const MtdPartition *partition, int fd, const char *data)
     while (pos + size <= (int) partition->size) {
         loff_t bpos = pos;
         if (ioctl(fd, MEMGETBADBLOCK, &bpos) > 0) {
+            add_bad_block_offset(ctx, pos);
             fprintf(stderr, "mtd: not writing bad block at 0x%08lx\n", pos);
             pos += partition->erase_size;
             continue;  // Don't try to erase known factory-bad blocks.
@@ -429,6 +457,7 @@ static int write_block(const MtdPartition *partition, int fd, const char *data)
         }
 
         // Try to erase it once more as we give up on this block
+        add_bad_block_offset(ctx, pos);
         fprintf(stderr, "mtd: skipping write block at 0x%08lx\n", pos);
         ioctl(fd, MEMERASE, &erase_info);
         pos += partition->erase_size;
@@ -454,13 +483,13 @@ ssize_t mtd_write_data(MtdWriteContext *ctx, const char *data, size_t len)
 
         // If a complete block was accumulated, write it
         if (ctx->stored == ctx->partition->erase_size) {
-            if (write_block(ctx->partition, ctx->fd, ctx->buffer)) return -1;
+            if (write_block(ctx, ctx->buffer)) return -1;
             ctx->stored = 0;
         }
 
         // Write complete blocks directly from the user's buffer
         while (ctx->stored == 0 && len - wrote >= ctx->partition->erase_size) {
-            if (write_block(ctx->partition, ctx->fd, data + wrote)) return -1;
+            if (write_block(ctx, data + wrote)) return -1;
             wrote += ctx->partition->erase_size;
         }
     }
@@ -474,7 +503,7 @@ off_t mtd_erase_blocks(MtdWriteContext *ctx, int blocks)
     if (ctx->stored > 0) {
         size_t zero = ctx->partition->erase_size - ctx->stored;
         memset(ctx->buffer + ctx->stored, 0, zero);
-        if (write_block(ctx->partition, ctx->fd, ctx->buffer)) return -1;
+        if (write_block(ctx, ctx->buffer)) return -1;
         ctx->stored = 0;
     }
 
@@ -515,7 +544,23 @@ int mtd_write_close(MtdWriteContext *ctx)
     // Make sure any pending data gets written
     if (mtd_erase_blocks(ctx, 0) == (off_t) -1) r = -1;
     if (close(ctx->fd)) r = -1;
+    free(ctx->bad_block_offsets);
     free(ctx->buffer);
     free(ctx);
     return r;
+}
+
+/* Return the offset of the first good block at or after pos (which
+ * might be pos itself).
+ */
+off_t mtd_find_write_start(MtdWriteContext *ctx, off_t pos) {
+    int i;
+    for (i = 0; i < ctx->bad_block_count; ++i) {
+        if (ctx->bad_block_offsets[i] == pos) {
+            pos += ctx->partition->erase_size;
+        } else if (ctx->bad_block_offsets[i] > pos) {
+            return pos;
+        }
+    }
+    return pos;
 }

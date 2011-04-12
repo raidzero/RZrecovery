@@ -21,7 +21,6 @@ LOCAL_SRC_FILES := \
     roots.c \
     colors_menu.c \
     ui.c \
-    overclock_menu.c
 
 LOCAL_SRC_FILES += test_roots.c
 
@@ -51,14 +50,14 @@ LOCAL_STATIC_LIBRARIES += libstdc++ libc
 
 include $(BUILD_EXECUTABLE)
 
-include $(CLEAR_VARS)
+#include $(CLEAR_VARS)
 
-LOCAL_SRC_FILES := format.c
-LOCAL_MODULE := format
-LOCAL_FORCE_STATIC_EXECUTABLE := true
-LOCAL_MODULE_TAGS := tests
-LOCAL_STATIC_LIBRARIES := libcutils libstdc++ libc libmtdutils
-include $(BUILD_EXECUTABLE)
+#LOCAL_SRC_FILES := format.c
+#LOCAL_MODULE := format
+#LOCAL_FORCE_STATIC_EXECUTABLE := true
+#LOCAL_MODULE_TAGS := tests
+#LOCAL_STATIC_LIBRARIES := libcutils libstdc++ libc libmtdutils
+#include $(BUILD_EXECUTABLE)
 
 
 include $(commands_recovery_local_path)/minui/Android.mk

@@ -32,7 +32,7 @@
 #include "recovery_ui.h"
 
 #define MAX_COLS 64
-#define MAX_ROWS 40
+#define MAX_ROWS 38
 
 #define MENU_MAX_COLS 64
 #define MENU_MAX_ROWS 250
@@ -81,13 +81,13 @@ static time_t gProgressScopeTime, gProgressScopeDuration;
 static int gPagesIdentical = 0;
 
 // Log text overlay, displayed when a magic key is pressed
-static char text[MENU_MAX_ROWS][MENU_MAX_COLS];
+static char text[MAX_ROWS][MAX_COLS];
 static int text_cols = 0, text_rows = 0;
 static int text_col = 0, text_row = 0, text_top = 0;
 static int show_text = 0;
 static int menu_show_start = 0; //menu start position
 
-static char menu[MAX_ROWS][MAX_COLS];
+static char menu[MENU_MAX_ROWS][MENU_MAX_COLS];
 static int show_menu = 0;
 static int menu_top = 0, menu_items = 0, menu_sel = 0;
 

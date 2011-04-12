@@ -10,7 +10,6 @@
 #include "minui/minui.h"
 #include "recovery_ui.h"
 #include "roots.h"
-#include "firmware.h"
 #include "install.h"
 #include <string.h>
 #include <sys/reboot.h>
@@ -169,17 +168,10 @@ void choose_file_menu(char* sdpath) {
 				char install_string[PATH_MAX]; //create real path from selection
 				strcpy(install_string, sdpath);
 				strcat(install_string, list[chosen_item]);
-				
 				if (opendir(install_string) == NULL) { //handle selection
 					preinstall_menu(install_string);
 				} else {						
 					choose_file_menu(install_string);					
-				}
-				if (ui_key_pressed(32)) { //D = 32
-					remove(install_string);
-					ui_print(install_string);
-					ui_print(" removed.");
-					choose_file_menu(sdpath);
 				}
 			}
 		} 
@@ -254,13 +246,8 @@ int install_update_zip(char* filename) {
 	} else if (!ui_text_visible()) {
 		return 0;  // reboot if logs aren't visible
 	} else {
-	if (firmware_update_pending()) {
-	    ui_print("\nReboot via menu to complete\ninstallation.\n");
-		return 0;
-	} else {
 	    ui_print("\nInstall from sdcard complete.\n");
 		ui_print("\nThanks for using RZrecovery.\n");
-		}
 	}   
 	return 0;
 }
@@ -291,7 +278,7 @@ int install_rom_from_tar(char* filename)
 }
 
 void preinstall_menu(char* filename) {
-
+				
 	char* basename = strrchr(filename, '/') +1;
 	char install_string[PATH_MAX];
 	strcpy(install_string, "Install ");
@@ -321,7 +308,7 @@ void preinstall_menu(char* filename) {
 			return;
 		case ITEM_BACKUP:
 			ui_print("Backing up before installing...\n");
-			nandroid_backup("preinstall",BSDA|PROGRESS);
+			nandroid_backup("preinstall",BDAS|PROGRESS);
 			break;
 		case ITEM_WIPE:
 			wipe_partition(ui_text_visible(), "Are you sure?", "Yes - wipe DATA", "data");
