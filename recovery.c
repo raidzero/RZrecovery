@@ -25,6 +25,7 @@
 #include <string.h>
 #include <sys/reboot.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -37,19 +38,22 @@
 #include "roots.h"
 #include "recovery_ui.h"
 
+#include "recovery_lib.h"
+#include "recovery_menu.h"
+
+static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
+static const char *SAVE_LOG_FILE = "SDCARD:recovery.log";
+static const char *COMMAND_FILE = "CACHE:recovery/command";
+static const char *LOG_FILE = "CACHE:recovery/log";
+
 static const struct option OPTIONS[] = {
   { "send_intent", required_argument, NULL, 's' },
   { "update_package", required_argument, NULL, 'u' },
   { "wipe_data", no_argument, NULL, 'w' },
   { "wipe_cache", no_argument, NULL, 'c' },
+  { "install_tgz", required_argument, NULL, 'r' },
   { NULL, 0, NULL, 0 },
 };
-
-static const char *COMMAND_FILE = "CACHE:recovery/command";
-static const char *INTENT_FILE = "CACHE:recovery/intent";
-static const char *LOG_FILE = "CACHE:recovery/log";
-static const char *SDCARD_PACKAGE_FILE = "SDCARD:update.zip";
-static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
 
 /*
  * The recovery tool communicates with the main system through /cache files.
@@ -162,12 +166,39 @@ check_and_fclose(FILE *fp, const char *name) {
     fclose(fp);
 }
 
+//write recovery files from cache to sdcard
+void write_files() {
+	ensure_root_path_mounted("SDCARD:");
+	system("cp /cache/rgb /sdcard/RZR/rgb");
+	system("cp /cache/oc /sdcard/RZR/oc");
+}
+
+//read recovery files from sdcard to cache
+void read_files() {
+	ensure_root_path_mounted("SDCARD:");
+	if( access("/sdcard/RZR/rgb", F_OK ) != -1 ) {
+		system("cp /sdcard/RZR/rgb /cache/rgb");		
+	} else {
+		mkdir("/sdcard/RZR");
+		set_color(54,74,255);
+	}
+	
+	if( access("/sdcard/RZR/oc", F_OK ) != -1 ) {
+		system("cp /sdcard/RZR/oc /cache/oc");
+	} else {
+		mkdir("/sdcard/RZR");
+	}
+	system("/sbin/clockset");
+	ensure_root_path_unmounted("SDCARD:");
+}
+
 // command line args come from, in decreasing precedence:
 //   - the actual command line
 //   - the bootloader control block (one per line, after "recovery")
 //   - the contents of COMMAND_FILE (one per line)
 static void
 get_args(int *argc, char ***argv) {
+    read_files();
     struct bootloader_message boot;
     memset(&boot, 0, sizeof(boot));
     get_bootloader_message(&boot);  // this may fail, leaving a zeroed structure
@@ -229,226 +260,6 @@ get_args(int *argc, char ***argv) {
 }
 
 static void
-set_sdcard_update_bootloader_message() {
-    struct bootloader_message boot;
-    memset(&boot, 0, sizeof(boot));
-    strlcpy(boot.command, "boot-recovery", sizeof(boot.command));
-    strlcpy(boot.recovery, "recovery\n", sizeof(boot.recovery));
-    set_bootloader_message(&boot);
-}
-
-// clear the recovery command and prepare to boot a (hopefully working) system,
-// copy our log file to cache as well (for the system to read), and
-// record any intent we were asked to communicate back to the system.
-// this function is idempotent: call it as many times as you like.
-static void
-finish_recovery(const char *send_intent) {
-    // By this point, we're ready to return to the main system...
-    if (send_intent != NULL) {
-        FILE *fp = fopen_root_path(INTENT_FILE, "w");
-        if (fp == NULL) {
-            LOGE("Can't open %s\n", INTENT_FILE);
-        } else {
-            fputs(send_intent, fp);
-            check_and_fclose(fp, INTENT_FILE);
-        }
-    }
-
-    // Copy logs to cache so the system can find out what happened.
-    FILE *log = fopen_root_path(LOG_FILE, "a");
-    if (log == NULL) {
-        LOGE("Can't open %s\n", LOG_FILE);
-    } else {
-        FILE *tmplog = fopen(TEMPORARY_LOG_FILE, "r");
-        if (tmplog == NULL) {
-            LOGE("Can't open %s\n", TEMPORARY_LOG_FILE);
-        } else {
-            static long tmplog_offset = 0;
-            fseek(tmplog, tmplog_offset, SEEK_SET);  // Since last write
-            char buf[4096];
-            while (fgets(buf, sizeof(buf), tmplog)) fputs(buf, log);
-            tmplog_offset = ftell(tmplog);
-            check_and_fclose(tmplog, TEMPORARY_LOG_FILE);
-        }
-        check_and_fclose(log, LOG_FILE);
-    }
-
-    // Reset to mormal system boot so recovery won't cycle indefinitely.
-    struct bootloader_message boot;
-    memset(&boot, 0, sizeof(boot));
-    set_bootloader_message(&boot);
-
-    // Remove the command file, so recovery won't repeat indefinitely.
-    char path[PATH_MAX] = "";
-    if (ensure_root_path_mounted(COMMAND_FILE) != 0 ||
-        translate_root_path(COMMAND_FILE, path, sizeof(path)) == NULL ||
-        (unlink(path) && errno != ENOENT)) {
-        LOGW("Can't unlink %s\n", COMMAND_FILE);
-    }
-
-    sync();  // For good measure.
-}
-
-static int
-erase_root(const char *root) {
-    ui_set_background(BACKGROUND_ICON_INSTALLING);
-    ui_show_indeterminate_progress();
-    ui_print("Formatting %s...\n", root);
-    return format_root_device(root);
-}
-
-static char**
-prepend_title(char** headers) {
-    char* title[] = { "Android system recovery <"
-                          EXPAND(RECOVERY_API_VERSION) "e>",
-                      "",
-                      NULL };
-
-    // count the number of lines in our title, plus the
-    // caller-provided headers.
-    int count = 0;
-    char** p;
-    for (p = title; *p; ++p, ++count);
-    for (p = headers; *p; ++p, ++count);
-
-    char** new_headers = malloc((count+1) * sizeof(char*));
-    char** h = new_headers;
-    for (p = title; *p; ++p, ++h) *h = *p;
-    for (p = headers; *p; ++p, ++h) *h = *p;
-    *h = NULL;
-
-    return new_headers;
-}
-
-static int
-get_menu_selection(char** headers, char** items, int menu_only) {
-    // throw away keys pressed previously, so user doesn't
-    // accidentally trigger menu items.
-    ui_clear_key_queue();
-
-    ui_start_menu(headers, items);
-    int selected = 0;
-    int chosen_item = -1;
-
-    while (chosen_item < 0) {
-        int key = ui_wait_key();
-        int visible = ui_text_visible();
-
-        int action = device_handle_key(key, visible);
-
-        if (action < 0) {
-            switch (action) {
-                case HIGHLIGHT_UP:
-                    --selected;
-                    selected = ui_menu_select(selected);
-                    break;
-                case HIGHLIGHT_DOWN:
-                    ++selected;
-                    selected = ui_menu_select(selected);
-                    break;
-                case SELECT_ITEM:
-                    chosen_item = selected;
-                    break;
-                case NO_ACTION:
-                    break;
-            }
-        } else if (!menu_only) {
-            chosen_item = action;
-        }
-    }
-
-    ui_end_menu();
-    return chosen_item;
-}
-
-static void
-wipe_data(int confirm) {
-    if (confirm) {
-        static char** title_headers = NULL;
-
-        if (title_headers == NULL) {
-            char* headers[] = { "Confirm wipe of all user data?",
-                                "  THIS CAN NOT BE UNDONE.",
-                                "",
-                                NULL };
-            title_headers = prepend_title(headers);
-        }
-
-        char* items[] = { " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " Yes -- delete all user data",   // [7]
-                          " No",
-                          " No",
-                          " No",
-                          NULL };
-
-        int chosen_item = get_menu_selection(title_headers, items, 1);
-        if (chosen_item != 7) {
-            return;
-        }
-    }
-
-    ui_print("\n-- Wiping data...\n");
-    device_wipe_data();
-    erase_root("DATA:");
-    erase_root("CACHE:");
-    ui_print("Data wipe complete.\n");
-}
-
-static void
-prompt_and_wait() {
-    char** headers = prepend_title(MENU_HEADERS);
-
-    for (;;) {
-        finish_recovery(NULL);
-        ui_reset_progress();
-
-        int chosen_item = get_menu_selection(headers, MENU_ITEMS, 0);
-
-        // device-specific code may take some action here.  It may
-        // return one of the core actions handled in the switch
-        // statement below.
-        chosen_item = device_perform_action(chosen_item);
-
-        switch (chosen_item) {
-            case ITEM_REBOOT:
-                return;
-
-            case ITEM_WIPE_DATA:
-                wipe_data(ui_text_visible());
-                if (!ui_text_visible()) return;
-                break;
-
-            case ITEM_WIPE_CACHE:
-                ui_print("\n-- Wiping cache...\n");
-                erase_root("CACHE:");
-                ui_print("Cache wipe complete.\n");
-                if (!ui_text_visible()) return;
-                break;
-
-            case ITEM_APPLY_SDCARD:
-                ui_print("\n-- Install from sdcard...\n");
-                set_sdcard_update_bootloader_message();
-                int status = install_package(SDCARD_PACKAGE_FILE);
-                if (status != INSTALL_SUCCESS) {
-                    ui_set_background(BACKGROUND_ICON_ERROR);
-                    ui_print("Installation aborted.\n");
-                } else if (!ui_text_visible()) {
-                    return;  // reboot if logs aren't visible
-                } else {
-                    ui_print("\nInstall from sdcard complete.\n");
-                }
-                break;
-        }
-    }
-}
-
-static void
 print_property(const char *key, const char *name, void *cookie) {
     fprintf(stderr, "%s=%s\n", key, name);
 }
@@ -468,7 +279,11 @@ main(int argc, char **argv) {
     int previous_runs = 0;
     const char *send_intent = NULL;
     const char *update_package = NULL;
+    const char *install_tgz = NULL;
     int wipe_data = 0, wipe_cache = 0;
+
+    int mount_sys = 0;
+    int mount_data = 0;
 
     int arg;
     while ((arg = getopt_long(argc, argv, "", OPTIONS, NULL)) != -1) {
@@ -478,6 +293,7 @@ main(int argc, char **argv) {
         case 'u': update_package = optarg; break;
         case 'w': wipe_data = wipe_cache = 1; break;
         case 'c': wipe_cache = 1; break;
+	case 'r': install_tgz = optarg; break;
         case '?':
             LOGE("Invalid command argument\n");
             continue;
@@ -500,6 +316,9 @@ main(int argc, char **argv) {
     if (update_package != NULL) {
         status = install_package(update_package);
         if (status != INSTALL_SUCCESS) ui_print("Installation aborted.\n");
+    } else if (install_tgz != NULL) {
+	status = install_rom_from_tar(install_tgz);
+	if (status != INSTALL_SUCCESS) ui_print("Installation failed.\n");
     } else if (wipe_data) {
         if (device_wipe_data()) status = INSTALL_ERROR;
         if (erase_root("DATA:")) status = INSTALL_ERROR;
@@ -508,6 +327,12 @@ main(int argc, char **argv) {
     } else if (wipe_cache) {
         if (wipe_cache && erase_root("CACHE:")) status = INSTALL_ERROR;
         if (status != INSTALL_SUCCESS) ui_print("Cache wipe failed.\n");
+    } else if (mount_sys) {
+	    ui_print("Mounting /system\n");
+	    ensure_root_path_mounted("SYSTEM:");
+    } else if (mount_data) {
+	    ui_print("Mounting /data\n");
+	    ensure_root_path_mounted("DATA:");
     } else {
         status = INSTALL_ERROR;  // No command specified
     }
@@ -518,6 +343,12 @@ main(int argc, char **argv) {
     // Otherwise, get ready to boot the main system...
     finish_recovery(send_intent);
     ui_print("Rebooting...\n");
+    {
+	ensure_root_path_mounted(SAVE_LOG_FILE);
+	char* save_path = calloc(strlen(SAVE_LOG_FILE)+2,sizeof(char));
+	translate_root_path(SAVE_LOG_FILE,save_path,strlen(SAVE_LOG_FILE)+2);
+	rename(TEMPORARY_LOG_FILE,save_path);
+    }
     sync();
     reboot(RB_AUTOBOOT);
     return EXIT_SUCCESS;
