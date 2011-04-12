@@ -167,35 +167,6 @@ static void nandroid_simple_restore()
     ui_reset_progress();
 }
 
-static void nandroid_bundle_rom()
-{   
-	char rom_name[PATH_MAX];
-	char filename[255];
-	ui_print("\nType special characters by holding down\nthe Alt & Shift keys.\n");	
-	ui_print("Please enter the desired filename: ");
-	ui_read_line_n(filename, 255);
-	strcpy(rom_name,"/sdcard/");
-	strcat(rom_name, filename);
-	strcat(rom_name,".tar");
-	ui_print("\nDumping system to ");
-	ui_print(rom_name);
-	
-    char* argv[] = { "/sbin/nandroid-mobile.sh",
-		     "--bundle-rom",
-			 rom_name,
-			 "--progress",
-		     NULL };
-    char* envp[] = { NULL };
-    int status = runve("/sbin/nandroid-mobile.sh",argv,envp,80);
-    if (!WIFEXITED(status) || WEXITSTATUS(status)!=0) {
-	ui_printf_int("ERROR: Nandroid exited with status %d\n",WEXITSTATUS(status));
-    }
-    else {
-	ui_print("(done)\n");
-    }
-    ui_reset_progress();
-}
-
 void nandroid_adv_r_choose_file(char* filename, char* nandroid_folder)
 {
     static char* headers[] = { "Choose a backup prefix or press",
@@ -373,20 +344,18 @@ void show_nandroid_adv_b_menu()
 			"",
 			"",
 			NULL };
-    char* items[] = { "Set backup name",
-		      "Perform backup",
+    char* items[] = { "Perform backup",
 		      NULL,
 		      NULL,
 		      NULL,
 		      NULL,
 		      NULL };
   
-#define ITEM_NAME 0
-#define ITEM_PERF 1
-#define ITEM_B    2
-#define ITEM_D    3
-#define ITEM_A	  4
-#define ITEM_S    5
+#define ITEM_PERF 0
+#define ITEM_B    1
+#define ITEM_D    2
+#define ITEM_A	  3
+#define ITEM_S    4
 
     char filename[PATH_MAX];
     filename[0]=NULL;
@@ -399,12 +368,6 @@ void show_nandroid_adv_b_menu()
 	chosen_item=get_menu_selection(headers,items,1,chosen_item<0?0:chosen_item);
 
 	switch(chosen_item) {
-	case ITEM_NAME:
-		ui_print("\nType special characters by holding down\nthe Alt & Shift keys.\n");
-	    ui_print("Type a prefix to name your backup:\n> ");
-	    ui_read_line_n(filename,PATH_MAX);
-	    headers[2]=filename;
-	    break;
 	case ITEM_PERF:
 	    nandroid_backup(filename,partitions|PROGRESS);
 	    break;
@@ -434,19 +397,11 @@ void show_nandroid_menu()
 			     "Nandroid Backup",
 			     "Nandroid Restore",
 				 "Clockwork Nandroid Restore",
-				 "Backup Apps",
-				 "Restore Apps",
 			     NULL };
 
-//#define ITEM_DEF_BACKUP  0
-//#define ITEM_DEF_RESTORE 1
 #define ITEM_ADV_BACKUP  0
 #define ITEM_ADV_RESTORE 1
 #define ITEM_CW_RESTORE	 2
-#define ITEM_BACK_APPS   3
-#define ITEM_REST_APPS	 4
-
-  
     
     int chosen_item = -1;
 
@@ -454,12 +409,6 @@ void show_nandroid_menu()
 	chosen_item = get_menu_selection(headers,items,1,chosen_item<0?0:chosen_item);
       
 	switch(chosen_item) {
-//	case ITEM_DEF_BACKUP:
-//	    nandroid_simple_backup();
-//	    break;
-//	case ITEM_DEF_RESTORE:
-//	    nandroid_simple_restore();
-//	    break;
 	case ITEM_ADV_BACKUP:
 	    show_nandroid_adv_b_menu();
 	    break;
@@ -468,10 +417,6 @@ void show_nandroid_menu()
 	    break;
 	case ITEM_CW_RESTORE:
 	    show_choose_cwnand_menu();
-	    break;
-	case ITEM_BACK_APPS:
-		ui_print("\nBacking up apps & appdata...\n");
-	    system("app_backup.sh");
 	    break;
 	case ITEM_REST_APPS:
 	    show_choose_app_menu();
