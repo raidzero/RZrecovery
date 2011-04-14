@@ -588,7 +588,7 @@ int applypatch(const char* source_filename,
 
         int to_use = FindMatchingPatch(copy_file.sha1,
                                        patch_sha1_str, num_patches);
-        if (to_use >= 0) {
+        if (to_use > 0) {
             copy_patch_value = patch_data[to_use];
         }
 
@@ -645,8 +645,7 @@ int applypatch(const char* source_filename,
             int enough_space = 0;
             if (retry > 0) {
                 size_t free_space = FreeSpaceForFile(target_fs);
-                enough_space =
-                    (free_space > (256 << 10)) &&          // 256k (two-block) minimum
+                int enough_space =
                     (free_space > (target_size * 3 / 2));  // 50% margin of error
                 printf("target %ld bytes; free space %ld bytes; retry %d; enough %d\n",
                        (long)target_size, (long)free_space, retry, enough_space);

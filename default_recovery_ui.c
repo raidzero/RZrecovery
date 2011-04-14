@@ -36,25 +36,27 @@ int device_reboot_now(volatile char* key_pressed, int key_code) {
 int device_handle_key(int key_code, int visible) {
     if (visible) {
         switch (key_code) {
+            case KEY_VOLUMEDOWN:		
             case KEY_DOWN:
-            case KEY_VOLUMEDOWN:
                 return HIGHLIGHT_DOWN;
 
+            case KEY_VOLUMEUP:				
             case KEY_UP:
-            case KEY_VOLUMEUP:
                 return HIGHLIGHT_UP;
 
-	    case KEY_HOME:
-		case KEY_CAMERA:
-		case KEY_ENTER:
-		case KEY_CENTER:
-                return SELECT_ITEM;
+			case KEY_CAMERA:
+			case KEY_CENTER:
+			case KEY_ENTER:
+			case KEY_HOME:
+			case KEY_SEND:
+				return SELECT_ITEM;
 	    
-	    case KEY_END:
-		return ITEM_BACK;    
+			case KEY_BACKSPACE:
+			case KEY_BACK:			
+			case KEY_END:
+				return ITEM_BACK;    
         }
     }
-
     return NO_ACTION;
 }
 

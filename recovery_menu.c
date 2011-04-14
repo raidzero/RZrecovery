@@ -8,7 +8,6 @@
 #include "recovery_ui.h"
 #include "minui/minui.h"
 #include "roots.h"
-#include "firmware.h"
 
 #include "nandroid_menu.h"
 #include "mount_menu.h"

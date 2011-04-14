@@ -99,12 +99,12 @@ void finish_recovery(const char *send_intent)
 char** prepend_title(char** headers) {
 
     FILE* f = fopen("/recovery.version","r");
-    char* vers = calloc(8,sizeof(char));
-    fgets(vers, 8, f);
+    char* vers = calloc(20,sizeof(char));
+    fgets(vers, 20, f);
 
     strtok(vers," ");  // truncate vers to before the first space
 
-    char* patch_line_ptr = calloc((strlen(headers[0])+11),sizeof(char));
+    char* patch_line_ptr = calloc((strlen(headers[0])+20),sizeof(char));
     char* patch_line = patch_line_ptr;
     strcpy(patch_line,headers[0]);
     strcat(patch_line," (");

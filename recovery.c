@@ -227,8 +227,7 @@ print_property(const char *key, const char *name, void *cookie) {
     fprintf(stderr, "%s=%s\n", key, name);
 }
 
-int
-main(int argc, char **argv) {
+int main(int argc, char **argv) {
     time_t start = time(NULL);
 
     // If these fail, there's not really anywhere to complain...
@@ -239,16 +238,16 @@ main(int argc, char **argv) {
     ui_init();
     get_args(&argc, &argv);
 
-	ui_print("Welcome to RZRecovery.  Use the volume up and   down buttons to move between menu options, the  camera button to select them, and the power     button to back out of a menu.\n\n\n");
+	ui_print("\nWelcome to RZRecovery.  Use the volume up and");
+	ui_print("\ndown buttons to move between menu options, the");
+	ui_print("\ncamera button to select them, and the power");
+	ui_print("\nbutton to back out of a menu.\n\n");
 
     int previous_runs = 0;
     const char *send_intent = NULL;
     const char *update_package = NULL;
     const char *install_tgz = NULL;
-    int wipe_data = 0, wipe_cache = 0;
-
-    int mount_sys = 0;
-    int mount_data = 0;
+    int wipe_data = 0, wipe_cache = 0/*, mount_sys = 0, mount_data = 0*/;
 
     int arg;
     while ((arg = getopt_long(argc, argv, "", OPTIONS, NULL)) != -1) {
@@ -258,14 +257,14 @@ main(int argc, char **argv) {
         case 'u': update_package = optarg; break;
         case 'w': wipe_data = wipe_cache = 1; break;
         case 'c': wipe_cache = 1; break;
-	case 'r': install_tgz = optarg; break;
+		case 'r': install_tgz = optarg; break;
         case '?':
             LOGE("Invalid command argument\n");
             continue;
         }
     }
 
-    //device_recovery_start();
+    device_recovery_start();
 
     fprintf(stderr, "Command:");
     for (arg = 0; arg < argc; arg++) {
@@ -282,23 +281,23 @@ main(int argc, char **argv) {
         status = install_package(update_package);
         if (status != INSTALL_SUCCESS) ui_print("Installation aborted.\n");
     } else if (install_tgz != NULL) {
-	status = install_rom_from_tar(install_tgz);
-	if (status != INSTALL_SUCCESS) ui_print("Installation failed.\n");
-    } else if (wipe_data) {
-        if (device_wipe_data()) status = INSTALL_ERROR;
-        if (erase_root("DATA:")) status = INSTALL_ERROR;
-        if (wipe_cache && erase_root("CACHE:")) status = INSTALL_ERROR;
-        if (status != INSTALL_SUCCESS) ui_print("Data wipe failed.\n");
-    } else if (wipe_cache) {
-        if (wipe_cache && erase_root("CACHE:")) status = INSTALL_ERROR;
-        if (status != INSTALL_SUCCESS) ui_print("Cache wipe failed.\n");
-    } else if (mount_sys) {
-	    ui_print("Mounting /system\n");
-	    ensure_root_path_mounted("SYSTEM:");
-    } else if (mount_data) {
-	    ui_print("Mounting /data\n");
-	    ensure_root_path_mounted("DATA:");
-    } else {
+		status = install_rom_from_tar(install_tgz);
+		if (status != INSTALL_SUCCESS) ui_print("Installation failed.\n");
+		} else if (wipe_data) {
+			if (device_wipe_data()) status = INSTALL_ERROR;
+			if (erase_root("DATA:")) status = INSTALL_ERROR;
+			if (wipe_cache && erase_root("CACHE:")) status = INSTALL_ERROR;
+			if (status != INSTALL_SUCCESS) ui_print("Data wipe failed.\n");
+		} else if (wipe_cache) {
+			if (wipe_cache && erase_root("CACHE:")) status = INSTALL_ERROR;
+			if (status != INSTALL_SUCCESS) ui_print("Cache wipe failed.\n");
+		/*} else if (mount_sys) {
+			ui_print("Mounting /system\n");
+			ensure_root_path_mounted("SYSTEM:");
+		} else if (mount_data) {
+			ui_print("Mounting /data\n");
+			ensure_root_path_mounted("DATA:");*/
+		} else {
         status = INSTALL_ERROR;  // No command specified
     }
 

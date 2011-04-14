@@ -179,7 +179,7 @@ static void draw_screen_locked(void)
 	} else {
 		set_color(54,74,255);
 	}
-	
+
     draw_background_locked(gCurrentIcon);
     draw_progress_locked();
 
