@@ -175,7 +175,7 @@ int get_menu_selection(char** headers, char** items, int menu_only, int selected
 		sprintf(key_str, "Key %d pressed.\n", key);
 		ui_print(key_str);*/
 
-	if (key == KEY_BACKSPACE || key == KEY_END) {
+	if (key == KEY_BACKSPACE || key == KEY_END || key == KEY_BACK || key == KEY_POWER) {
 	    return(ITEM_BACK);
 	}
 
@@ -185,23 +185,23 @@ int get_menu_selection(char** headers, char** items, int menu_only, int selected
 
         if (action < 0) {
             switch (action) {
-	    case ITEM_BACK:
-		return(ITEM_BACK);
-		break;
-	    case HIGHLIGHT_UP:
-		--selected;
-		selected = ui_menu_select(selected);
-		break;
-	    case HIGHLIGHT_DOWN:
-		++selected;
-		selected = ui_menu_select(selected);
-		break;
-	    case SELECT_ITEM:
-		chosen_item = selected;
-		break;
-	    case NO_ACTION:
-		break;
-            }
+		    case HIGHLIGHT_UP:
+			--selected;
+			selected = ui_menu_select(selected);
+			break;
+		    case HIGHLIGHT_DOWN:
+			++selected;
+			selected = ui_menu_select(selected);
+			break;
+		    case SELECT_ITEM:
+			chosen_item = selected;
+			break;
+		    case NO_ACTION:
+			break;
+		    case ITEM_BACK:
+			chosen_item = ITEM_BACK;
+			break;
+		    }
         } else if (!menu_only) {
             chosen_item = action;
         }
@@ -337,7 +337,7 @@ int runve(char* filename, char** argv, char** envp, int secs)
     int choice;
     
     while (fgets(cur_line,100,from)!=NULL) {
-	printf(cur_line);
+	printf("%s",cur_line);
 	tok=strtok(cur_line," \n");
 	if(tok==NULL) {continue;}
 	if(strcmp(tok,"*")==0) {

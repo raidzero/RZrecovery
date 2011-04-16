@@ -38,23 +38,27 @@ int device_handle_key(int key_code, int visible) {
         switch (key_code) {
             case KEY_VOLUMEDOWN:		
             case KEY_DOWN:
-                return HIGHLIGHT_DOWN;
+                return HIGHLIGHT_UP;
 
             case KEY_VOLUMEUP:				
             case KEY_UP:
-                return HIGHLIGHT_UP;
-
-			case KEY_CAMERA:
-			case KEY_CENTER:
-			case KEY_ENTER:
-			case KEY_HOME:
-			case KEY_SEND:
-				return SELECT_ITEM;
+                return HIGHLIGHT_DOWN;
 	    
-			case KEY_BACKSPACE:
-			case KEY_BACK:			
-			case KEY_END:
-				return ITEM_BACK;    
+	    case KEY_BACKSPACE:
+	    case KEY_BACK:
+		return ITEM_BACK;
+
+	    case KEY_END:
+	    case KEY_POWER:
+		return ITEM_BACK;    
+
+	    case KEY_CAMERA:
+	    case KEY_CENTER:
+	    case KEY_ENTER:
+		return SELECT_ITEM;
+	    case KEY_HOME:
+	    case KEY_SEND:
+		return SELECT_ITEM;
         }
     }
     return NO_ACTION;

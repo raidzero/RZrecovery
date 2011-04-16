@@ -67,7 +67,7 @@ static void enable_usb_mass_storage()
     ensure_root_path_unmounted("SDCARD:");
     FILE* fp = fopen("/sys/devices/platform/usb_mass_storage/lun0/file","w");
     const char* sdcard_partition = "/dev/block/mmcblk0\n";
-    fprintf(fp,sdcard_partition);
+    fprintf(fp,"%s",sdcard_partition);
     fclose(fp);
 }
 
@@ -121,7 +121,7 @@ void show_mount_menu()
 	case ITEM_S:
 	    if(ms) {
 		ensure_root_path_unmounted("SYSTEM:");
-		ui_print("Unm");
+		ui_print("%s","Unm");
 	    }
 	    else {
 		ensure_root_path_mounted("SYSTEM:");

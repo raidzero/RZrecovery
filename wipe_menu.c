@@ -134,11 +134,11 @@ void show_wipe_menu()
 
 int chosen_item = -1;
 
-    while(chosen_item!=ITEM_BACK) {
+    while(chosen_item != ITEM_BACK) {
 	chosen_item = get_menu_selection(headers,items,1,chosen_item<0?0:chosen_item);
-
+	
+	
         switch (chosen_item) {
-		
 	case WIPE_ALL:
 		wipe_partition(ui_text_visible(), "Are you sure?", "Yes - wipe EVERYTHING", "all");
 		break;
@@ -170,6 +170,10 @@ int chosen_item = -1;
 	case WIPE_DK:
 		wipe_partition(ui_text_visible(), "Are you sure?", "Yes - wipe DALVIK-CACHE", "dalvik-cache");
 	    break;
+	
+	case ITEM_BACK:
+		return ITEM_BACK;
+		break;
         }
     }
 }
