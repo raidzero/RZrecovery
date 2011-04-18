@@ -32,6 +32,7 @@
 #include "bootloader.h"
 #include "common.h"
 #include "cutils/properties.h"
+#include "flashutils/flashutils.h"
 #include "install.h"
 #include "minui/minui.h"
 #include "minzip/DirUtil.h"
@@ -164,7 +165,9 @@ get_args(int *argc, char ***argv) {
     read_files();
     struct bootloader_message boot;
     memset(&boot, 0, sizeof(boot));
+#ifndef BOARD_HAS_NO_MISC_PARTITION
     get_bootloader_message(&boot);  // this may fail, leaving a zeroed structure
+#endif
 
     if (boot.command[0] != 0 && boot.command[0] != 255) {
         LOGI("Boot command: %.*s\n", sizeof(boot.command), boot.command);
@@ -219,7 +222,9 @@ get_args(int *argc, char ***argv) {
         strlcat(boot.recovery, (*argv)[i], sizeof(boot.recovery));
         strlcat(boot.recovery, "\n", sizeof(boot.recovery));
     }
-    set_bootloader_message(&boot);
+#ifndef BOARD_HAS_NO_MISC_PARTITION
+    set_bootloader_message(&boot);  
+#endif
 }
 
 static void

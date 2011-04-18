@@ -28,8 +28,8 @@
 #include "minui/minui.h"
 #include "minzip/SysUtil.h"
 #include "minzip/Zip.h"
-#include "mtdutils/mounts.h"
 #include "mtdutils/mtdutils.h"
+#include "mounts.h"
 #include "roots.h"
 
 #define ASSUMED_UPDATE_BINARY_NAME  "META-INF/com/google/android/update-binary"

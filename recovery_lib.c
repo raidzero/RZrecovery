@@ -15,9 +15,10 @@
 #include "minzip/DirUtil.h"
 
 static const char *INTENT_FILE = "CACHE:recovery/intent";
-static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
+static const char *SAVE_LOG_FILE = "SDCARD:recovery.log";
 static const char *COMMAND_FILE = "CACHE:recovery/command";
 static const char *LOG_FILE = "CACHE:recovery/log";
+static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
 
 // clear the recovery command and prepare to boot a (hopefully working) system,
 // copy our log file to cache as well (for the system to read), and
@@ -52,12 +53,19 @@ FILE* fopen_root_path(const char *root_path, const char *mode) {
     return fp;
 }
 
-void finish_recovery(const char *send_intent)
-{
+void remove_command() {
+    if (ensure_root_path_mounted(COMMAND_FILE) != 0) {
+	    remove("/cache/recovery/command");
+    }
+}
+
+void finish_recovery(const char *send_intent) {
     // By this point, we're ready to return to the main system...
     if (send_intent != NULL) {
         FILE *fp = fopen_root_path(INTENT_FILE, "w");
-        if (fp != NULL) {
+        if (fp == NULL) {
+            LOGE("Can't open %s\n", INTENT_FILE);
+        } else {
             fputs(send_intent, fp);
             check_and_fclose(fp, INTENT_FILE);
         }
@@ -80,19 +88,12 @@ void finish_recovery(const char *send_intent)
         check_and_fclose(log, LOG_FILE);
     }
 
-    // Reset the bootloader message to revert to a normal main system boot.
-    struct bootloader_message boot;
-    memset(&boot, 0, sizeof(boot));
-    set_bootloader_message(&boot);
-
-    // Remove the command file, so recovery won't repeat indefinitely.
-    char path[PATH_MAX] = "";
-    if (ensure_root_path_mounted(COMMAND_FILE) != 0 ||
-        translate_root_path(COMMAND_FILE, path, sizeof(path)) == NULL ||
-        (unlink(path) && errno != ENOENT)) {
-        LOGW("Can't unlink %s\n", COMMAND_FILE);
-    }
-
+#ifndef BOARD_HAS_NO_MISC_PARTITION
+        // Reset to mormal system boot so recovery won't cycle indefinitely.
+        struct bootloader_message boot;
+        memset(&boot, 0, sizeof(boot));
+        set_bootloader_message(&boot);
+#endif
     sync();  // For good measure.
 }
 
@@ -141,7 +142,7 @@ char** prepend_title(char** headers) {
 
     return new_headers;
 }
-
+#ifndef BOARD_HAS_NO_MISC_PARTITION
 void set_sdcard_update_bootloader_message()
 {
     struct bootloader_message boot;
@@ -150,6 +151,7 @@ void set_sdcard_update_bootloader_message()
     strlcpy(boot.recovery, "recovery\n", sizeof(boot.recovery));
     set_bootloader_message(&boot);
 }
+#endif
 
 int erase_root(const char *root)
 {

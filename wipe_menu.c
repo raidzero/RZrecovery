@@ -51,7 +51,7 @@ void wipe_partition(int confirm, char* title, char* operation, char* partition) 
 		ui_print("-- May take a while on gingerbread...\n");
 		write_files();
 		ensure_root_path_unmounted("CACHE:");
-		system("format CACHE:");
+		erase_root("CACHE:");
 		ensure_root_path_mounted("CACHE:");
 		read_files();
 		ui_print("Cache wipe complete.");

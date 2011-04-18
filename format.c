@@ -39,19 +39,26 @@ typedef struct {
 /* Canonical pointers.
    xxx may just want to use enums
 */
+static const char g_mmc_device[] = "@\0g_mmc_device";
 static const char g_mtd_device[] = "@\0g_mtd_device";
 static const char g_raw[] = "@\0g_raw";
 static const char g_package_file[] = "@\0g_package_file";
 
 static RootInfo g_roots[] = {
     { "BOOT:", g_mtd_device, NULL, "boot", NULL, g_raw },
-    { "CACHE:", g_mtd_device, NULL, "cache", "/cache", "yaffs2" },
-    { "DATA:", g_mtd_device, NULL, "userdata", "/data", "yaffs2" },
+    { "CACHE:", BOARD_CACHE_DEVICE, NULL, "cache", "/cache", BOARD_CACHE_FILESYSTEM },
+    { "DATA:", BOARD_DATA_DEVICE, NULL, "userdata", "/data", BOARD_DATA_FILESYSTEM },
+#ifdef BOARD_HAS_DATADATA
+    { "DATADATA:", BOARD_DATADATA_DEVICE, NULL, "datadata", "/datadata", BOARD_DATADATA_FILESYSTEM },
+#endif
     { "MISC:", g_mtd_device, NULL, "misc", NULL, g_raw },
     { "PACKAGE:", NULL, NULL, NULL, NULL, g_package_file },
     { "RECOVERY:", g_mtd_device, NULL, "recovery", "/", g_raw },
-    { "SDCARD:", "/dev/block/mmcblk0p1", "/dev/block/mmcblk0", NULL, "/sdcard", "vfat" },
-    { "SYSTEM:", g_mtd_device, NULL, "system", "/system", "yaffs2" },
+    { "SDCARD:", BOARD_SDCARD_DEVICE_PRIMARY, BOARD_SDCARD_DEVICE_SECONDARY, NULL, "/sdcard", "vfat" },
+#ifdef BOARD_HAS_SDCARD_INTERNAL
+    { "SDINTERNAL:", BOARD_SDCARD_DEVICE_INTERNAL, NULL, NULL, "/emmc", "vfat" },
+#endif
+    { "SYSTEM:", BOARD_SYSTEM_DEVICE, NULL, "system", "/system", BOARD_SYSTEM_FILESYSTEM },
     { "MBM:", g_mtd_device, NULL, "mbm", NULL, g_raw },
     { "TMP:", NULL, NULL, NULL, "/tmp", NULL },
 };
@@ -83,7 +90,7 @@ get_root_info_for_path(const char *root_path)
 }
 
 int
-format_root_device(const char *root)
+format_mtd_device(const char *root)
 {
     /* Be a little safer here; require that "root" is just
      * a device with no relative path after it.
@@ -93,13 +100,13 @@ format_root_device(const char *root)
         c++;
     }
     if (c[0] != ':' || c[1] != '\0') {
-        LOGW("format_root_device: bad root name \"%s\"\n", root);
+        LOGW("format_mtd_device: bad root name \"%s\"\n", root);
         return -1;
     }
 
     const RootInfo *info = get_root_info_for_path(root);
     if (info == NULL || info->device == NULL) {
-        LOGW("format_root_device: can't resolve \"%s\"\n", root);
+        LOGW("format_mtd_device: can't resolve \"%s\"\n", root);
         return -1;
     }
     if (info->mount_point != NULL) {
@@ -107,7 +114,7 @@ format_root_device(const char *root)
          */
         int ret = ensure_root_path_unmounted(root);
         if (ret < 0) {
-            LOGW("format_root_device: can't unmount \"%s\"\n", root);
+            LOGW("format_mtd_device: can't unmount \"%s\"\n", root);
             return ret;
         }
     }
@@ -119,21 +126,21 @@ format_root_device(const char *root)
         const MtdPartition *partition;
         partition = mtd_find_partition_by_name(info->partition_name);
         if (partition == NULL) {
-            LOGW("format_root_device: can't find mtd partition \"%s\"\n",
+            LOGW("format_mtd_device: can't find mtd partition \"%s\"\n",
 		 info->partition_name);
             return -1;
         }
         if (info->filesystem == g_raw || !strcmp(info->filesystem, "yaffs2")) {
             MtdWriteContext *write = mtd_write_partition(partition);
             if (write == NULL) {
-                LOGW("format_root_device: can't open \"%s\"\n", root);
+                LOGW("format_mtd_device: can't open \"%s\"\n", root);
                 return -1;
             } else if (mtd_erase_blocks(write, -1) == (off_t) -1) {
-                LOGW("format_root_device: can't erase \"%s\"\n", root);
+                LOGW("format_mtd_device: can't erase \"%s\"\n", root);
                 mtd_write_close(write);
                 return -1;
             } else if (mtd_write_close(write)) {
-                LOGW("format_root_device: can't close \"%s\"\n", root);
+                LOGW("format_mtd_device: can't close \"%s\"\n", root);
                 return -1;
             } else {
                 return 0;
@@ -141,7 +148,70 @@ format_root_device(const char *root)
         }
     }
 //TODO: handle other device types (sdcard, etc.)
-    LOGW("format_root_device: can't handle non-mtd device \"%s\"\n", root);
+    LOGW("format_mtd_device: can't handle non-mtd device \"%s\"\n", root);
+    return -1;
+}
+
+int
+format_mmc_device(const char *root)
+{
+    /* Be a little safer here; require that "root" is just
+     * a device with no relative path after it.
+     */
+    const char *c = root;
+    while (*c != '\0' && *c != ':') {
+        c++;
+    }
+    if (c[0] != ':' || c[1] != '\0') {
+        LOGW("format_mmc_device: bad root name \"%s\"\n", root);
+        return -1;
+    }
+
+    const RootInfo *info = get_root_info_for_path(root);
+    if (info == NULL || info->device == NULL) {
+        LOGW("format_mmc_device: can't resolve \"%s\"\n", root);
+        return -1;
+    }
+    if (info->mount_point != NULL) {
+        /* Don't try to format a mounted device.
+         */
+        int ret = ensure_root_path_unmounted(root);
+        if (ret < 0) {
+            LOGW("format_mmc_device: can't unmount \"%s\"\n", root);
+            return ret;
+        }
+    }
+
+    /* Format the device.
+     */
+    if (info->device == g_mmc_device) {
+        mmc_scan_partitions();
+        const MmcPartition *partition;
+        partition = mmc_find_partition_by_name(info->partition_name);
+        if (partition == NULL) {
+            LOGW("format_mmc_device: can't find mtd partition \"%s\"\n",
+		 info->partition_name);
+            return -1;
+        }
+        if (info->filesystem == g_raw || !strcmp(info->filesystem, "ext3")) {
+            MmcWriteContext *write = mmc_write_partition(partition);
+            if (write == NULL) {
+                LOGW("format_mmc_device: can't open \"%s\"\n", root);
+                return -1;
+            } else if (mmc_erase_blocks(write, -1) == (off_t) -1) {
+                LOGW("format_mmc_device: can't erase \"%s\"\n", root);
+                mmc_write_close(write);
+                return -1;
+            } else if (mmc_write_close(write)) {
+                LOGW("format_mmc_device: can't close \"%s\"\n", root);
+                return -1;
+            } else {
+                return 0;
+            }
+        }
+    }
+//TODO: handle other device types (sdcard, etc.)
+    LOGW("format_root_device: can't handle non-mmc device \"%s\"\n", root);
     return -1;
 }
 

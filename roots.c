@@ -21,8 +21,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "flashutils/flashutils.h"
 #include "mtdutils/mtdutils.h"
-#include "mtdutils/mounts.h"
+#include "mounts.h"
 #include "minzip/Zip.h"
 #include "roots.h"
 #include "common.h"
@@ -39,6 +40,7 @@ typedef struct {
 /* Canonical pointers.
 xxx may just want to use enums
  */
+
 static const char g_mtd_device[] = "@\0g_mtd_device";
 static const char g_raw[] = "@\0g_raw";
 static const char g_package_file[] = "@\0g_package_file";
@@ -313,6 +315,27 @@ get_root_mtd_partition(const char *root_path)
     return mtd_find_partition_by_name(info->partition_name);
 }
 
+int format_non_mtd_device(const char* root)
+{
+    char path[PATH_MAX];
+    translate_root_path(root, path, PATH_MAX);
+    if (0 != ensure_root_path_mounted(root))
+    {
+        ui_print("Error mounting %s!\n", path);
+        ui_print("Skipping format...\n");
+        return 0;
+    }
+
+    static char tmp[PATH_MAX];
+    sprintf(tmp, "rm -rf %s/*", path);
+    system(tmp);
+    sprintf(tmp, "rm -rf %s/.*", path);
+    system(tmp);
+    
+    ensure_root_path_unmounted(root);
+    return 0;
+}
+
 int
 format_root_device(const char *root)
 {
@@ -354,6 +377,26 @@ format_root_device(const char *root)
                     info->partition_name);
             return -1;
         }
+	if (strcmp(info->filesystem, "yaffs2") && info->filesystem != g_raw) {
+	    char path[PATH_MAX];
+	    translate_root_path(root, path, PATH_MAX);
+	    if (0 != ensure_root_path_mounted(root))
+	    {
+		ui_print("Error mounting %s!\n", path);
+		ui_print("Skipping format...\n");
+		return 0;
+	    }
+
+	    static char tmp[PATH_MAX];
+	    sprintf(tmp, "rm -rf %s/*", path);
+	    system(tmp);
+	    sprintf(tmp, "rm -rf %s/.*", path);
+	    system(tmp);
+	    
+	    ensure_root_path_unmounted(root);
+	    LOGI("Wiped \"%s\"\n", root);
+	    return 0;
+	}
         if (info->filesystem == g_raw || !strcmp(info->filesystem, "yaffs2")) {
             MtdWriteContext *write = mtd_write_partition(partition);
             if (write == NULL) {
@@ -371,7 +414,6 @@ format_root_device(const char *root)
             }
         }
     }
-//TODO: handle other device types (sdcard, etc.)
-    LOGW("format_root_device: can't handle non-mtd device \"%s\"\n", root);
-    return -1;
+    format_non_mtd_device(root);
+    return  0;
 }

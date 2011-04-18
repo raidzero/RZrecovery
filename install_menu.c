@@ -186,14 +186,7 @@ int install_img(char* filename, char* partition) {
 	ui_print("\n");
 	ensure_root_path_mounted("SDCARD:");	
 	
-    char* argv[] = { "/sbin/flash_image",
-		     partition,
-		     filename,
-		     NULL };
-
-    char* envp[] = { NULL };
-
-    int status = runve("/sbin/flash_image",argv,envp,1);
+    int status = restore_raw_partition(partition, filename);
   
 	ui_print("\nFlash from sdcard complete.");
 	ui_print("\nThanks for using RZrecovery.\n");

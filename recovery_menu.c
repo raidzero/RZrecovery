@@ -19,6 +19,7 @@ void reboot_android() {
 	ensure_root_path_mounted("SYSTEM:");
 	system("rm /system/recovery_from_boot.p");	
 	write_files();
+	remove_command();
 	sync();
 	__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, NULL);
 }
