@@ -235,6 +235,23 @@ print_property(const char *key, const char *name, void *cookie) {
 }
 
 int main(int argc, char **argv) {
+    // check if we are running an internal command
+    if(strstr(argv[0], "recovery") == NULL) {
+        // determine which command and run it
+        if(strstr(argv[0], "flash_image") != NULL) {
+            return flash_image_main(argc, argv);
+        } else if(strstr(argv[0], "erase_image") != NULL) {
+            return erase_image_main(argc, argv);
+        } else if(strstr(argv[0], "dump_image") != NULL) {
+            return dump_image_main(argc, argv);
+        } else if(strstr(argv[0], "e2fsck") != NULL) {
+            return e2fsck_main(argc, argv);
+        } else if(strstr(argv[0], "mke2fs") != NULL) {
+            return mke2fs_main(argc, argv);
+        } else if(strstr(argv[0], "tune2fs") != NULL) {
+            return tune2fs_main(argc, argv);
+        } 
+    }
     time_t start = time(NULL);
 
     // If these fail, there's not really anywhere to complain...
