@@ -135,7 +135,7 @@ try_update_binary(const char *path, ZipArchive *zip) {
         } else if (strcmp(command, "ui_print") == 0) {
             char* str = strtok(NULL, "\n");
             if (str) {
-                ui_print(str);
+                ui_print("%s",str);
             } else {
                 ui_print("\n");
             }
@@ -174,17 +174,19 @@ install_package(const char *root_path)
     ui_show_indeterminate_progress();
     LOGI("Update location: %s\n", root_path);
 
-    if (ensure_root_path_mounted(root_path) != 0) {
+    if (ensure_path_mounted(root_path) != 0) {
         LOGE("Can't mount %s\n", root_path);
         return INSTALL_CORRUPT;
     }
 
     char path[PATH_MAX] = "";
+    /*
     if (translate_root_path(root_path, path, sizeof(path)) == NULL) {
         LOGE("Bad path %s\n", root_path);
         return INSTALL_CORRUPT;
     }
-
+    */
+    
     ui_print("Opening update package...\n");
     LOGI("Update file path: %s\n", path);
 

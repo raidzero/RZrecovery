@@ -12,111 +12,6 @@
 #include "strings.h"
 #include "nandroid_menu.h"
 
-void perform_tar(char *root, char *filename, char* operation)
-{
-	char *cmd;
-	char *proot;
-	int was_mounted = is_path_mounted(root);
-	int i;	
-	
-	for( i = 0; root[ i ]; i++)
-		proot[ i ] = toupper( root[ i ] );
-	
-	if (!strcmp(operation,"restore")) {
-
-		if (strcmp(root,"BOOT:")) {
-			char* imgname=strcat(filename,"/boot.img");
-			int status=restore_raw_partition("BOOT:", imgname);
-			return;
-		}
-		if (strcmp(root,"SECURE:")) {
-			cmd="/sbin/busybox tar xpf /sdcard/nandroid/";
-			cmd=strcat(cmd, filename);
-			cmd=strcat(cmd, " -C /sdcard/.android_secure/");
-			system(cmd);
-			return;
-		}
-		
-		ensure_root_path_unmounted(root);
-		format_root_device(root);
-		ensure_root_path_mounted(root);
-		cmd = "/sbin/busybox tar /sdcard/nandroid/";
-		cmd=strcat(cmd,filename);
-		cmd=strcat(cmd," -C ");
-		cmd=strcat(cmd, proot);
-		system(cmd);
-		return;
-	}
-	
-	if (!strcmp(operation,"backup")) {
-		
-		if (strcmp(root,"BOOT:")) {
-			char* imgname=strcat(filename,"/boot.img");
-			int status=dump_raw_partition("BOOT:", imgname);
-			return;
-		}
-		if (strcmp(root,"SECURE:")) {
-			cmd="/sbin/busybox tar cpf /sdcard/nandroid/";
-			cmd=strcat(cmd, filename);
-			system(cmd);
-			return;
-		}
-		
-		ensure_root_path_mounted(root);
-		cmd = "/sbin/busybox tar pf /sdcard/nandroid/";
-		cmd=strcat(cmd,filename);
-		system(cmd);
-		return;
-	}
-	if (!was_mounted) {
-		ensure_root_path_unmounted(root);
-	}
-}
-
-void nandroid_restore_tar(char* filename, int psystem, int pboot, int pcache, int pdata, int psecure)
-{	
-	ui_print("Attempting nandroid TAR restore.\n");
-	ensure_root_path_mounted(filename);
-	if (psystem) {
-		perform_tar("SYSTEM:", filename, "restore");
-	}
-	if (pboot) {
-		perform_restore("BOOT:", filename, "restore");
-	}
-	if (pcache) {
-		perform_restore("CACHE:", filename, "restore");
-	}
-	if (pdata) {
-		perform_restore("DATA:", filename, "restore");
-	}
-	if (psecure) {
-		perform_restore("SECURE:", filename, "restore");
-	}	
-	return;
-}
-
-void nandroid_backup_tar(char* filename, int psystem, int pboot, int pcache, int pdata, int psecure)
-{	
-	ui_print("Attempting nandroid TAR backup.\n");
-	ensure_root_path_mounted(filename);
-	if (psystem) {
-		perform_tar("SYSTEM:", filename, "backup");
-	}
-	if (pboot) {
-		perform_restore("BOOT:", filename, "backup");
-	}
-	if (pcache) {
-		perform_restore("CACHE:", filename, "backup");
-	}
-	if (pdata) {
-		perform_restore("DATA:", filename, "backup");
-	}
-	if (psecure) {
-		perform_restore("SECURE:", filename, "backup");
-	}
-	return;
-}
-
 
 void nandroid_backup(char* subname, char partitions)
 {
@@ -246,13 +141,8 @@ void nandroid_adv_r_choose_file(char* filename, char* nandroid_folder)
 	char** files;
 	char** list;
 
-	if (ensure_root_path_mounted(nandroid_folder) != 0) {
+	if (ensure_path_mounted(nandroid_folder) != 0) {
 	LOGE("Can't mount %s\n", nandroid_folder);
-	return;
-	}
-
-	if (translate_root_path(nandroid_folder,path,sizeof(path))==NULL) {
-	LOGE("Bad path %s\n", path);
 	return;
 	}
 
@@ -360,11 +250,11 @@ void show_nandroid_adv_r_menu()
 			  NULL	};
   
 #define ITEM_CHSE 0
-#define ITEM_PERF 1
-#define ITEM_B    2
-#define ITEM_D    3
-#define ITEM_A	  4
-#define ITEM_S    5
+#define R_ITEM_PERF 1
+#define R_ITEM_B    2
+#define R_ITEM_D    3
+#define R_ITEM_A	  4
+#define R_ITEM_S    5
 
 
 	char filename[PATH_MAX];
@@ -377,27 +267,27 @@ void show_nandroid_adv_r_menu()
 	chosen_item=get_menu_selection(headers,items,1,chosen_item<0?0:chosen_item);
 
 	switch(chosen_item) {
-	case ITEM_CHSE:
-		nandroid_adv_r_choose_file(filename,"SDCARD:/nandroid");
-		headers[2]=filename;
-		break;
-	case ITEM_PERF:
-		ui_print("Restoring...\n");
-		nandroid_restore(filename,partitions|PROGRESS);
-		break;
-	case ITEM_B:
-		partitions^=BOOT;
-		break;
-	case ITEM_D:
-		partitions^=DATA;
-		break;
-	case ITEM_A:
-		partitions^=ASECURE;
-		break;	
-	case ITEM_S:
-		partitions^=SYSTEM;
-		break;	
-	}
+		case ITEM_CHSE:
+			nandroid_adv_r_choose_file(filename,"SDCARD:/nandroid");
+			headers[2]=filename;
+			break;
+		case R_ITEM_PERF:
+			ui_print("Restoring...\n");
+			nandroid_restore(filename,partitions|PROGRESS);
+			break;
+		case R_ITEM_B:
+			partitions^=BOOT;
+			break;
+		case R_ITEM_D:
+			partitions^=DATA;
+			break;
+		case R_ITEM_A:
+			partitions^=ASECURE;
+			break;	
+		case R_ITEM_S:
+			partitions^=SYSTEM;
+			break;	
+		}
 	}
 }
 
@@ -413,11 +303,11 @@ void show_nandroid_adv_b_menu()
 			  NULL,
 			  NULL };
   
-#define ITEM_PERF 0
-#define ITEM_B    1
-#define ITEM_D    2
-#define ITEM_A	  3
-#define ITEM_S    4
+#define B_ITEM_PERF 0
+#define B_ITEM_B    1
+#define B_ITEM_D    2
+#define B_ITEM_A	  3
+#define B_ITEM_S    4
 
 	char filename[PATH_MAX];
 	filename[0]=NULL;
@@ -430,19 +320,19 @@ void show_nandroid_adv_b_menu()
 	chosen_item=get_menu_selection(headers,items,1,chosen_item<0?0:chosen_item);
 
 	switch(chosen_item) {
-	case ITEM_PERF:
+	case B_ITEM_PERF:
 		nandroid_backup(filename,partitions|PROGRESS);
 		break;
-	case ITEM_B:
+	case B_ITEM_B:
 		partitions^=BOOT;
 		break;
-	case ITEM_D:
+	case B_ITEM_D:
 		partitions^=DATA;
 		break;
-	case ITEM_A:
+	case B_ITEM_A:
 		partitions^=ASECURE;
 		break;
-	case ITEM_S:
+	case B_ITEM_S:
 		partitions^=SYSTEM;
 		break;
 	}

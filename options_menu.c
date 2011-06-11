@@ -7,11 +7,11 @@
 
 void disable_OTA() {
 	ui_print("\nDisabling OTA updates in ROM...");
-	ensure_root_path_mounted("SYSTEM:");
+	ensure_path_mounted("/system");
 	remove("/system/etc/security/otacerts.zip");
 	remove("/cache/signed-*.*");
 	ui_print("\nOTA-updates disabled.\n");
-	ensure_root_path_unmounted("SYSTEM:");
+	ensure_path_unmounted("/system");
 	return;
 }	
 
@@ -37,11 +37,11 @@ void show_battstat() {
 	bcap = strcat(bcap,"%%");
 	ui_print("\n");
 	ui_print("\nBattery Status: ");
-	ui_print(bstat);
+	ui_print("%s",bstat);
 	ui_print("Charge Level: ");
-	ui_print(bcap);
+	ui_print("%s",bcap);
 	ui_print("\nTemperature: ");
-	ui_print(btemp);
+	ui_print("%s",btemp);
 
 	
 	fclose(ft);
@@ -65,11 +65,11 @@ void root_menu(int confirm) {
 
         if (title_headers == NULL) {
             char* headers[] = { "ROOT installed ROM?",
-								" ",
+				" ",
                                 "Rooting without the superuser app installed",
                                 "does nothing. Please install the superuser app",
-								"from the market! (by ChainsDD)",
-								" ",
+				"from the market! (by ChainsDD)",
+				" ",
                                 NULL };
             title_headers = prepend_title(headers);
         }
@@ -88,10 +88,10 @@ void root_menu(int confirm) {
 
     char* envp[] = { NULL };
 	
-	ensure_root_path_mounted("SYSTEM:");
+	ensure_path_mounted("/system");
 	remove("/system/recovery-from-boot.p");
     int status = runve("/sbin/actroot",argv,envp,1);
-	ensure_root_path_unmounted("SYSTEM:");
+	ensure_path_unmounted("/system");
 	return;
 }
 

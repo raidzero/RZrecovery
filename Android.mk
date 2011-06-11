@@ -69,9 +69,19 @@ ifeq ($(TARGET_RECOVERY_UI_LIB),)
 else
   LOCAL_STATIC_LIBRARIES += $(TARGET_RECOVERY_UI_LIB)
 endif
-LOCAL_STATIC_LIBRARIES += libminzip libunz libmtdutils libmmcutils libbmlutils
+ifeq ($(USE_INTERNAL_EXT4UTILS),true)
+    LOCAL_STATIC_LIBRARIES += libext4_recovery_utils
+else
+    LOCAL_STATIC_LIBRARIES += libext4_utils
+endif
+LOCAL_STATIC_LIBRARIES += libz libunyaffs libmkyaffs2image
+LOCAL_STATIC_LIBRARIES += libflash_image libdump_image liberase_image libxz liblzma
+LOCAL_STATIC_LIBRARIES += libminzip libunz libflashutils libmtdutils libmmcutils libbmlutils libmincrypt
 LOCAL_STATIC_LIBRARIES += libminui libpixelflinger_static libpng libcutils
 LOCAL_STATIC_LIBRARIES += libstdc++ libc
+
+LOCAL_C_INCLUDES += system/extras/ext4_utils
+LOCAL_C_INCLUDES += external/yaffs2/yaffs2/utils
 
 include $(BUILD_EXECUTABLE)
 
@@ -85,6 +95,8 @@ include $(commands_recovery_local_path)/tools/Android.mk
 include $(commands_recovery_local_path)/edify/Android.mk
 include $(commands_recovery_local_path)/updater/Android.mk
 include $(commands_recovery_local_path)/applypatch/Android.mk
+include $(commands_recovery_local_path)/flashutils/Android.mk
+include $(commands_recovery_local_path)/ext4_utils/Android.mk
 commands_recovery_local_path :=
 
 endif   # TARGET_ARCH == arm

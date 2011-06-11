@@ -19,6 +19,35 @@
 
 #include "common.h"
 
+#define PARTITION_FLAG_MOUNTABLE    1
+#define PARTITION_FLAG_WIPEABLE     2
+#define PARTITION_FLAG_SAVEABLE     4
+#define PARTITION_FLAG_RESTOREABLE  8
+
+#define PARTITION_BOOT       0
+#define PARTITION_SYSTEM     1
+#define PARTITION_DATA       2
+#define PARTITION_DATADATA   3
+#define PARTITION_CACHE      4
+#define PARTITION_SDCARD     5
+#define PARTITION_MISC       6
+#define PARTITION_RECOVERY   7
+#define PARTITION_WIMAX      8
+#define PARTITION_PREINSTALL 9
+// we define this so menu lists can ensure their menu ids don't conflict
+#define PARTITION_LAST       PARTITION_PREINSTALL
+
+// object that defines a partition by ID and sets various flags for it
+typedef struct {
+    int id;     // partition id
+    char* path; // root path in fstab
+    char* name; // human-readable name
+    int flags;  // flags describing properties of this partition
+} PartitionInfo;
+
+const PartitionInfo device_partitions[];
+const int device_partition_num;
+
 // Load and parse volume data from /etc/recovery.fstab.
 void load_volume_table();
 
@@ -37,13 +66,6 @@ int ensure_path_unmounted(const char* path);
 // "/cache"), no paths permitted.  Attempts to unmount the volume if
 // it is mounted.
 int format_volume(const char* volume);
-
-int get_num_volumes();
-
-Volume* get_device_volumes();
-
-int is_data_media();
-void setup_data_media();
 
 int is_path_mounted(const char* path);
 

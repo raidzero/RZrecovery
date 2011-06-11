@@ -182,7 +182,7 @@ void choose_file_menu(char* sdpath) {
 int install_img(char* filename, char* partition) {
 
     ui_print("\n-- Flash image from...\n");
-	ui_print(filename);
+	ui_print("%s",filename);
 	ui_print("\n");
 	ensure_root_path_mounted("SDCARD:");	
 	
@@ -229,7 +229,7 @@ int install_update_zip(char* filename) {
 	ui_print("\n-- Install update.zip from sdcard...\n");
 	set_sdcard_update_bootloader_message();
 	ui_print("Attempting update from...\n");
-	ui_print(filename);
+	ui_print("%s",filename);
 	ui_print("\n");
 	int status = install_package(path);
 	if (status != INSTALL_SUCCESS) {
@@ -248,7 +248,7 @@ int install_update_zip(char* filename) {
 int install_rom_from_tar(char* filename)
 {
     ui_print("Attempting to install ROM from ");
-    ui_print(filename);
+    ui_print("%s",filename);
     ui_print("...\n");
   
     char* argv[] = { "/sbin/nandroid-mobile.sh",

@@ -255,7 +255,7 @@ void ui_printf_int(const char* format, int arg)
 {
     char* out = calloc(strlen(format)+12,sizeof(char));
     sprintf(out,format,arg);
-    ui_print(out);
+    ui_print("%s",out);
     free(out);
 }
 
@@ -311,7 +311,7 @@ int runve(char* filename, char** argv, char** envp, int secs)
         execve(filename,argv,envp);
 	char* error_msg = calloc(strlen(filename)+20,sizeof(char));
 	sprintf(error_msg,"Could not execute %s\n",filename);
-	ui_print(error_msg);
+	ui_print("%s",error_msg);
 	free(error_msg);
 	return(9999);
     }
@@ -350,7 +350,7 @@ int runve(char* filename, char** argv, char** envp, int secs)
 		ui_show_progress(1.0,0);
 		total_lines=atoi(strtok(NULL," "));
 	    } else if (strcmp(tok,"print")==0) {
-		ui_print(strtok(NULL,""));
+		ui_print("%s",strtok(NULL,""));
 	    } else if (strcmp(tok,"items")==0) {
 		num_items=atoi(strtok(NULL," \n"));
 		if(items!=NULL) free(items);
@@ -413,7 +413,7 @@ int runve(char* filename, char** argv, char** envp, int secs)
 		fflush(to);
 	    } else if (strcmp(tok,"show_indeterminate_progress")==0) {
 		ui_show_indeterminate_progress();
-	    } else {ui_print("unrecognized command "); ui_print(tok); ui_print("\n");}
+	    } else {ui_print("unrecognized command "); ui_print("%s",tok); ui_print("\n");}
 	}
     }
 

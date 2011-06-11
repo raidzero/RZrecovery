@@ -33,6 +33,7 @@
 #include <dirent.h>
 #include <string.h>
 #include <errno.h>
+#include <limits.h>
 #include <sys/types.h>
 #include <sys/reboot.h>
 #include <sys/stat.h>
@@ -278,30 +279,9 @@ mmc_scan_partitions() {
     return g_mmc_state.partition_count;
 }
 
-static const MmcPartition *
-mmc_find_partition_by_device_index(const char *device_index)
-{
-    if (g_mmc_state.partitions != NULL) {
-        int i;
-        for (i = 0; i < g_mmc_state.partitions_allocd; i++) {
-            MmcPartition *p = &g_mmc_state.partitions[i];
-            if (p->device_index !=NULL && p->name != NULL) {
-                if (strcmp(p->device_index, device_index) == 0) {
-                    return p;
-                }
-            }
-        }
-    }
-    return NULL;
-}
-
 const MmcPartition *
 mmc_find_partition_by_name(const char *name)
 {
-    if (name[0] == '/') {
-        return mmc_find_partition_by_device_index(name);
-    }
-
     if (g_mmc_state.partitions != NULL) {
         int i;
         for (i = 0; i < g_mmc_state.partitions_allocd; i++) {
@@ -316,71 +296,42 @@ mmc_find_partition_by_name(const char *name)
     return NULL;
 }
 
-#define MKE2FS_BIN      "/sbin/mke2fs"
-#define TUNE2FS_BIN     "/sbin/tune2fs"
-#define E2FSCK_BIN      "/sbin/e2fsck"
-
-int
-run_exec_process ( char **argv) {
-    pid_t pid;
-    int status;
-    pid = fork();
-    if (pid == 0) {
-        execv(argv[0], argv);
-        fprintf(stderr, "E:Can't run (%s)\n",strerror(errno));
-        _exit(-1);
-    }
-
-    waitpid(pid, &status, 0);
-    if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
-        return 1;
-    }
-    return 0;
-}
+extern int __system(const char* command);
 
 int
 format_ext3_device (const char *device) {
-#ifdef BOARD_HAS_LARGE_FILESYSTEM
-    char *const mke2fs[] = {MKE2FS_BIN, "-j", "-q", device, NULL};
-    char *const tune2fs[] = {TUNE2FS_BIN, "-C", "1", device, NULL};
-#else
-    char *const mke2fs[] = {MKE2FS_BIN, "-j", device, NULL};
-    char *const tune2fs[] = {TUNE2FS_BIN, "-j", "-C", "1", device, NULL};
-#endif
-    // Run mke2fs
-    if(run_exec_process(mke2fs))
-        return -1;
+    char* buf = (char*)calloc(PATH_MAX, sizeof(char));
+    int ret = 0;
 
-    // Run tune2fs
-    if(run_exec_process(tune2fs))
-        return -1;
+    snprintf(buf, PATH_MAX, "mke2fs -j %s", device);
+    if(0 == (ret = __system(buf))) {
+        snprintf(buf, PATH_MAX, "tune2fs -j -C 1 %s", device);
+        if(0 == (ret = __system(buf))) {
+            snprintf(buf, PATH_MAX, "e2fsck -fy %s", device);
+            ret = __system(buf);
+        }
+    }
 
-    // Run e2fsck
-    char *const e2fsck[] = {E2FSCK_BIN, "-fy", device, NULL};
-    if(run_exec_process(e2fsck))
-        return -1;
-
-    return 0;
+    free(buf);
+    return ret;
 }
 
 int
 format_ext2_device (const char *device) {
-    // Run mke2fs
-    char *const mke2fs[] = {MKE2FS_BIN, device, NULL};
-    if(run_exec_process(mke2fs))
-        return -1;
+    char* buf = (char*)calloc(PATH_MAX, sizeof(char));
+    int ret = 0;
 
-    // Run tune2fs
-    char *const tune2fs[] = {TUNE2FS_BIN, "-C", "1", device, NULL};
-    if(run_exec_process(tune2fs))
-        return -1;
+    snprintf(buf, PATH_MAX, "mke2fs %s", device);
+    if(0 == (ret = __system(buf))) {
+        snprintf(buf, PATH_MAX, "tune2fs -C 1 %s", device);
+        if(0 == (ret = __system(buf))) {
+            snprintf(buf, PATH_MAX, "e2fsck -fy %s", device);
+            ret = __system(buf);
+        }
+    }
 
-    // Run e2fsck
-    char *const e2fsck[] = {E2FSCK_BIN, "-fy", device, NULL};
-    if(run_exec_process(e2fsck))
-        return -1;
-
-    return 0;
+    free(buf);
+    return ret;
 }
 
 int
@@ -469,8 +420,9 @@ ERROR3:
 }
 
 
+// TODO: refactor this to not be a giant copy paste mess
 int
-mmc_raw_dump_internal (const char* in_file, const char *out_file) {
+mmc_raw_dump (const MmcPartition *partition, char *out_file) {
     int ch;
     FILE *in;
     FILE *out;
@@ -479,6 +431,7 @@ mmc_raw_dump_internal (const char* in_file, const char *out_file) {
     unsigned sz = 0;
     unsigned i;
     int ret = -1;
+    char *in_file = partition->device_index;
 
     in  = fopen ( in_file,  "r" );
     if (in == NULL)
@@ -517,12 +470,6 @@ ERROR2:
 ERROR3:
     return ret;
 
-}
-
-// TODO: refactor this to not be a giant copy paste mess
-int
-mmc_raw_dump (const MmcPartition *partition, char *out_file) {
-    return mmc_raw_dump_internal(partition->device_index, out_file);
 }
 
 
@@ -584,36 +531,33 @@ ERROR3:
 
 int cmd_mmc_restore_raw_partition(const char *partition, const char *filename)
 {
-    if (partition[0] != '/') {
-        mmc_scan_partitions();
-        const MmcPartition *p;
-        p = mmc_find_partition_by_name(partition);
-        if (p == NULL)
-            return -1;
-        return mmc_raw_copy(p, filename);
-    }
-    else {
-        return mmc_raw_dump_internal(filename, partition);
-    }
+    mmc_scan_partitions();
+    const MmcPartition *p;
+    p = mmc_find_partition_by_name(partition);
+    if (p == NULL)
+        return -1;
+    return mmc_raw_copy(p, filename);
 }
 
 int cmd_mmc_backup_raw_partition(const char *partition, const char *filename)
 {
-    if (partition[0] != '/') {
-        mmc_scan_partitions();
-        const MmcPartition *p;
-        p = mmc_find_partition_by_name(partition);
-        if (p == NULL)
-            return -1;
-        return mmc_raw_dump(p, filename);
-    }
-    else {
-        return mmc_raw_dump_internal(partition, filename);
-    }
+    mmc_scan_partitions();
+    const MmcPartition *p;
+    p = mmc_find_partition_by_name(partition);
+    if (p == NULL)
+        return -1;
+    return mmc_raw_dump(p, filename);
 }
 
 int cmd_mmc_erase_raw_partition(const char *partition)
 {
+    mmc_scan_partitions();
+    const MmcPartition *p;
+    p = mmc_find_partition_by_name(partition);
+    if (p == NULL)
+        return -1;
+
+    // TODO: implement raw wipe
     return 0;
 }
 

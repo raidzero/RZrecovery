@@ -38,7 +38,7 @@
 #include "minzip/DirUtil.h"
 #include "roots.h"
 #include "recovery_ui.h"
-
+#include "flashutils/flashutils.h"
 #include "colors_menu.h"
 #include "install_menu.h"
 #include "recovery_lib.h"

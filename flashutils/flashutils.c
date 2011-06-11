@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#include <stdio.h>
 
 #include "flashutils/flashutils.h"
 
@@ -11,7 +10,7 @@ int the_flash_type = UNKNOWN;
 int device_flash_type()
 {
     if (the_flash_type == UNKNOWN) {
-        if (access("/dev/block/bml7", F_OK) == 0) {
+        if (access("/dev/block/bml1", F_OK) == 0) {
             the_flash_type = BML;
         } else if (access("/proc/emmc", F_OK) == 0) {
             the_flash_type = MMC;
@@ -29,36 +28,50 @@ char* get_default_filesystem()
     return device_flash_type() == MMC ? "ext3" : "yaffs2";
 }
 
-int get_flash_type(const char* partitionType) {
-    int type = UNSUPPORTED;
-    if (strcmp(partitionType, "mtd") == 0)
-        type = MTD;
-    else if (strcmp(partitionType, "emmc") == 0)
-        type = MMC;
-    else if (strcmp(partitionType, "bml") == 0)
-        type = BML;
-    return type;
+// This was pulled from bionic: The default system command always looks
+// for shell in /system/bin/sh. This is bad.
+#define _PATH_BSHELL "/sbin/sh"
+
+extern char **environ;
+int
+__system(const char *command)
+{
+  pid_t pid;
+    sig_t intsave, quitsave;
+    sigset_t mask, omask;
+    int pstat;
+    char *argp[] = {"sh", "-c", NULL, NULL};
+
+    if (!command)        /* just checking... */
+        return(1);
+
+    argp[2] = (char *)command;
+
+    sigemptyset(&mask);
+    sigaddset(&mask, SIGCHLD);
+    sigprocmask(SIG_BLOCK, &mask, &omask);
+    switch (pid = vfork()) {
+    case -1:            /* error */
+        sigprocmask(SIG_SETMASK, &omask, NULL);
+        return(-1);
+    case 0:                /* child */
+        sigprocmask(SIG_SETMASK, &omask, NULL);
+        execve(_PATH_BSHELL, argp, environ);
+    _exit(127);
+  }
+
+    intsave = (sig_t)  bsd_signal(SIGINT, SIG_IGN);
+    quitsave = (sig_t) bsd_signal(SIGQUIT, SIG_IGN);
+    pid = waitpid(pid, (int *)&pstat, 0);
+    sigprocmask(SIG_SETMASK, &omask, NULL);
+    (void)bsd_signal(SIGINT, intsave);
+    (void)bsd_signal(SIGQUIT, quitsave);
+    return (pid == -1 ? -1 : pstat);
 }
 
-static int detect_partition(const char *partitionType, const char *partition)
+int restore_raw_partition(const char *partition, const char *filename)
 {
     int type = device_flash_type();
-    if (strstr(partition, "/dev/block/mtd") != NULL)
-        type = MTD;
-    else if (strstr(partition, "/dev/block/mmc") != NULL)
-        type = MMC;
-    else if (strstr(partition, "/dev/block/bml") != NULL)
-        type = BML;
-
-    if (partitionType != NULL) {
-        type = get_flash_type(partitionType);
-    }
-
-    return type;
-}
-int restore_raw_partition(const char* partitionType, const char *partition, const char *filename)
-{
-    int type = detect_partition(partitionType, partition);
     switch (type) {
         case MTD:
             return cmd_mtd_restore_raw_partition(partition, filename);
@@ -71,9 +84,9 @@ int restore_raw_partition(const char* partitionType, const char *partition, cons
     }
 }
 
-int backup_raw_partition(const char* partitionType, const char *partition, const char *filename)
+int backup_raw_partition(const char *partition, const char *filename)
 {
-    int type = detect_partition(partitionType, partition);
+    int type = device_flash_type();
     switch (type) {
         case MTD:
             return cmd_mtd_backup_raw_partition(partition, filename);
@@ -82,14 +95,13 @@ int backup_raw_partition(const char* partitionType, const char *partition, const
         case BML:
             return cmd_bml_backup_raw_partition(partition, filename);
         default:
-            printf("unable to detect device type");
             return -1;
     }
 }
 
-int erase_raw_partition(const char* partitionType, const char *partition)
+int erase_raw_partition(const char *partition)
 {
-    int type = detect_partition(partitionType, partition);
+    int type = device_flash_type();
     switch (type) {
         case MTD:
             return cmd_mtd_erase_raw_partition(partition);
@@ -104,7 +116,7 @@ int erase_raw_partition(const char* partitionType, const char *partition)
 
 int erase_partition(const char *partition, const char *filesystem)
 {
-    int type = detect_partition(NULL, partition);
+    int type = device_flash_type();
     switch (type) {
         case MTD:
             return cmd_mtd_erase_partition(partition, filesystem);
@@ -119,7 +131,7 @@ int erase_partition(const char *partition, const char *filesystem)
 
 int mount_partition(const char *partition, const char *mount_point, const char *filesystem, int read_only)
 {
-    int type = detect_partition(NULL, partition);
+    int type = device_flash_type();
     switch (type) {
         case MTD:
             return cmd_mtd_mount_partition(partition, mount_point, filesystem, read_only);
