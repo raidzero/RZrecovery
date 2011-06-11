@@ -64,7 +64,7 @@ static void get_mount_menu_options(char** items, int md, int msd, int ms, int us
 
 static void enable_usb_mass_storage()
 {
-    ensure_root_path_unmounted("SDCARD:");
+    ensure_path_unmounted("/sdcard");
     FILE* fp = fopen("/sys/devices/platform/usb_mass_storage/lun0/file","w");
     const char* sdcard_partition = "/dev/block/mmcblk0\n";
     fprintf(fp,"%s",sdcard_partition);
@@ -92,9 +92,9 @@ void show_mount_menu()
     //  0        1         2         3        
     char* mounted = malloc(50*sizeof(char));
 
-    int md = is_root_path_mounted("DATA:");
-    int msd = is_root_path_mounted("SDCARD:");
-    int ms = is_root_path_mounted("SYSTEM:");
+    int md = is_path_mounted("/data");
+    int msd = is_path_mounted("/sdcard");
+    int ms = is_path_mounted("/system");
     int usb = is_usb_storage_enabled();
     
     char** items = malloc(6*sizeof(char*));
@@ -120,11 +120,11 @@ void show_mount_menu()
 	switch(chosen_item) {
 	case ITEM_S:
 	    if(ms) {
-		ensure_root_path_unmounted("SYSTEM:");
+		ensurepath_unmounted("/system");
 		ui_print("%s","Unm");
 	    }
 	    else {
-		ensure_root_path_mounted("SYSTEM:");
+		ensure_path_mounted("/system");
 		ui_print("M");
 	    }
 	    ui_print("ounted /system\n");
@@ -132,11 +132,11 @@ void show_mount_menu()
 	    break;
 	case ITEM_D:
 	    if(md) {
-		ensure_root_path_unmounted("DATA:");
+		ensure_path_unmounted("/data");
 		ui_print("Unm");
 	    }
 	    else {
-		ensure_root_path_mounted("DATA:"); 
+		ensure_path_mounted("/data"); 
 		ui_print("M");
 	    }
 	    ui_print("ounted /data\n");
@@ -144,13 +144,13 @@ void show_mount_menu()
 	    break;
 	case ITEM_SD:
 	    if(msd) {
-		ensure_root_path_unmounted("SDCARD:");
+		ensure_path_unmounted("/sdcard");
 		ui_print("Unm");
 	    }
 	    else {
 		disable_usb_mass_storage();
 		usb=0;
-		ensure_root_path_mounted("SDCARD:");
+		ensure_path_mounted("/sdcard");
 		ui_print("M");
 	    }
 	    ui_print("ounted /sdcard\n");

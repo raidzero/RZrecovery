@@ -22,6 +22,7 @@
 #include <unistd.h>
 
 #include "cutils/log.h"
+#include "flashutils.h"
 
 #if 0
 #define LOG_TAG "flash_image"
@@ -138,18 +139,17 @@ int main(int argc, char **argv) {
     if (mtd_write_close(out)) die("error closing %s", argv[1]);
     return 0;
 }
-
 #endif
 
 int main(int argc, char **argv)
 {
-	if (argc != 3) {
-		fprintf(stderr, "usage: %s partition file.img\n", argv[0]);
-		return 2;
-	}
-	
-	int ret = restore_raw_partition(argv[1], argv[2]);
-	if (ret != 0)
-		fprintf(stderr, "failed with error: %d\n", ret);
-	return ret;
+    if (argc != 3) {
+        fprintf(stderr, "usage: %s partition file.img\n", argv[0]);
+        return 2;
+    }
+
+    int ret = restore_raw_partition(NULL, argv[1], argv[2]);
+    if (ret != 0)
+        fprintf(stderr, "failed with error: %d\n", ret);
+    return ret;
 }

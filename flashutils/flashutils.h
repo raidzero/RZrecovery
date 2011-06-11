@@ -1,9 +1,9 @@
 #ifndef FLASHUTILS_H
 #define FLASHUTILS_H
 
-int restore_raw_partition(const char *partition, const char *filename);
-int backup_raw_partition(const char *partition, const char *filename);
-int erase_raw_partition(const char *partition);
+int restore_raw_partition(const char* partitionType, const char *partition, const char *filename);
+int backup_raw_partition(const char* partitionType, const char *partition, const char *filename);
+int erase_raw_partition(const char* partitionType, const char *partition);
 int erase_partition(const char *partition, const char *filesystem);
 int mount_partition(const char *partition, const char *mount_point, const char *filesystem, int read_only);
 int get_partition_device(const char *partition, char *device);
@@ -14,8 +14,6 @@ int get_partition_device(const char *partition, char *device);
 
 int is_mtd_device();
 char* get_default_filesystem();
-
-int __system(const char *command);
 
 extern int cmd_mtd_restore_raw_partition(const char *partition, const char *filename);
 extern int cmd_mtd_backup_raw_partition(const char *partition, const char *filename);
@@ -39,6 +37,7 @@ extern int cmd_bml_mount_partition(const char *partition, const char *mount_poin
 extern int cmd_bml_get_partition_device(const char *partition, char *device);
 
 extern int device_flash_type();
+extern int get_flash_type(const char* fs_type);
 
 enum flash_type {
     UNSUPPORTED = -1,

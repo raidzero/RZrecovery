@@ -23,13 +23,6 @@
 
 #include "mounts.h"
 
-struct MountedVolume {
-    const char *device;
-    const char *mount_point;
-    const char *filesystem;
-    const char *flags;
-};
-
 typedef struct {
     MountedVolume *volumes;
     int volumes_allocd;
@@ -211,4 +204,12 @@ unmount_mounted_volume(const MountedVolume *volume)
         return 0;
     }
     return ret;
+}
+
+int
+remount_read_only(const MountedVolume* volume)
+{
+    return mount(volume->device, volume->mount_point, volume->filesystem,
+                 MS_NOATIME | MS_NODEV | MS_NODIRATIME |
+                 MS_RDONLY | MS_REMOUNT, 0);
 }

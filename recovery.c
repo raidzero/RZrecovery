@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/reboot.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <time.h>
@@ -32,13 +33,14 @@
 #include "bootloader.h"
 #include "common.h"
 #include "cutils/properties.h"
-#include "flashutils/flashutils.h"
 #include "install.h"
 #include "minui/minui.h"
 #include "minzip/DirUtil.h"
 #include "roots.h"
 #include "recovery_ui.h"
 
+#include "colors_menu.h"
+#include "install_menu.h"
 #include "recovery_lib.h"
 #include "recovery_menu.h"
 
@@ -140,20 +142,20 @@ static const int MAX_ARGS = 100;
 
 //write recovery files from cache to sdcard
 void write_files() {
-	ensure_root_path_mounted("SDCARD:");
+	ensure_path_mounted("/sdcard");
 	system("cp /cache/rgb /sdcard/RZR/rgb");
 }
 
 //read recovery files from sdcard to cache
 void read_files() {
-	ensure_root_path_mounted("SDCARD:");
+	ensure_path_mounted("/sdcard");
 	if( access("/sdcard/RZR/rgb", F_OK ) != -1 ) {
 		system("cp /sdcard/RZR/rgb /cache/rgb");		
 	} else {
-		mkdir("/sdcard/RZR");
+		mkdir("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 		set_color(54,74,255);
 	}
-	ensure_root_path_unmounted("SDCARD:");
+	ensure_path_unmounted("/sdcard");
 }
 
 // command line args come from, in decreasing precedence:
@@ -312,12 +314,6 @@ int main(int argc, char **argv) {
     // Otherwise, get ready to boot the main system...
     finish_recovery(send_intent);
     ui_print("Rebooting...\n");
-    {
-	ensure_root_path_mounted(SAVE_LOG_FILE);
-	char* save_path = calloc(strlen(SAVE_LOG_FILE)+2,sizeof(char));
-	translate_root_path(SAVE_LOG_FILE,save_path,strlen(SAVE_LOG_FILE)+2);
-	rename(TEMPORARY_LOG_FILE,save_path);
-    }
     sync();
     reboot(RB_AUTOBOOT);
     return EXIT_SUCCESS;

@@ -23,6 +23,7 @@
 extern int __system(const char *command);
 #define BML_UNLOCK_ALL				0x8A29		///< unlock all partition RO -> RW
 
+
 static int restore_internal(const char* bml, const char* filename)
 {
     char buf[4096];
@@ -57,25 +58,82 @@ static int restore_internal(const char* bml, const char* filename)
 
 int cmd_bml_restore_raw_partition(const char *partition, const char *filename)
 {
-    char *bml;
-    if (strcmp(partition, "boot") == 0 || strcmp(partition, "recovery") == 0)
-        bml = "/dev/block/bml7";
-    else
+    if (strcmp(partition, "boot") != 0 && strcmp(partition, "recovery") != 0 && strcmp(partition, "recoveryonly") != 0)
         return 6;
 
-    int ret = restore_internal("/dev/block/bml7", filename);
-    if (ret != 0)
-        return ret;
+    int ret = -1;
+    if (strcmp(partition, "recoveryonly") != 0) {
+        // always restore boot, regardless of whether recovery or boot is flashed.
+        // this is because boot and recovery are the same on some samsung phones.
+        // unless of course, recoveryonly is explictly chosen (bml8)
+        ret = restore_internal("/dev/block/bml7", filename);
+        if (ret != 0)
+            return ret;
+    }
 
-    ret = restore_internal("/dev/block/bml8", filename);
+    if (strcmp(partition, "recovery") == 0 || strcmp(partition, "recoveryonly") == 0)
+        ret = restore_internal("/dev/block/bml8", filename);
     return ret;
 }
 
-int cmd_bml_backup_raw_partition(const char *partition, const char *filename)
+int cmd_bml_backup_raw_partition(const char *partition, const char *out_file)
 {
-    char tmp[PATH_MAX];
-    sprintf(tmp, "dd of=%s if=/dev/block/bml7 bs=4096", filename);
-    return __system(tmp);
+    char* bml;
+    if (strcmp("boot", partition) == 0)
+        bml = "/dev/block/bml7";
+    else if (strcmp("recovery", partition) == 0)
+        bml = "/dev/block/bml8";
+    else {
+        printf("Invalid partition.\n");
+        return -1;
+    }
+
+    int ch;
+    FILE *in;
+    FILE *out;
+    int val = 0;
+    char buf[512];
+    unsigned sz = 0;
+    unsigned i;
+    int ret = -1;
+    char *in_file = bml;
+
+    in  = fopen ( in_file,  "r" );
+    if (in == NULL)
+        goto ERROR3;
+
+    out = fopen ( out_file,  "w" );
+    if (out == NULL)
+        goto ERROR2;
+
+    fseek(in, 0L, SEEK_END);
+    sz = ftell(in);
+    fseek(in, 0L, SEEK_SET);
+
+    if (sz % 512)
+    {
+        while ( ( ch = fgetc ( in ) ) != EOF )
+            fputc ( ch, out );
+    }
+    else
+    {
+        for (i=0; i< (sz/512); i++)
+        {
+            if ((fread(buf, 512, 1, in)) != 1)
+                goto ERROR1;
+            if ((fwrite(buf, 512, 1, out)) != 1)
+                goto ERROR1;
+        }
+    }
+
+    fsync(out);
+    ret = 0;
+ERROR1:
+    fclose ( out );
+ERROR2:
+    fclose ( in );
+ERROR3:
+    return ret;
 }
 
 int cmd_bml_erase_raw_partition(const char *partition)

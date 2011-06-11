@@ -272,6 +272,12 @@ MtdReadContext *mtd_read_partition(const MtdPartition *partition)
     return ctx;
 }
 
+// Seeks to a location in the partition.  Don't mix with reads of
+// anything other than whole blocks; unpredictable things will result.
+void mtd_read_skip_to(const MtdReadContext* ctx, size_t offset) {
+    lseek64(ctx->fd, offset, SEEK_SET);
+}
+
 static int read_block(const MtdPartition *partition, int fd, char *data)
 {
     struct mtd_ecc_stats before, after;
@@ -296,19 +302,14 @@ static int read_block(const MtdPartition *partition, int fd, char *data)
             fprintf(stderr, "mtd: ECC errors (%d soft, %d hard) at 0x%08llx\n",
                     after.corrected - before.corrected,
                     after.failed - before.failed, pos);
+            // copy the comparison baseline for the next read.
+            memcpy(&before, &after, sizeof(struct mtd_ecc_stats));
         } else if ((mgbb = ioctl(fd, MEMGETBADBLOCK, &pos))) {
             fprintf(stderr,
                     "mtd: MEMGETBADBLOCK returned %d at 0x%08llx (errno=%d)\n",
                     mgbb, pos, errno);
         } else {
-            int i;
-            for (i = 0; i < size; ++i) {
-                if (data[i] != 0) {
-                    return 0;  // Success!
-                }
-            }
-            fprintf(stderr, "mtd: read all-zero block at 0x%08llx; skipping\n",
-                    pos);
+            return 0;  // Success!
         }
 
         pos += partition->erase_size;
@@ -407,9 +408,12 @@ static int write_block(MtdWriteContext *ctx, const char *data)
     ssize_t size = partition->erase_size;
     while (pos + size <= (int) partition->size) {
         loff_t bpos = pos;
-        if (ioctl(fd, MEMGETBADBLOCK, &bpos) > 0) {
+        int ret = ioctl(fd, MEMGETBADBLOCK, &bpos);
+        if (ret != 0 && !(ret == -1 && errno == EOPNOTSUPP)) {
             add_bad_block_offset(ctx, pos);
-            fprintf(stderr, "mtd: not writing bad block at 0x%08lx\n", pos);
+            fprintf(stderr,
+                    "mtd: not writing bad block at 0x%08lx (ret %d errno %d)\n",
+                    pos, ret, errno);
             pos += partition->erase_size;
             continue;  // Don't try to erase known factory-bad blocks.
         }
@@ -446,6 +450,7 @@ static int write_block(MtdWriteContext *ctx, const char *data)
             if (retry > 0) {
                 fprintf(stderr, "mtd: wrote block after %d retries\n", retry);
             }
+            fprintf(stderr, "mtd: successfully wrote block at %llx\n", pos);
             return 0;  // Success!
         }
 
