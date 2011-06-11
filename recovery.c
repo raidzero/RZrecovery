@@ -46,7 +46,6 @@ static const struct option OPTIONS[] = {
   { "wipe_data", no_argument, NULL, 'w' },
   { "wipe_cache", no_argument, NULL, 'c' },
   { "set_encrypted_filesystems", required_argument, NULL, 'e' },
-  { "show_text", no_argument, NULL, 't' },
   { NULL, 0, NULL, 0 },
 };
 
@@ -444,9 +443,8 @@ get_menu_selection(char** headers, char** items, int menu_only,
 
     while (chosen_item < 0) {
         int key = ui_wait_key();
-        int visible = ui_text_visible();
 
-        int action = device_handle_key(key, visible);
+        int action = device_handle_key(key);
 
         if (action < 0) {
             switch (action) {
@@ -599,16 +597,15 @@ sdcard_directory(const char* path) {
 }
 
 static void
-wipe_data(int confirm) {
-    if (confirm) {
-        static char** title_headers = NULL;
+wipe_data() {
+    static char** title_headers = NULL;
 
-        if (title_headers == NULL) {
-            char* headers[] = { "Confirm wipe of all user data?",
-                                "  THIS CAN NOT BE UNDONE.",
-                                "",
-                                NULL };
-            title_headers = prepend_title((const char**)headers);
+    if (title_headers == NULL) {
+        char* headers[] = { "Confirm wipe of all user data?",
+                            "  THIS CAN NOT BE UNDONE.",
+                            "",
+                            NULL };
+        title_headers = prepend_title((const char**)headers);
         }
 
         char* items[] = { " No",
@@ -628,7 +625,6 @@ wipe_data(int confirm) {
         if (chosen_item != 7) {
             return;
         }
-    }
 
     ui_print("\n-- Wiping data...\n");
     device_wipe_data();
@@ -657,15 +653,13 @@ prompt_and_wait() {
                 return;
 
             case ITEM_WIPE_DATA:
-                wipe_data(ui_text_visible());
-                if (!ui_text_visible()) return;
+                wipe_data();
                 break;
 
             case ITEM_WIPE_CACHE:
                 ui_print("\n-- Wiping cache...\n");
                 erase_volume("/cache");
                 ui_print("Cache wipe complete.\n");
-                if (!ui_text_visible()) return;
                 break;
 
             case ITEM_APPLY_SDCARD:
@@ -675,8 +669,7 @@ prompt_and_wait() {
                     if (status != INSTALL_SUCCESS) {
                         ui_set_background(BACKGROUND_ICON_ERROR);
                         ui_print("Installation aborted.\n");
-                    } else if (!ui_text_visible()) {
-                        return;  // reboot if logs aren't visible
+                        return; 
                     } else {
                         ui_print("\nInstall from sdcard complete.\n");
                     }
@@ -722,7 +715,6 @@ main(int argc, char **argv) {
         case 'w': wipe_data = wipe_cache = 1; break;
         case 'c': wipe_cache = 1; break;
         case 'e': encrypted_fs_mode = optarg; toggle_secure_fs = 1; break;
-        case 't': ui_show_text(1); break;
         case '?':
             LOGE("Invalid command argument\n");
             continue;
@@ -810,7 +802,7 @@ main(int argc, char **argv) {
     }
 
     if (status != INSTALL_SUCCESS) ui_set_background(BACKGROUND_ICON_ERROR);
-    if (status != INSTALL_SUCCESS || ui_text_visible()) {
+    if (status != INSTALL_SUCCESS /*|| ui_text_visible()*/) {
         prompt_and_wait();
     }
 

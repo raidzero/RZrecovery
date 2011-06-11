@@ -33,30 +33,23 @@ int device_recovery_start() {
     return 0;
 }
 
-int device_toggle_display(volatile char* key_pressed, int key_code) {
-    return key_code == KEY_HOME;
-}
-
 int device_reboot_now(volatile char* key_pressed, int key_code) {
     return 0;
 }
 
-int device_handle_key(int key_code, int visible) {
-    if (visible) {
-        switch (key_code) {
-            case KEY_DOWN:
-            case KEY_VOLUMEDOWN:
-                return HIGHLIGHT_DOWN;
+int device_handle_key(int key_code) {
+    switch (key_code) {
+	case KEY_DOWN:
+	case KEY_VOLUMEDOWN:
+	    return HIGHLIGHT_DOWN;
 
-            case KEY_UP:
-            case KEY_VOLUMEUP:
-                return HIGHLIGHT_UP;
+	case KEY_UP:
+	case KEY_VOLUMEUP:
+	    return HIGHLIGHT_UP;
 
-            case KEY_ENTER:
-                return SELECT_ITEM;
+	case KEY_ENTER:
+	    return SELECT_ITEM;
         }
-    }
-
     return NO_ACTION;
 }
 

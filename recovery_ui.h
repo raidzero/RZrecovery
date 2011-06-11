@@ -22,12 +22,6 @@ extern int device_recovery_start();
 
 // Called in the input thread when a new key (key_code) is pressed.
 // *key_pressed is an array of KEY_MAX+1 bytes indicating which other
-// keys are already pressed.  Return true if the text display should
-// be toggled.
-extern int device_toggle_display(volatile char* key_pressed, int key_code);
-
-// Called in the input thread when a new key (key_code) is pressed.
-// *key_pressed is an array of KEY_MAX+1 bytes indicating which other
 // keys are already pressed.  Return true if the device should reboot
 // immediately.
 extern int device_reboot_now(volatile char* key_pressed, int key_code);
@@ -42,7 +36,7 @@ extern int device_reboot_now(volatile char* key_pressed, int key_code);
 //   - invoke the highlighted item (SELECT_ITEM)
 //   - do nothing (NO_ACTION)
 //   - invoke a specific action (a menu position: any non-negative number)
-extern int device_handle_key(int key, int visible);
+extern int device_handle_key(int key/*, int visible*/);
 
 // Perform a recovery action selected from the menu.  'which' will be
 // the item number of the selected menu item, or a non-negative number
