@@ -74,7 +74,8 @@ ifeq ($(USE_INTERNAL_EXT4UTILS),true)
 else
     LOCAL_STATIC_LIBRARIES += libext4_utils
 endif
-LOCAL_STATIC_LIBRARIES += libz libunyaffs libmkyaffs2image
+LOCAL_STATIC_LIBRARIES += libe2fsck libtune2fs libmke2fs libext2fs libext2_blkid libext2_uuid libext2_profile libext2_com_err libext2_e2p
+LOCAL_STATIC_LIBRARIES += libz libbusybox libclearsilverregex libunyaffs libmkyaffs2image
 LOCAL_STATIC_LIBRARIES += libflash_image libdump_image liberase_image libxz liblzma
 LOCAL_STATIC_LIBRARIES += libminzip libunz libflashutils libmtdutils libmmcutils libbmlutils libmincrypt
 LOCAL_STATIC_LIBRARIES += libminui libpixelflinger_static libpng libcutils
