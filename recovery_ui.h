@@ -64,11 +64,10 @@ int device_wipe_data();
 #define MAIN_REBOOT           	0
 #define MAIN_RECOVERY	     	1
 #define MAIN_SHUTDOWN     	2
-#define MAIN_EXTRAS  		3
+#define MAIN_WIPE_MENU	3
 #define MAIN_MOUNTS		4
 #define MAIN_INSTALL		5
-#define MAIN_WIPE_DATA       	6
-#define MAIN_WIPE_CACHE     	7
+#define MAIN_EXTRAS  		6
 
 // Header text to display above the main menu.
 extern char* MENU_HEADERS[];

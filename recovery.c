@@ -701,25 +701,15 @@ prompt_and_wait() {
 		power_off();
 		break;
 
-	    case MAIN_EXTRAS:
-		show_extras_menu();
-		break;
-	    
+            case MAIN_WIPE_MENU:
+                show_wipe_menu();
+                break;
+
 	    case MAIN_MOUNTS:
 		show_mount_menu();
 		break;
-	    
-            case MAIN_WIPE_DATA:
-                wipe_data();
-                break;
 
-            case MAIN_WIPE_CACHE:
-                ui_print("\n-- Wiping cache...\n");
-                erase_volume("/cache");
-                ui_print("Cache wipe complete.\n");
-                break;
-
-            case MAIN_INSTALL:
+	    case MAIN_INSTALL:
                 ;
                 int status = install_file(SDCARD_ROOT);
                 if (status >= 0) {
@@ -732,6 +722,10 @@ prompt_and_wait() {
                     }
                 }
                 break;
+		
+	    case MAIN_EXTRAS:
+		show_extras_menu();
+		break;
         }
     }
 }
