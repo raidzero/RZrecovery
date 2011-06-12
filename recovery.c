@@ -643,42 +643,13 @@ install_file(const char* path) {
     return result;
 }
 
-void
-wipe_data() {
-    static char** title_headers = NULL;
-
-    if (title_headers == NULL) {
-        char* headers[] = { "Confirm wipe of all user data?",
-                            "  THIS CAN NOT BE UNDONE.",
-                            "",
-                            NULL };
-        title_headers = prepend_title((const char**)headers);
-        }
-
-        char* items[] = { " No",
-                          " No",
-                          " Yes -- delete all user data",   // [7]
-                          " No",
-                          NULL };
-
-        int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 2) {
-            return;
-        }
-
-    ui_print("\n-- Wiping data...\n");
-    device_wipe_data();
-    erase_volume("/data");
-    erase_volume("/cache");
-    ui_print("Data wipe complete.\n");
-}
 
 void
 prompt_and_wait() {
     char** headers = prepend_title((const char**)MENU_HEADERS);
 
     for (;;) {
-        //finish_recovery(NULL);
+        finish_recovery(NULL);
         ui_reset_progress();
 
         int chosen_item = get_menu_selection(headers, MENU_ITEMS, 0, 0);
@@ -859,12 +830,14 @@ main(int argc, char **argv) {
 }
 
 void reboot_android() {
-	ui_print("\n-- Rebooting into Android...\n");
+	ui_print("\n-- Rebooting into android...\n");
 	ensure_path_mounted("/system");
 	remove("/system/recovery_from_boot.p");	
 	write_files();
 	sync();
 	__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, NULL);
+	//or if that doesnt work
+	reboot(RB_AUTOBOOT);
 }
 void reboot_recovery() {
 	ui_print("\n-- Rebooting into recovery...\n");
