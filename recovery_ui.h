@@ -59,10 +59,15 @@ int device_wipe_data();
 #define HIGHLIGHT_DOWN      -3
 #define SELECT_ITEM         -4
 
-#define ITEM_REBOOT          0
-#define ITEM_APPLY_SDCARD    1
-#define ITEM_WIPE_DATA       2
-#define ITEM_WIPE_CACHE      3
+#define ITEM_BACK		9999
+
+#define MAIN_REBOOT           	0
+#define MAIN_RECOVERY	     	1
+#define MAIN_SHUTDOWN     	2
+#define MAIN_EXTRAS  		3
+#define MAIN_INSTALL		4
+#define MAIN_WIPE_DATA       	5
+#define MAIN_WIPE_CACHE     	6
 
 // Header text to display above the main menu.
 extern char* MENU_HEADERS[];

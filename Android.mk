@@ -12,8 +12,12 @@ LOCAL_SRC_FILES := \
     install.c \
     roots.c \
     ui.c \
+    encryptedfs_provisioning.c \
     verifier.c \
-    encryptedfs_provisioning.c
+    colors_menu.c \
+    extras_menu.c
+	
+    
 
 LOCAL_MODULE := recovery
 

@@ -139,7 +139,7 @@ static const int MAX_ARG_LENGTH = 4096;
 static const int MAX_ARGS = 100;
 
 // open a given path, mounting partitions as necessary
-static FILE*
+FILE*
 fopen_path(const char *path, const char *mode) {
     if (ensure_path_mounted(path) != 0) {
         LOGE("Can't mount %s\n", path);
@@ -155,18 +155,36 @@ fopen_path(const char *path, const char *mode) {
 }
 
 // close a file, log an error if the error indicator is set
-static void
+void
 check_and_fclose(FILE *fp, const char *name) {
     fflush(fp);
     if (ferror(fp)) LOGE("Error in %s\n(%s)\n", name, strerror(errno));
     fclose(fp);
 }
 
+//write recovery files from cache to sdcard
+void write_files() {
+	ensure_path_mounted("/sdcard");
+	system("cp /cache/rgb /sdcard/RZR/rgb");
+}
+
+//read recovery files from sdcard to cache
+void read_files() {
+	ensure_path_mounted("/sdcard");
+	if( access("/sdcard/RZR/rgb", F_OK ) != -1 ) {
+		system("cp /sdcard/RZR/rgb /cache/rgb");		
+	} else {
+		mkdir("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+		set_color(54,74,255);
+	}
+	ensure_path_unmounted("/sdcard");
+}
+
 // command line args come from, in decreasing precedence:
 //   - the actual command line
 //   - the bootloader control block (one per line, after "recovery")
 //   - the contents of COMMAND_FILE (one per line)
-static void
+void
 get_args(int *argc, char ***argv) {
     struct bootloader_message boot;
     memset(&boot, 0, sizeof(boot));
@@ -228,7 +246,7 @@ get_args(int *argc, char ***argv) {
     set_bootloader_message(&boot);
 }
 
-static void
+void
 set_sdcard_update_bootloader_message() {
     struct bootloader_message boot;
     memset(&boot, 0, sizeof(boot));
@@ -238,9 +256,9 @@ set_sdcard_update_bootloader_message() {
 }
 
 // How much of the temp log we have copied to the copy in cache.
-static long tmplog_offset = 0;
+long tmplog_offset = 0;
 
-static void
+void
 copy_log_file(const char* destination, int append) {
     FILE *log = fopen_path(destination, append ? "a" : "w");
     if (log == NULL) {
@@ -269,7 +287,7 @@ copy_log_file(const char* destination, int append) {
 // copy our log file to cache as well (for the system to read), and
 // record any intent we were asked to communicate back to the system.
 // this function is idempotent: call it as many times as you like.
-static void
+void
 finish_recovery(const char *send_intent) {
     // By this point, we're ready to return to the main system...
     if (send_intent != NULL) {
@@ -301,7 +319,7 @@ finish_recovery(const char *send_intent) {
     sync();  // For good measure.
 }
 
-static int
+int
 erase_volume(const char *volume) {
     ui_set_background(BACKGROUND_ICON_INSTALLING);
     ui_show_indeterminate_progress();
@@ -317,7 +335,7 @@ erase_volume(const char *volume) {
     return format_volume(volume);
 }
 
-static char*
+char*
 copy_sideloaded_package(const char* original_path) {
   if (ensure_path_mounted(original_path) != 0) {
     LOGE("Can't mount %s\n", original_path);
@@ -407,8 +425,32 @@ copy_sideloaded_package(const char* original_path) {
   return strdup(copy_path);
 }
 
-static char**
+char**
 prepend_title(const char** headers) {
+
+    FILE* f = fopen("/recovery.version","r");
+    char* vers = calloc(20,sizeof(char));
+    fgets(vers, 20, f);
+
+    strtok(vers," ");  // truncate vers to before the first space
+
+    char* patch_line_ptr = calloc((strlen(headers[0])+21),sizeof(char));
+    char* patch_line = patch_line_ptr;
+    strcpy(patch_line,headers[0]);
+    strcat(patch_line," (");
+    strcat(patch_line,vers);
+    strcat(patch_line,")");
+
+    int c = 0;
+    char ** p1;
+    for (p1 = headers; *p1; ++p1, ++c);
+    
+    char** ver_headers = calloc((c+1),sizeof(char*));
+    ver_headers[0]=patch_line;
+    ver_headers[c]=NULL;
+    char** v = ver_headers+1;
+    for (p1 = headers+1; *p1; ++p1, ++v) *v = *p1;
+    
     char* title[] = { "Android system recovery <"
                           EXPAND(RECOVERY_API_VERSION) "e>",
                       "",
@@ -424,13 +466,13 @@ prepend_title(const char** headers) {
     char** new_headers = malloc((count+1) * sizeof(char*));
     char** h = new_headers;
     for (p = title; *p; ++p, ++h) *h = *p;
-    for (p = headers; *p; ++p, ++h) *h = *p;
+    for (p = ver_headers; *p; ++p, ++h) *h = *p;
     *h = NULL;
 
     return new_headers;
 }
 
-static int
+int
 get_menu_selection(char** headers, char** items, int menu_only,
                    int initial_selection) {
     // throw away keys pressed previously, so user doesn't
@@ -444,6 +486,10 @@ get_menu_selection(char** headers, char** items, int menu_only,
     while (chosen_item < 0) {
         int key = ui_wait_key();
 
+	if (key == KEY_BACKSPACE || key == KEY_END) {
+	    return(ITEM_BACK);
+	}
+	
         int action = device_handle_key(key);
 
         if (action < 0) {
@@ -471,12 +517,12 @@ get_menu_selection(char** headers, char** items, int menu_only,
     return chosen_item;
 }
 
-static int compare_string(const void* a, const void* b) {
+int compare_string(const void* a, const void* b) {
     return strcmp(*(const char**)a, *(const char**)b);
 }
 
-static int
-sdcard_directory(const char* path) {
+int
+install_file(const char* path) {
     ensure_path_mounted(SDCARD_ROOT);
 
     const char* MENU_HEADERS[] = { "Choose a package to install:",
@@ -563,7 +609,7 @@ sdcard_directory(const char* path) {
             strlcat(new_path, "/", PATH_MAX);
             strlcat(new_path, item, PATH_MAX);
             new_path[strlen(new_path)-1] = '\0';  // truncate the trailing '/'
-            result = sdcard_directory(new_path);
+            result = install_file(new_path);
             if (result >= 0) break;
         } else {
             // selected a zip file:  attempt to install it, and return
@@ -596,7 +642,7 @@ sdcard_directory(const char* path) {
     return result;
 }
 
-static void
+void
 wipe_data() {
     static char** title_headers = NULL;
 
@@ -610,19 +656,12 @@ wipe_data() {
 
         char* items[] = { " No",
                           " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
                           " Yes -- delete all user data",   // [7]
-                          " No",
-                          " No",
                           " No",
                           NULL };
 
         int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 7) {
+        if (chosen_item != 2) {
             return;
         }
 
@@ -633,7 +672,7 @@ wipe_data() {
     ui_print("Data wipe complete.\n");
 }
 
-static void
+void
 prompt_and_wait() {
     char** headers = prepend_title((const char**)MENU_HEADERS);
 
@@ -649,22 +688,35 @@ prompt_and_wait() {
         chosen_item = device_perform_action(chosen_item);
 
         switch (chosen_item) {
-            case ITEM_REBOOT:
+            case MAIN_REBOOT:
+		reboot_android();
                 return;
+	    
+	    case MAIN_RECOVERY:
+		reboot_recovery();
+		return;
+	    
+	    case MAIN_SHUTDOWN:
+		power_off();
+		return;
 
-            case ITEM_WIPE_DATA:
+	    case MAIN_EXTRAS:
+		show_extras_menu();
+		return;
+	    
+            case MAIN_WIPE_DATA:
                 wipe_data();
                 break;
 
-            case ITEM_WIPE_CACHE:
+            case MAIN_WIPE_CACHE:
                 ui_print("\n-- Wiping cache...\n");
                 erase_volume("/cache");
                 ui_print("Cache wipe complete.\n");
                 break;
 
-            case ITEM_APPLY_SDCARD:
+            case MAIN_INSTALL:
                 ;
-                int status = sdcard_directory(SDCARD_ROOT);
+                int status = install_file(SDCARD_ROOT);
                 if (status >= 0) {
                     if (status != INSTALL_SUCCESS) {
                         ui_set_background(BACKGROUND_ICON_ERROR);
@@ -679,7 +731,7 @@ prompt_and_wait() {
     }
 }
 
-static void
+void
 print_property(const char *key, const char *name, void *cookie) {
     printf("%s=%s\n", key, name);
 }
@@ -812,4 +864,26 @@ main(int argc, char **argv) {
     sync();
     reboot(RB_AUTOBOOT);
     return EXIT_SUCCESS;
+}
+
+void reboot_android() {
+	ui_print("\n-- Rebooting into Android...\n");
+	ensure_path_mounted("/system");
+	remove("/system/recovery_from_boot.p");	
+	write_files();
+	sync();
+	__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, NULL);
+}
+void reboot_recovery() {
+	ui_print("\n-- Rebooting into recovery...\n");
+	write_files();
+	sync();
+	__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "recovery");
+}
+
+void power_off() {
+	ui_print("\n-- Shutting down...");
+	write_files();
+	sync();
+	__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_POWER_OFF, NULL);
 }

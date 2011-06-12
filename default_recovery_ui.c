@@ -19,16 +19,21 @@
 #include "recovery_ui.h"
 #include "common.h"
 
-char* MENU_HEADERS[] = { "Android system recovery utility",
-                         "",
+char* MENU_HEADERS[] = { "Welcome to RZRecovery",
+                         "by raidzero",
+			 "",
                          NULL };
 
-char* MENU_ITEMS[] = { "reboot system now",
-                       "apply update from sdcard",
+char* MENU_ITEMS[] = { "reboot android",
+			"reboot recovery",
+			"power off",
+			"extras",
+                       "install from sdcard",
                        "wipe data/factory reset",
                        "wipe cache partition",
                        NULL };
-
+		       
+		       
 int device_recovery_start() {
     return 0;
 }
@@ -48,7 +53,15 @@ int device_handle_key(int key_code) {
 	    return HIGHLIGHT_UP;
 
 	case KEY_ENTER:
+	case KEY_CAMERA:
+	case KEY_CENTER:
+	case KEY_HOME:
 	    return SELECT_ITEM;
+	
+	case KEY_BACK:
+	case KEY_END:
+	case KEY_POWER:
+		return ITEM_BACK;
         }
     return NO_ACTION;
 }
