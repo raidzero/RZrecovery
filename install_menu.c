@@ -1,9 +1,11 @@
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <sys/limits.h>
 #include <dirent.h>
 #include <linux/input.h>
+
 
 #include "common.h"
 #include "recovery.h"
@@ -34,7 +36,7 @@ char** sortlist(char** list, int total) {
 	}
 	return list;
 }
-	
+
 void choose_file_menu(char* sdpath) {
     static char* headers[] = { "Choose item or press POWER to return",
 			       "",

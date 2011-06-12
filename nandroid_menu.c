@@ -142,20 +142,20 @@ void nandroid_adv_r_choose_file(char* filename, char* nandroid_folder)
 	char** list;
 
 	if (ensure_path_mounted(nandroid_folder) != 0) {
-	LOGE("Can't mount %s\n", nandroid_folder);
-	return;
+	    LOGE("Can't mount %s\n", nandroid_folder);
+	    return;
 	}
 
-	dir = opendir(path);
+	dir = opendir(nandroid_folder);
 	if (dir == NULL) {
-	LOGE("Couldn't open directory %s\n", path);
-	return;
+	    LOGE("Couldn't open directory %s\n", nandroid_folder);
+	    return;
 	}
   
 	while ((de=readdir(dir)) != NULL) {
-	if (de->d_name[0] != '.') {
+	    if (de->d_name[0] != '.') {
 		total++;
-	}
+	    }
 	}
 
 	if (total==0) {
@@ -268,7 +268,7 @@ void show_nandroid_adv_r_menu()
 
 	switch(chosen_item) {
 		case ITEM_CHSE:
-			nandroid_adv_r_choose_file(filename,"/sdcard/nandroid/");
+			nandroid_adv_r_choose_file(filename,"/sdcard/nandroid");
 			headers[2]=filename;
 			break;
 		case R_ITEM_PERF:

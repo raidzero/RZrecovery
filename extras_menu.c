@@ -49,6 +49,41 @@ void show_battstat() {
 	fclose(fs);
 }
 
+void root_menu() {
+        static char** title_headers = NULL;
+
+        if (title_headers == NULL) {
+            char* headers[] = { "ROOT installed ROM?",
+				" ",
+                                "Rooting without the superuser app installed",
+                                "does nothing. Please install the superuser app",
+				"from the market! (by ChainsDD)",
+				" ",
+                                NULL };
+            title_headers = prepend_title(headers);
+        }
+
+        char* items[] = { " No",
+                          " OK, give me root!",
+                          NULL };
+
+        int chosen_item = get_menu_selection(title_headers, items, 1, 0);
+        if (chosen_item != 1) {
+            return;
+        }
+	char* argv[] = { "/sbin/actroot",
+	NULL };
+
+    char* envp[] = { NULL };
+	
+	ensure_path_mounted("/system");
+	remove("/system/recovery-from-boot.p");
+    int status = runve("/sbin/actroot",argv,envp,1);
+	ensure_path_unmounted("/system");
+	return;
+}
+
+
 void show_extras_menu()
 {
     static char* headers[] = { "Extras",
@@ -65,6 +100,7 @@ void show_extras_menu()
 #define COLORS         0
 #define OTA			   1
 #define BATT		   2
+#define ROOT_MENU	3
 
 int chosen_item = -1;
 
@@ -81,6 +117,9 @@ int chosen_item = -1;
 		break;
 	case BATT:
 		show_battstat();
+		break;
+	case ROOT_MENU:
+		root_menu();
 		break;
         }
     }

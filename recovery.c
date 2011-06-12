@@ -524,7 +524,7 @@ int compare_string(const void* a, const void* b) {
 
 int
 install_file(const char* path) {
-    ensure_path_mounted(SDCARD_ROOT);
+    ensure_path_mounted("/sdcard");
 
     const char* MENU_HEADERS[] = { "Choose a package to install:",
                                    path,
@@ -535,7 +535,7 @@ install_file(const char* path) {
     d = opendir(path);
     if (d == NULL) {
         LOGE("error opening %s: %s\n", path, strerror(errno));
-        ensure_path_unmounted(SDCARD_ROOT);
+        ensure_path_unmounted("/sdcard");
         return 0;
     }
 
@@ -623,7 +623,7 @@ install_file(const char* path) {
             ui_print("\n-- Install %s ...\n", path);
             set_sdcard_update_bootloader_message();
             char* copy = copy_sideloaded_package(new_path);
-            ensure_path_unmounted(SDCARD_ROOT);
+            ensure_path_unmounted("/sdcard");
             if (copy) {
                 result = install_package(copy);
                 free(copy);
@@ -639,10 +639,9 @@ install_file(const char* path) {
     free(zips);
     free(headers);
 
-    ensure_path_unmounted(SDCARD_ROOT);
+    ensure_path_unmounted("/sdcard");
     return result;
 }
-
 
 void
 prompt_and_wait() {
@@ -684,7 +683,7 @@ prompt_and_wait() {
 		show_nandroid_menu();
 
 	    case MAIN_INSTALL:
-                install_file(SDCARD_ROOT);
+                choose_file_menu("/sdcard/");
                 break;
 		
 	    case MAIN_EXTRAS:
