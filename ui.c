@@ -163,13 +163,6 @@ static void draw_screen_locked(void)
 	//define menu highlight text color
 	int txt;
 	
-	cRv = 54;
-	cGv = 74;
-	cBv = 255;
-	txt = 255;	
-	/*
-	ensure_path_mounted("/cache");
-	
 	if( access("/cache/rgb", F_OK ) != -1 ) {
 		FILE *fp = fopen ("/cache/rgb", "rb");
 		fread(&cRv, 1, 1, fp);
@@ -184,7 +177,7 @@ static void draw_screen_locked(void)
 		txt = 255;
 		set_color(cRv,cGv,cBv);
 		
-	}*/
+	}
 	
     draw_background_locked(gCurrentIcon);
     draw_progress_locked();
