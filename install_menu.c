@@ -16,21 +16,6 @@
 
 #include "nandroid_menu.h"
 
-char *replace_str(char *str, char *orig, char *rep) // Helper function - search and replace within in string
-{
-  static char buffer[4096];
-  char *p;
-
-  if(!(p = strstr(str, orig)))  // Is 'orig' even in 'str'?
-    return str;
-
-  strncpy(buffer, str, p-str); // Copy characters from 'str' start to 'orig' st$
-  buffer[p-str] = '\0';
-
-  sprintf(buffer+(p-str), "%s%s", rep, p+strlen(orig));
-
-  return buffer;
-}
 
 char** sortlist(char** list, int total) {
 	int i = 0;
@@ -232,7 +217,6 @@ int install_update_zip(char* filename) {
 	char *path = NULL;
 	
 	puts(filename);
-	path = replace_str(filename, "/sdcard/", "SDCARD:");
 	ui_print("\n-- Install update.zip from sdcard...\n");
 	set_sdcard_update_bootloader_message();
 	ui_print("Attempting update from...\n");
@@ -240,7 +224,7 @@ int install_update_zip(char* filename) {
 	ui_print("\n");
 	int status = install_package(path);
 	if (status != INSTALL_SUCCESS) {
-		ui_set_background(BACKGROUND_ICON_ERROR);
+		ui_set_background(BACKGROUND_ICON_RZ);
 		ui_print("Installation aborted.\n");
 		return 0;
 	} else {

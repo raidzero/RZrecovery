@@ -322,7 +322,7 @@ finish_recovery(const char *send_intent) {
 
 int
 erase_volume(const char *volume) {
-    ui_set_background(BACKGROUND_ICON_INSTALLING);
+    ui_set_background(BACKGROUND_ICON_RZ);
     ui_show_indeterminate_progress();
     ui_print("Formatting %s...\n", volume);
 
@@ -713,7 +713,7 @@ prompt_and_wait() {
 		show_nandroid_menu();
 
 	    case MAIN_INSTALL:
-                choose_file_menu(SDCARD_ROOT);
+                install_file(SDCARD_ROOT);
                 break;
 		
 	    case MAIN_EXTRAS:
@@ -738,7 +738,7 @@ main(int argc, char **argv) {
     printf("Starting recovery on %s", ctime(&start));
 
     ui_init();
-    ui_set_background(BACKGROUND_ICON_INSTALLING);
+    ui_set_background(BACKGROUND_ICON_RZ);
     load_volume_table();
     get_args(&argc, &argv);
 
@@ -845,7 +845,7 @@ main(int argc, char **argv) {
         status = INSTALL_ERROR;  // No command specified
     }
 
-    if (status != INSTALL_SUCCESS) ui_set_background(BACKGROUND_ICON_ERROR);
+    if (status != INSTALL_SUCCESS) ui_set_background(BACKGROUND_ICON_RZ);
     if (status != INSTALL_SUCCESS /*|| ui_text_visible()*/) {
         prompt_and_wait();
     }

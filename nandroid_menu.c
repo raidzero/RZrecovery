@@ -268,7 +268,7 @@ void show_nandroid_adv_r_menu()
 
 	switch(chosen_item) {
 		case ITEM_CHSE:
-			nandroid_adv_r_choose_file(filename,"SDCARD:/nandroid");
+			nandroid_adv_r_choose_file(filename,"/sdcard/nandroid/");
 			headers[2]=filename;
 			break;
 		case R_ITEM_PERF:
