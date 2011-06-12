@@ -17,7 +17,10 @@ LOCAL_SRC_FILES := \
     colors_menu.c \
     extras_menu.c \
     mount_menu.c \
-    wipe_menu.c 
+    wipe_menu.c \
+    install_menu.c \
+    nandroid_menu.c \
+    cw_nandroid_menu.c 
 	
     
 

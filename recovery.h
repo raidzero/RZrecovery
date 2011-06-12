@@ -22,3 +22,9 @@ void read_files();
 void reboot_android();
 void reboot_recovery();
 void power_off();
+
+void ui_printf_int(const char* format, int arg);
+void show_check_menu(char** headers, char** chk_items, int* flags);
+void get_check_menu_opts(char** items, char** chk_items, int* flags);
+
+int runve(char* filename, char** argv, char** envp, int secs);

@@ -29,6 +29,7 @@ char* MENU_ITEMS[] = { "reboot android",
 			"power off",
 			"wipe menu",
 			"mount menu",
+			"nandroid menu",
                        "install from sdcard",
 			"extras",
                        NULL };
