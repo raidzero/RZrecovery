@@ -24,7 +24,7 @@ extern int device_recovery_start();
 // *key_pressed is an array of KEY_MAX+1 bytes indicating which other
 // keys are already pressed.  Return true if the device should reboot
 // immediately.
-extern int device_reboot_now(volatile char* key_pressed, int key_code);
+//extern int device_reboot_now(volatile char* key_pressed, int key_code);
 
 // Called from the main thread when recovery is waiting for input and
 // a key is pressed.  key is the code of the key pressed; visible is
@@ -65,9 +65,10 @@ int device_wipe_data();
 #define MAIN_RECOVERY	     	1
 #define MAIN_SHUTDOWN     	2
 #define MAIN_EXTRAS  		3
-#define MAIN_INSTALL		4
-#define MAIN_WIPE_DATA       	5
-#define MAIN_WIPE_CACHE     	6
+#define MAIN_MOUNTS		4
+#define MAIN_INSTALL		5
+#define MAIN_WIPE_DATA       	6
+#define MAIN_WIPE_CACHE     	7
 
 // Header text to display above the main menu.
 extern char* MENU_HEADERS[];

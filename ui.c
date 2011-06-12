@@ -38,6 +38,8 @@
 #define PROGRESSBAR_INDETERMINATE_STATES 6
 #define PROGRESSBAR_INDETERMINATE_FPS 15
 
+#define TEXTCOLOR gr_color(255,255,255,255);
+
 static pthread_mutex_t gUpdateMutex = PTHREAD_MUTEX_INITIALIZER;
 static gr_surface gBackgroundIcon[NUM_BACKGROUND_ICONS];
 static gr_surface gProgressBarIndeterminate[PROGRESSBAR_INDETERMINATE_STATES];
@@ -151,6 +153,36 @@ static void draw_text_line(int row, const char* t) {
 // Should only be called with gUpdateMutex locked.
 static void draw_screen_locked(void)
 {
+	//define menu color integers
+	int cRv;
+	int cGv;
+	int cBv;
+	//define menu highlight text color
+	int txt;
+	
+	cRv = 54;
+	cGv = 74;
+	cBv = 255;
+	txt = 255;	
+	/*
+	ensure_path_mounted("/cache");
+	
+	if( access("/cache/rgb", F_OK ) != -1 ) {
+		FILE *fp = fopen ("/cache/rgb", "rb");
+		fread(&cRv, 1, 1, fp);
+		fread(&cGv, 1, 1, fp);
+		fread(&cBv, 1, 1, fp);
+		fread(&txt, 1, 1, fp);
+		fclose(fp);	
+	} else {
+		cRv = 54;
+		cGv = 74;
+		cBv = 255;
+		txt = 255;
+		set_color(cRv,cGv,cBv);
+		
+	}*/
+	
     draw_background_locked(gCurrentIcon);
     draw_progress_locked();
 
@@ -159,16 +191,18 @@ static void draw_screen_locked(void)
 
     int i = 0;
     if (show_menu) {
-	gr_color(64, 96, 255, 255);
+	gr_color(cRv,cGv,cBv,255);
 	gr_fill(0, (menu_top+menu_sel) * CHAR_HEIGHT,
 	gr_fb_width(), (menu_top+menu_sel+1)*CHAR_HEIGHT+1);
 
         for (; i < menu_top + menu_items; ++i) {
+	    gr_color(txt,txt,txt,255);
 	    if (i == menu_top + menu_sel) {
-                gr_color(255, 255, 255, 255);
+                gr_color(txt,txt,txt,255);
                 draw_text_line(i, menu[i]);
-                gr_color(64, 96, 255, 255);
+                gr_color(cRv,cGv,cBv,255);
 	    } else {
+		gr_color(cRv,cGv,cBv,255);
 		draw_text_line(i, menu[i]);
 	    }
 	}
@@ -177,7 +211,7 @@ static void draw_screen_locked(void)
          ++i;
     }
 
-        gr_color(255, 255, 0, 255);
+        TEXTCOLOR
 
         for (; i < text_rows; ++i) {
             draw_text_line(i, text[(i+text_top) % text_rows]);
@@ -289,9 +323,9 @@ static void *input_thread(void *cookie)
         }
         pthread_mutex_unlock(&key_queue_mutex);
 
-        if (ev.value > 0 && device_reboot_now(key_pressed, ev.code)) {
+        /*if (ev.value > 0 && device_reboot_now(key_pressed, ev.code)) {
             reboot(RB_AUTOBOOT);
-        }
+        }*/
     }
     return NULL;
 }

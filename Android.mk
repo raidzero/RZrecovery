@@ -15,7 +15,8 @@ LOCAL_SRC_FILES := \
     encryptedfs_provisioning.c \
     verifier.c \
     colors_menu.c \
-    extras_menu.c
+    extras_menu.c \
+    mount_menu.c
 	
     
 

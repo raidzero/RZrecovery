@@ -75,7 +75,7 @@ int chosen_item = -1;
         switch (chosen_item) {
 	case COLORS:
 		show_colors_menu();
-	    return;
+		return;
 	case OTA:
 		disable_OTA();
 		break;

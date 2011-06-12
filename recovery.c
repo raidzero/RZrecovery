@@ -186,6 +186,7 @@ void read_files() {
 //   - the contents of COMMAND_FILE (one per line)
 void
 get_args(int *argc, char ***argv) {
+    read_files();
     struct bootloader_message boot;
     memset(&boot, 0, sizeof(boot));
     get_bootloader_message(&boot);  // this may fail, leaving a zeroed structure
@@ -677,7 +678,7 @@ prompt_and_wait() {
     char** headers = prepend_title((const char**)MENU_HEADERS);
 
     for (;;) {
-        finish_recovery(NULL);
+        //finish_recovery(NULL);
         ui_reset_progress();
 
         int chosen_item = get_menu_selection(headers, MENU_ITEMS, 0, 0);
@@ -690,19 +691,23 @@ prompt_and_wait() {
         switch (chosen_item) {
             case MAIN_REBOOT:
 		reboot_android();
-                return;
+                break;
 	    
 	    case MAIN_RECOVERY:
 		reboot_recovery();
-		return;
+		break;
 	    
 	    case MAIN_SHUTDOWN:
 		power_off();
-		return;
+		break;
 
 	    case MAIN_EXTRAS:
 		show_extras_menu();
-		return;
+		break;
+	    
+	    case MAIN_MOUNTS:
+		show_mount_menu();
+		break;
 	    
             case MAIN_WIPE_DATA:
                 wipe_data();

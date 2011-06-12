@@ -28,6 +28,7 @@ char* MENU_ITEMS[] = { "reboot android",
 			"reboot recovery",
 			"power off",
 			"extras",
+			"mount menu",
                        "install from sdcard",
                        "wipe data/factory reset",
                        "wipe cache partition",
@@ -37,11 +38,11 @@ char* MENU_ITEMS[] = { "reboot android",
 int device_recovery_start() {
     return 0;
 }
-
+/*
 int device_reboot_now(volatile char* key_pressed, int key_code) {
     return 0;
 }
-
+*/
 int device_handle_key(int key_code) {
     switch (key_code) {
 	case KEY_DOWN:
