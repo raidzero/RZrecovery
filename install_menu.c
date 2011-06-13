@@ -224,7 +224,7 @@ int install_update_zip(char* filename) {
 	ui_print("Attempting update from...\n");
 	ui_print("%s",filename);
 	ui_print("\n");
-	int status = install_package(path);
+	int status = install_package(filename);
 	if (status != INSTALL_SUCCESS) {
 		ui_set_background(BACKGROUND_ICON_RZ);
 		ui_print("Installation aborted.\n");

@@ -522,7 +522,7 @@ int compare_string(const void* a, const void* b) {
     return strcmp(*(const char**)a, *(const char**)b);
 }
 
-int
+/*int
 install_file(const char* path) {
     ensure_path_mounted("/sdcard");
 
@@ -641,7 +641,7 @@ install_file(const char* path) {
 
     ensure_path_unmounted("/sdcard");
     return result;
-}
+}*/
 
 void
 prompt_and_wait() {
