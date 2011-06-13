@@ -1,7 +1,6 @@
 #!/sbin/sh
 
 source /ui_commands.sh
-mount /sdcard
 
 list=`find . | sed -e 's/\.\///g' | grep -v nandroid.md5 | grep -v recovery.img`
 
@@ -11,22 +10,23 @@ asp=`echo $list | grep secure | wc -l`
 datap=`echo $list | grep data | wc -l`
 cachp=`echo $list | grep cache | wc -l`
 
+data_mounted=`mount | grep "/data" | wc -l`
+system_mounted=`mount | grep "/system" | wc -l`
 
 if [ "$bootp" == "1" ]; then
 	echo "* print Restoring boot..."
-	format BOOT:
-	echo "* print "
 	flash_image boot $1/boot.img
 	echo "* print boot partition restored."
 fi
 
 if [ "$sysp" == "1" ]; then
-	echo "* print Restoring system..."
-	umount /system
-	format SYSTEM:
-	mount /system
+	if [ "$system_mounted" == "0" ]; then
+		mount /system
+	fi
+	echo "* print Erasing system..."
+	rm -rf /system/*
 	cd /system
-	echo "* "
+	echo "* print Restoring system..."
 	unyaffs-arm-uclibc $1/system.img
 	echo "* print system partition restored."
 	echo "* print Fixing su permissions..."
@@ -35,40 +35,46 @@ if [ "$sysp" == "1" ]; then
 fi
 
 if [ "$asp" == "1" ]; then
-	echo "* print Restoring .android_secure..."
+	echo "* print Erasing .android_secure..."
 	rm -rf /sdcard/.android_secure/*
 	cd /sdcard/.android_secure
-	echo "* "
+	echo "* print Restoring .android_secure..."
 	unyaffs-arm-uclibc $1/.android_secure.img
 	echo "* print .android_secure restored."
 fi
 
 if [ "$datap" == "1" ]; then
-	echo "* print Restoring data..."
-	mount /data
-	cd /data
+	echo "* print Erasing data..."
+	if [ "$data_mounted" == "0" ]; then
+		mount /data
+	fi
 	rm -rf /data/*
-	rm -rf /data.*
+	cd /data	
+	echo "* print Restoring data..."
 	unyaffs-arm-uclibc $1/data.img
 	echo "* print data partition restored."
 fi
 	
 if [ "$cachp" == "1" ]; then
-	echo "* print Restoring cache..."
-	cp /cache/oc /sdcard/RZR/oc
+	echo "* print Erasing cache..."
 	cp /cache/rgb /sdcard/RZR/rgb
-	umount /cache
-	format CACHE:
 	cd /cache
-	echo "* "
+	rm -rf /cache/*
+	echo "* print Restoring cache..."
 	unyaffs-arm-uclibc $1/cache.img
-	mount /cache
-	cp /sdcard/RZR/oc /cache/oc
 	cp /sdcard/RZR/rgb /cache/rgb
 	echo "* print cache partition restored."
 fi
-echo "* print Clockwork Nandroid Restore complete!"
-echo "* print Thanks for using RZRecovery."
-umount /data
-umount /system
+
+if [ "$system_mounted" != "0" ]; then
+	umount /system
+fi
+if [ "$data_mounted" != "0" ]; then
+	umount /data
+fi
+
 sync
+
+echo "* print Clockwork nandroid restore complete!"
+echo "* print Thanks for using RZRecovery."
+
