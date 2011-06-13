@@ -522,127 +522,6 @@ int compare_string(const void* a, const void* b) {
     return strcmp(*(const char**)a, *(const char**)b);
 }
 
-/*int
-install_file(const char* path) {
-    ensure_path_mounted("/sdcard");
-
-    const char* MENU_HEADERS[] = { "Choose a package to install:",
-                                   path,
-                                   "",
-                                   NULL };
-    DIR* d;
-    struct dirent* de;
-    d = opendir(path);
-    if (d == NULL) {
-        LOGE("error opening %s: %s\n", path, strerror(errno));
-        ensure_path_unmounted("/sdcard");
-        return 0;
-    }
-
-    char** headers = prepend_title(MENU_HEADERS);
-
-    int d_size = 0;
-    int d_alloc = 10;
-    char** dirs = malloc(d_alloc * sizeof(char*));
-    int z_size = 1;
-    int z_alloc = 10;
-    char** zips = malloc(z_alloc * sizeof(char*));
-    zips[0] = strdup("../");
-
-    while ((de = readdir(d)) != NULL) {
-        int name_len = strlen(de->d_name);
-
-        if (de->d_type == DT_DIR) {
-            // skip "." and ".." entries
-            if (name_len == 1 && de->d_name[0] == '.') continue;
-            if (name_len == 2 && de->d_name[0] == '.' &&
-                de->d_name[1] == '.') continue;
-
-            if (d_size >= d_alloc) {
-                d_alloc *= 2;
-                dirs = realloc(dirs, d_alloc * sizeof(char*));
-            }
-            dirs[d_size] = malloc(name_len + 2);
-            strcpy(dirs[d_size], de->d_name);
-            dirs[d_size][name_len] = '/';
-            dirs[d_size][name_len+1] = '\0';
-            ++d_size;
-        } else if (de->d_type == DT_REG &&
-                   name_len >= 4 &&
-                   strncasecmp(de->d_name + (name_len-4), ".zip", 4) == 0) {
-            if (z_size >= z_alloc) {
-                z_alloc *= 2;
-                zips = realloc(zips, z_alloc * sizeof(char*));
-            }
-            zips[z_size++] = strdup(de->d_name);
-        }
-    }
-    closedir(d);
-
-    qsort(dirs, d_size, sizeof(char*), compare_string);
-    qsort(zips, z_size, sizeof(char*), compare_string);
-
-    // append dirs to the zips list
-    if (d_size + z_size + 1 > z_alloc) {
-        z_alloc = d_size + z_size + 1;
-        zips = realloc(zips, z_alloc * sizeof(char*));
-    }
-    memcpy(zips + z_size, dirs, d_size * sizeof(char*));
-    free(dirs);
-    z_size += d_size;
-    zips[z_size] = NULL;
-
-    int result;
-    int chosen_item = 0;
-    do {
-        chosen_item = get_menu_selection(headers, zips, 1, chosen_item);
-
-        char* item = zips[chosen_item];
-        int item_len = strlen(item);
-        if (chosen_item == 0) {          // item 0 is always "../"
-            // go up but continue browsing (if the caller is sdcard_directory)
-            result = -1;
-            break;
-        } else if (item[item_len-1] == '/') {
-            // recurse down into a subdirectory
-            char new_path[PATH_MAX];
-            strlcpy(new_path, path, PATH_MAX);
-            strlcat(new_path, "/", PATH_MAX);
-            strlcat(new_path, item, PATH_MAX);
-            new_path[strlen(new_path)-1] = '\0';  // truncate the trailing '/'
-            result = install_file(new_path);
-            if (result >= 0) break;
-        } else {
-            // selected a zip file:  attempt to install it, and return
-            // the status to the caller.
-            char new_path[PATH_MAX];
-            strlcpy(new_path, path, PATH_MAX);
-            strlcat(new_path, "/", PATH_MAX);
-            strlcat(new_path, item, PATH_MAX);
-
-            ui_print("\n-- Install %s ...\n", path);
-            set_sdcard_update_bootloader_message();
-            char* copy = copy_sideloaded_package(new_path);
-            ensure_path_unmounted("/sdcard");
-            if (copy) {
-                result = install_package(copy);
-                free(copy);
-            } else {
-                result = INSTALL_ERROR;
-            }
-            break;
-        }
-    } while (true);
-
-    int i;
-    for (i = 0; i < z_size; ++i) free(zips[i]);
-    free(zips);
-    free(headers);
-
-    ensure_path_unmounted("/sdcard");
-    return result;
-}*/
-
 void
 prompt_and_wait() {
     char** headers = prepend_title((const char**)MENU_HEADERS);
@@ -681,6 +560,7 @@ prompt_and_wait() {
 	    
 	    case MAIN_NANDROID:
 		show_nandroid_menu();
+		break;
 
 	    case MAIN_INSTALL:
                 choose_file_menu("/sdcard/");
