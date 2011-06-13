@@ -174,12 +174,6 @@ install_package(const char *path)
 
     ui_print("Opening update package...\n");
 
-    // Give verification half the progress bar...
-    ui_print("Verifying update package...\n");
-    ui_show_progress(
-            VERIFICATION_PROGRESS_FRACTION,
-            VERIFICATION_PROGRESS_TIME);
-
     if (!access("/block_update.zip",F_OK)) {
 	LOGE("update.zip install blocked.");
         return INSTALL_CORRUPT;

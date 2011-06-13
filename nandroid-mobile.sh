@@ -434,6 +434,7 @@ if [ "$RESTORE" == 1 ]; then
 	sd_mounted=`mount | grep "/sdcard" | wc -l`
 	data_mounted=`mount | grep "/data" | wc -l`
 	system_mounted=`mount | grep "/system" | wc -l`
+	datadata_present= `cat /etc/fstab | grep datadata | wc -l`
     batteryAtLeast 30
 	
 	if [ "$sd_mounted" == "0" ]; then
@@ -486,8 +487,16 @@ if [ "$RESTORE" == 1 ]; then
 	system_mounted=`mount | grep "/system" | wc -l`
     if [ "$data_mounted" == "0" ]; then
 		mount /data 2>/dev/null
-	fi
-	if [ -z "$(mount | grep data)" ]; then
+		
+    fi
+    if [ "$datadata" != "0" && -z "$(mount | grep datadata)" ]; then
+	mount /datadata 2>/dev/null
+    fi
+    if [ -z "$(mount | grep datadata)" && "$datadata_present" != "0" ]; then
+		echo "* print error: unable to mount /data/data, aborting"	
+		exit 23
+    fi    
+    if [ -z "$(mount | grep data)" ]; then
 		echo "* print error: unable to mount /data, aborting"	
 		exit 23
     fi
@@ -589,6 +598,7 @@ if [ "$BACKUP" == 1 ]; then
 	sd_mounted=`mount | grep "/sdcard" | wc -l`
 	data_mounted=`mount | grep "/data" | wc -l`
 	system_mounted=`mount | grep "/system" | wc -l`
+	datadata_present= `cat /etc/fstab | grep datadata | wc -l`
 	
     TAR_OPTS="c"
     [ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"
@@ -614,6 +624,9 @@ if [ "$BACKUP" == 1 ]; then
 	fi
 	if [ "$sd_mounted" != "0" ]; then
 		mount /sdcard 2> /dev/null 
+	fi
+	if [ "$datadata" != "0" ]; then
+		mount /datadata 2>/dev/null
 	fi
     if [ ! "$SUBNAME" == "" ]; then
 	SUBNAME=$SUBNAME-
