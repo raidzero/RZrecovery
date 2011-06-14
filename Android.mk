@@ -20,7 +20,9 @@ LOCAL_SRC_FILES := \
     wipe_menu.c \
     install_menu.c \
     nandroid_menu.c \
-    cw_nandroid_menu.c 
+    cw_nandroid_menu.c \
+    overclock_menu.c
+    
 	
     
 

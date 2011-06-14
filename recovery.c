@@ -162,6 +162,13 @@ check_and_fclose(FILE *fp, const char *name) {
     fclose(fp);
 }
 
+void set_cpufreq(char* speed) {
+	FILE* fs = fopen("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq","w");
+	fputs(speed,fs);
+	fputs("\n",fs);
+	fclose(fs);
+}
+
 //write recovery files from cache to sdcard
 void write_files() {
 	ensure_path_mounted("/sdcard");

@@ -95,12 +95,14 @@ void show_extras_menu()
 				"Disable OTA Update Downloads in ROM",
 				"Show Battery Status",
 				"Activate Root Access in ROM",
+				"Recovery Overclocking",
 		      NULL };
 			  
 #define COLORS         0
 #define OTA			   1
 #define BATT		   2
 #define ROOT_MENU	3
+#define OC_MENU		4
 
 int chosen_item = -1;
 
@@ -120,6 +122,9 @@ int chosen_item = -1;
 		break;
 	case ROOT_MENU:
 		root_menu();
+		break;
+	case OC_MENU:
+		show_overclock_menu();
 		break;
         }
     }
