@@ -481,7 +481,7 @@ void ui_start_menu(char** headers, char** items, int initial_selection) {
         menu_items = i - menu_top;
         show_menu = 1;
         menu_sel = menu_show_start = initial_selection;
-	//menu_show_start = 0;
+	menu_show_start = 0;
         update_screen_locked();
     }
     pthread_mutex_unlock(&gUpdateMutex);

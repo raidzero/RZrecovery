@@ -173,6 +173,7 @@ void set_cpufreq(char* speed) {
 void write_files() {
 	ensure_path_mounted("/sdcard");
 	system("cp /cache/rgb /sdcard/RZR/rgb");
+	system("cp /cache/oc /sdcard/RZR/oc");
 }
 
 //read recovery files from sdcard to cache
@@ -183,6 +184,19 @@ void read_files() {
 	} else {
 		mkdir("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 		set_color(54,74,255);
+	}
+	
+	if( access("/sdcard/RZR/oc", F_OK ) != -1 ) {
+		system("cp /sdcard/RZR/oc /cache/oc");
+	} else {
+		mkdir("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	}
+	if( access("/cache/oc", F_OK ) != -1 ) {
+		FILE* fs = fopen("/cache/oc","r");
+		char* freq = calloc(8,sizeof(char));
+		fgets(freq, 8, fs);
+		fclose(fs);
+		set_cpufreq(freq);
 	}
 	ensure_path_unmounted("/sdcard");
 }
