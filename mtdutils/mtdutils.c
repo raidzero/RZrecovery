@@ -569,3 +569,42 @@ off_t mtd_find_write_start(MtdWriteContext *ctx, off_t pos) {
     }
     return pos;
 }
+
+int mtd_erase_raw_partition(const char *partition_name)
+{
+    MtdWriteContext *out;
+    size_t erased;
+    size_t total_size;
+    size_t erase_size;
+
+    if (mtd_scan_partitions() <= 0)
+    {
+        printf("error scanning partitions");
+        return -1;
+    }
+    const MtdPartition *p = mtd_find_partition_by_name(partition_name);
+    if (p == NULL)
+    {
+        printf("can't find %s partition", partition_name);
+        return -1;
+    }
+
+    out = mtd_write_partition(p);
+    if (out == NULL)
+    {
+        printf("could not estabilish write context for %s", partition_name);
+        return -1;
+    }
+
+    // do the actual erase, -1 = full partition erase
+    erased = mtd_erase_blocks(out, -1);
+
+    // erased = bytes erased, if zero, something borked
+    if (!erased)
+    {
+        printf("error erasing %s", partition_name);
+        return -1;
+    }
+
+    return 0;
+}

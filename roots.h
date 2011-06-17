@@ -39,5 +39,5 @@ int is_path_mounted(const char* path);
 // "/cache"), no paths permitted.  Attempts to unmount the volume if
 // it is mounted.
 int format_volume(const char* volume);
-
+int erase_raw_partition(const char* partitionType, const char *partition);
 #endif  // RECOVERY_ROOTS_H_

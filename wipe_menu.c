@@ -41,7 +41,7 @@ void wipe_partition(char* title, char* operation, char* partition) {
 	}
 	if( strcmp( partition, "boot" ) == 0 ) {
 		ui_print("\n-- Wiping boot...\n");
-		erase_volume("BOOT:");
+		mtd_erase_raw_partition("/boot");
 		ui_print("Boot wipe complete.\n");
 	}
 	if( strcmp( partition, "cache" ) == 0 ) {
@@ -94,7 +94,7 @@ void wipe_partition(char* title, char* operation, char* partition) {
 		remove("/sdcard/.android-secure/*");
 		ui_print("\n .android-secure cleared.\n");
 		ui_print("\n-- Wiping boot...\n");
-		erase_volume("BOOT:");
+		mtd_erase_raw_partition("/boot");
 		ui_print("Boot wipe complete.\n");
 		ui_print("Device completely wiped.\n\n");
 		ui_print("All that remains is RZR.\n");
