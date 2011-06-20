@@ -472,23 +472,15 @@ prepend_title(const char** headers) {
     ver_headers[c]=NULL;
     char** v = ver_headers+1;
     for (p1 = headers+1; *p1; ++p1, ++v) *v = *p1;
-    /*
-    char* title[] = { "Android system recovery <"
-                          EXPAND(RECOVERY_API_VERSION) "e>",
-                      "",
-                      NULL };
-		      */
 
     // count the number of lines in our title, plus the
     // caller-provided headers.
     int count = 0;
     char** p;
-    //for (p = title; *p; ++p, ++count);
     for (p = headers; *p; ++p, ++count);
 
     char** new_headers = malloc((count+1) * sizeof(char*));
     char** h = new_headers;
-    //for (p = title; *p; ++p, ++h) *h = *p;
     for (p = ver_headers; *p; ++p, ++h) *h = *p;
     *h = NULL;
 
