@@ -104,8 +104,7 @@ void wipe_partition(char* title, char* operation, char* partition) {
 
 void show_wipe_menu()
 {
-    static char* headers[] = { "Choose an item to wipe",
-			       "or press DEL or POWER to return",
+    static char* headers[] = { "Choose a partition to wipe",
 			       "USE CAUTION:",
 			       "These operations *CANNOT BE UNDONE*",
 			       "",

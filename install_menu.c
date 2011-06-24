@@ -38,7 +38,7 @@ char** sortlist(char** list, int total) {
 }
 
 void choose_file_menu(char* sdpath) {
-    static char* headers[] = { "Choose item or press POWER to return",
+    static char* headers[] = { "Choose item",
 			       "",
 			       NULL };
     

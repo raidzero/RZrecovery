@@ -129,8 +129,7 @@ void nandroid_restore(char* subname, char partitions)
 
 void nandroid_adv_r_choose_file(char* filename, char* nandroid_folder)
 {
-	static char* headers[] = { "Choose a backup prefix or press",
-				   "POWER or DEL to return",
+	static char* headers[] = { "Choose a backup",
 				   "",
 				   NULL };
 	char path[PATH_MAX] = "";
@@ -235,7 +234,7 @@ void get_nandroid_adv_menu_opts(char** list, char p, char* br)
 
 void show_nandroid_adv_r_menu()
 {
-	char* headers[] = { "Choose an option or press POWER to return",
+	char* headers[] = { "Choose partitions to restore",
 			"prefix:",
 			"",
 			"",
@@ -293,7 +292,7 @@ void show_nandroid_adv_r_menu()
 
 void show_nandroid_adv_b_menu()
 {
-	char* headers[] = { "Choose an option or press POWER to return",
+	char* headers[] = { "Choose partitions to backup",
 			"",
 			NULL };
 	char* items[] = { "Perform backup",
@@ -342,7 +341,7 @@ void show_nandroid_adv_b_menu()
 
 void show_nandroid_menu()
 {
-	static char* headers[] = { "Select an option or press POWER to return",
+	static char* headers[] = { "Nandroid Menu",
 				   "",
 				   NULL };
 	static char* items[] = { "Nandroid Backup",

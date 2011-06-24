@@ -111,7 +111,6 @@ void root_menu() {
 void show_extras_menu()
 {
     static char* headers[] = { "Extras",
-			       "or press DEL or POWER to return",
 			       "",
 			       NULL };
 

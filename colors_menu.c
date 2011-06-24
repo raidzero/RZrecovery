@@ -45,7 +45,6 @@ void set_random() {
 
 void show_colors_menu() {
     static char* headers[] = { "Choose a color",
-			       "or press DEL or POWER to return",
 			       "",
 			       NULL };
 

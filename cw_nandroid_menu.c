@@ -35,7 +35,7 @@ void restore_cw_nandroid(char* filename)
 
 void show_choose_cwnand_menu()
 {
-    static char* headers[] = { "Choose a CW backup or press POWER to return",
+    static char* headers[] = { "Choose a CW backup to restore",
 			       "",
 			       NULL };
     
