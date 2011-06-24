@@ -21,7 +21,8 @@ LOCAL_SRC_FILES := \
     install_menu.c \
     nandroid_menu.c \
     cw_nandroid_menu.c \
-    overclock_menu.c
+    overclock_menu.c \
+    mounts.c
     
 	
     
@@ -47,13 +48,80 @@ else
   LOCAL_STATIC_LIBRARIES += $(TARGET_RECOVERY_UI_LIB)
 endif
 LOCAL_STATIC_LIBRARIES += libext4_utils libz
-LOCAL_STATIC_LIBRARIES += libminzip libunz libmtdutils libmincrypt
+LOCAL_STATIC_LIBRARIES += libminzip libunz libmincrypt
 LOCAL_STATIC_LIBRARIES += libminui libpixelflinger_static libpng libcutils
+LOCAL_STATIC_LIBRARIES += libflashutils libmtdutils libmmcutils libbmlutils 
 LOCAL_STATIC_LIBRARIES += libstdc++ libc
 
 LOCAL_C_INCLUDES += system/extras/ext4_utils
 
 include $(BUILD_EXECUTABLE)
+
+# copy prebuilt items
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := recovery.version
+LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)
+LOCAL_SRC_FILES := recovery.version
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := initlogo.rle
+LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)
+LOCAL_SRC_FILES := initlogo.rle
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := busybox
+LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+LOCAL_SRC_FILES := busybox
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := cw_restore.sh
+LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+LOCAL_SRC_FILES := cw_restore.sh
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := nandroid-mobile.sh
+LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+LOCAL_SRC_FILES := nandroid-mobile.sh
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := dump_image-arm-uclibc
+LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+LOCAL_SRC_FILES := dump_image-arm-uclibc
+include $(BUILD_PREBUILT)
+include $(CLEAR_VARS)
+
+LOCAL_MODULE := mkyaffs2image-arm-uclibc
+LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+LOCAL_SRC_FILES := mkyaffs2image-arm-uclibc
+include $(BUILD_PREBUILT)
+include $(CLEAR_VARS)
+
+LOCAL_MODULE := unyaffs-arm-uclibc
+LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+LOCAL_SRC_FILES := unyaffs-arm-uclibc
+include $(BUILD_PREBUILT)
 
 
 include $(CLEAR_VARS)
@@ -70,14 +138,17 @@ LOCAL_STATIC_LIBRARIES := libmincrypt libcutils libstdc++ libc
 
 include $(BUILD_EXECUTABLE)
 
-
+include $(commands_recovery_local_path)/flashutils/Android.mk
+include $(commands_recovery_local_path)/mtdutils/Android.mk
+include $(commands_recovery_local_path)/mmcutils/Android.mk
+include $(commands_recovery_local_path)/bmlutils/Android.mk
 include $(commands_recovery_local_path)/minui/Android.mk
 include $(commands_recovery_local_path)/minzip/Android.mk
-include $(commands_recovery_local_path)/mtdutils/Android.mk
 include $(commands_recovery_local_path)/tools/Android.mk
 include $(commands_recovery_local_path)/edify/Android.mk
 include $(commands_recovery_local_path)/updater/Android.mk
 include $(commands_recovery_local_path)/applypatch/Android.mk
+
 commands_recovery_local_path :=
 
 endif   # TARGET_ARCH == arm

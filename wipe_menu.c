@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "mtdutils/mtdutils.h"
 #include "recovery.h"
 #include "roots.h"
 #include "recovery_ui.h"
@@ -41,17 +42,17 @@ void wipe_partition(char* title, char* operation, char* partition) {
 	}
 	if( strcmp( partition, "boot" ) == 0 ) {
 		ui_print("\n-- Wiping boot...\n");
-		mtd_erase_raw_partition("/boot");
+		cmd_mtd_erase_raw_partition("/boot");
 		ui_print("Boot wipe complete.\n");
 	}
 	if( strcmp( partition, "cache" ) == 0 ) {
 		ui_print("\n-- Wiping cache...\n");
 		ui_print("-- May take a while on gingerbread...\n");
-		write_files();
+		//write_files();
 		ensure_path_unmounted("/cache");
 		erase_volume("/cache");
 		ensure_path_mounted("/cache");
-		read_files();
+		//read_files();
 		ui_print("Cache wipe complete.");
 	}
 	if( strcmp( partition, "batts" ) == 0 ) {
@@ -94,7 +95,7 @@ void wipe_partition(char* title, char* operation, char* partition) {
 		remove("/sdcard/.android-secure/*");
 		ui_print("\n .android-secure cleared.\n");
 		ui_print("\n-- Wiping boot...\n");
-		mtd_erase_raw_partition("/boot");
+		cmd_mtd_erase_raw_partition("/boot");
 		ui_print("Boot wipe complete.\n");
 		ui_print("Device completely wiped.\n\n");
 		ui_print("All that remains is RZR.\n");

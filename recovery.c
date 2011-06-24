@@ -40,6 +40,9 @@
 #include "recovery_ui.h"
 #include "encryptedfs_provisioning.h"
 
+#include "flashutils/flashutils.h"
+#include "mounts.h"
+
 static const struct option OPTIONS[] = {
   { "send_intent", required_argument, NULL, 's' },
   { "update_package", required_argument, NULL, 'u' },
@@ -162,6 +165,7 @@ check_and_fclose(FILE *fp, const char *name) {
     fclose(fp);
 }
 
+
 void set_cpufreq(char* speed) {
 	FILE* fs = fopen("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq","w");
 	fputs(speed,fs);
@@ -169,36 +173,92 @@ void set_cpufreq(char* speed) {
 	fclose(fs);
 }
 
+void write_fstab_root(char *path, FILE *file)
+{
+    Volume *vol = volume_for_path(path);
+    if (vol == NULL) {
+        LOGW("Unable to get recovery.fstab info for %s during fstab generation!\n", path);
+        return;
+    }
+
+    char device[200];
+    if (vol->device[0] != '/')
+        get_partition_device(vol->device, device);
+    else
+        strcpy(device, vol->device);
+
+    fprintf(file, "%s ", device);
+    fprintf(file, "%s ", path);
+    // special case rfs cause auto will mount it as vfat on samsung.
+    fprintf(file, "%s rw\n", vol->fs_type2 != NULL && strcmp(vol->fs_type, "rfs") != 0 ? "auto" : vol->fs_type);
+}
+
+void create_fstab()
+{
+    struct stat info;
+    system("touch /etc/mtab");
+    FILE *file = fopen("/etc/fstab", "w");
+    if (file == NULL) {
+        LOGW("Unable to create /etc/fstab!\n");
+        return;
+    }
+    Volume *vol = volume_for_path("/boot");
+    if (NULL != vol && strcmp(vol->fs_type, "mtd") != 0 && strcmp(vol->fs_type, "emmc") != 0)
+	    write_fstab_root("/boot", file);
+	    write_fstab_root("/cache", file);
+	    write_fstab_root("/data", file);
+	    write_fstab_root("/system", file);
+	    write_fstab_root("/sdcard", file);
+	    write_fstab_root("/sd-ext", file);
+	    fclose(file);
+	    LOGI("Completed outputting fstab.\n");
+}
+
 //write recovery files from cache to sdcard
 void write_files() {
-	ensure_path_mounted("/sdcard");
-	system("cp /cache/rgb /sdcard/RZR/rgb");
-	system("cp /cache/oc /sdcard/RZR/oc");
+	if (ensure_path_mounted("/sdcard") != 0) {
+		LOGE ("Can't mount /sdcard\n");
+		return;
+	} else {
+		system("cp /cache/rgb /sdcard/RZR/rgb");
+		system("cp /cache/oc /sdcard/RZR/oc");
+	}
 }
 
 //read recovery files from sdcard to cache
 void read_files() {
-	ensure_path_mounted("/sdcard");
-	if( access("/sdcard/RZR/rgb", F_OK ) != -1 ) {
-		system("cp /sdcard/RZR/rgb /cache/rgb");		
+	if (ensure_path_mounted("/sdcard") != 0) {
+		LOGE ("Can't mount /sdcard\n");
+		return;
 	} else {
-		mkdir("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-		set_color(54,74,255);
+		DIR *dir;
+		dir = opendir("/sdcard/RZR");
+		if (dir == NULL) {
+			mkdir("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+			return;
+		}
+		
+		if(access("/sdcard/RZR/rgb", F_OK ) != -1 ) {
+			system("cp /sdcard/RZR/rgb /cache/rgb");		
+		} else {		
+			set_color(54,74,255);
+		}
+		
+		if(access("/sdcard/RZR/oc", F_OK ) != -1 ) {
+			system("cp /sdcard/RZR/oc /cache/oc");
+		} 
+		
+		if(access("/cache/oc", F_OK ) != -1 ) {
+			FILE* fs = fopen("/cache/oc","r");
+			char* freq = calloc(8,sizeof(char));
+			fgets(freq, 8, fs);
+			fclose(fs);
+			if( access("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq", F_OK ) != -1 ) {
+				set_cpufreq(freq);
+			}
+		}
+		ensure_path_unmounted("/sdcard");
 	}
-	
-	if( access("/sdcard/RZR/oc", F_OK ) != -1 ) {
-		system("cp /sdcard/RZR/oc /cache/oc");
-	} else {
-		mkdir("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-	}
-	if( access("/cache/oc", F_OK ) != -1 ) {
-		FILE* fs = fopen("/cache/oc","r");
-		char* freq = calloc(8,sizeof(char));
-		fgets(freq, 8, fs);
-		fclose(fs);
-		set_cpufreq(freq);
-	}
-	ensure_path_unmounted("/sdcard");
 }
 
 // command line args come from, in decreasing precedence:
@@ -207,6 +267,7 @@ void read_files() {
 //   - the contents of COMMAND_FILE (one per line)
 void
 get_args(int *argc, char ***argv) {
+    create_fstab();
     read_files();
     struct bootloader_message boot;
     memset(&boot, 0, sizeof(boot));

@@ -50,29 +50,6 @@ void show_battstat() {
 	fclose(fs);
 }
 
-
-void keylight() {
-	if (access("/sys/class/leds/keyboard-backlight/brightness",F_OK)) {
-		ui_print("\nKeyboard backlight not found.\n");
-		return;
-	}
-	char brightness[3];
-	int bi;
-	FILE* flr = fopen("/sys/class/leds/keyboard-backlight/brightness","r");
-    fgets(brightness, 3, flr);
-	bi = atoi(brightness);
-	FILE* flw = fopen("/sys/class/leds/keyboard-backlight/brightness","w");
-	if (bi == 0) {
-		fputs("255",flw);
-		fputs("\n",flw);
-	} else { 
-		fputs("0",flw);
-		fputs("\n",flw);
-	}
-	fclose(flr);
-	fclose(flw);
-}
-
 void flashlight() {
 	if (access("/sys/class/leds/spotlight/brightness",F_OK)) {
 		ui_print("\nFlashlight not found.\n");
@@ -153,7 +130,6 @@ void show_extras_menu()
 #define FLASHLIGHT     3
 #define ROOT_MENU	   4
 #define OVERCLOCK	   5
-#define KEYLIGHT	   6
 
 int chosen_item = -1;
 
@@ -179,9 +155,6 @@ int chosen_item = -1;
 		break;
 	case OVERCLOCK:
 		show_overclock_menu();
-		break;
-	case KEYLIGHT:
-		keylight();
 		break;
         }
     }

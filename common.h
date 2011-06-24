@@ -96,6 +96,11 @@ typedef struct {
     const char* device2;      // alternative device to try if fs_type
                               // == "ext4" or "vfat" and mounting
                               // 'device' fails
+    const char* fs_type2;
+
+    const char* fs_options;
+
+    const char* fs_options2;
 } Volume;
 
 #endif  // RECOVERY_COMMON_H
