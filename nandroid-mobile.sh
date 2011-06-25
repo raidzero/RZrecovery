@@ -8,7 +8,6 @@
 # - dump_image-arm-uclibc compiled and in path on phone
 # - mkyaffs2image-arm-uclibc compiled and installed in path on phone
 # - flash_image-arm-uclibc compiled and in path on phone
-# - unyaffs-arm-uclibc compiled and in path on phone
 # - for [de]compression needs gzip or bzip2, part of the busybox
 # - wget for the wireless updates
 
@@ -270,30 +269,16 @@ if [ "$RESTORE" == 1 ]; then
 	    exit 8
 	fi
     fi
-    unyaffs=`which unyaffs`
-    if [ "$unyaffs" == "" ]; then
-		unyaffs=`which unyaffs-arm-uclibc`
-	if [ "$unyaffs" == "" ]; then
-	    echo "* print error: unyaffs or unyaffs-arm-uclibc not found in path"
-	    exit 9
-	fi
-    fi
 fi
 
 if [ "$INSTALL_ROM" == 1 ]; then
-	sd_mounted=`mount | grep "/sdcard" | wc -l`
-	data_mounted=`mount | grep "/data" | wc -l`
-	system_mounted=`mount | grep "/system" | wc -l`
 	
     batteryAtLeast 30
 
     $ECHO "* show_indeterminate_progress"
 
     echo "* print Installing ROM from $ROM_FILE..."
-
-	if [ "$sd_mounted" == "0" ]; then
-		mount /sdcard
-	fi
+    mount /sdcard
 
     if [ -z "$(mount | grep sdcard)" ]; then
 	echo "* print error: unable to mount /sdcard, aborting"
@@ -380,12 +365,9 @@ if [ "$INSTALL_ROM" == 1 ]; then
 	    continue
 	fi
 	
-	echo "* print Flashing /$image from $image.tar"
-	
-	is_mounted=`mount | grep $image | wc -l`
-	if [ "$is_mounted" != "1" ]; then
-		mount /$image 2>/dev/null
-	fi
+	echo "* print Flashing /$image from $image.tar"	
+	mount /$image 2>/dev/null
+
 	
 	if [ "$(mount | grep $image)" == "" ]; then
 	    echo "* print error: unable to mount /$image"
@@ -419,33 +401,21 @@ if [ "$INSTALL_ROM" == 1 ]; then
     fi
 
     echo "* print Installed ROM from $ROM_FILE"
-	
-	if [ "$system_mounted" != "0" ]; then
-		umount /system 2>/dev/null
-	fi
-	if [ "$data_mounted" != "0" ]; then
-		umount /data 2>/dev/null
-	fi
+    umount /system 2>/dev/null
+    umount /data 2>/dev/null
     exit 0
 fi
 
 if [ "$RESTORE" == 1 ]; then
-	
-	sd_mounted=`mount | grep "/sdcard" | wc -l`
-	data_mounted=`mount | grep "/data" | wc -l`
-	system_mounted=`mount | grep "/system" | wc -l`
-	datadata_present= `cat /etc/fstab | grep datadata | wc -l`
+    datadata_present= `cat /etc/fstab | grep datadata | wc -l`
     batteryAtLeast 30
+    umount /sdcard 2>/dev/null
+    mount /sdcard 2>/dev/null
 	
-	if [ "$sd_mounted" == "0" ]; then
-		umount /sdcard 2>/dev/null
-		mount /sdcard 2>/dev/null
+	if [ "$(mount | grep sdcard)" == "" ]; then
+	    echo "* print error: unable to mount /sdcard"
+	    exit 16
 	fi
-	
-    if [ "$sd_mounted" == "0" ]; then
-		echo "* print error: unable to mount /sdcard, aborting"
-		exit 20
-    fi
 
 
 
@@ -481,14 +451,8 @@ if [ "$RESTORE" == 1 ]; then
     echo "* print Restore path: $RESTOREPATH"
     echo "* print "
 	
-	if [ "$system_mounted" == "0" ]; then
-		mount /system 2>/dev/null
-	fi
-	system_mounted=`mount | grep "/system" | wc -l`
-    if [ "$data_mounted" == "0" ]; then
-		mount /data 2>/dev/null
-		
-    fi
+    mount /system 2>/dev/null
+    mount /data 2>/dev/null
     if [ "$datadata" != "0" && -z "$(mount | grep datadata)" ]; then
 	mount /datadata 2>/dev/null
     fi
@@ -581,10 +545,8 @@ if [ "$RESTORE" == 1 ]; then
 
 		cd /
 		sync
-		is_mounted=`mount | grep $image | wc -l`
-		if [ "$is_mounted" != "0" ]; then
-			umount /$image 2> /dev/null
-		fi
+		umount /$image 2> /dev/null
+
     echo "* print done."
     done
     
@@ -595,9 +557,6 @@ fi
 
 # 2.
 if [ "$BACKUP" == 1 ]; then
-	sd_mounted=`mount | grep "/sdcard" | wc -l`
-	data_mounted=`mount | grep "/data" | wc -l`
-	system_mounted=`mount | grep "/system" | wc -l`
 	datadata_present= `cat /etc/fstab | grep datadata | wc -l`
 	
     TAR_OPTS="c"
@@ -607,24 +566,12 @@ if [ "$BACKUP" == 1 ]; then
 
     echo "* print mounting system and data read-only, sdcard read-write"
 	
-	if [ "$system_mounted" != "0" ]; then
 		umount /system 2>/dev/null
-	fi
-	if [ "$data_mounted" != "0" ]; then
 		umount /data 2>/dev/null
-	fi
-	if [ "$sd_mounted" != "0" ]; then
 		umount /sdcard 2>/dev/null
-	fi
-	if [ "$system_mounted" == "0" ]; then
 		mount /system 
-	fi
-	if [ "$data_mounted" == "0" ]; then
 		mount /data 
-	fi
-	if [ "$sd_mounted" != "0" ]; then
 		mount /sdcard 2> /dev/null 
-	fi
 	if [ "$datadata" != "0" ]; then
 		mount /datadata 2>/dev/null
 	fi
@@ -657,30 +604,18 @@ if [ "$BACKUP" == 1 ]; then
 	mkdir -p $DESTDIR
 	if [ ! -d $DESTDIR ]; then 
 	    echo "* print error: cannot create $DESTDIR"
-		if [ "$system_mounted" != "0" ]; then
-			umount /system 2>/dev/null
-		fi
-		if [ "$data_mounted" != "0" ]; then
-			umount /data 2>/dev/null
-		fi
-		if [ "$sd_mounted" != "0" ]; then
-			umount /sdcard 2>/dev/null
-		fi
+		umount /system 2>/dev/null
+		umount /data 2>/dev/null
+		umount /sdcard 2>/dev/null
 	    exit 32
 #	fi
     else
 		touch $DESTDIR/.nandroidwritable
 		if [ ! -e $DESTDIR/.nandroidwritable ]; then
 			echo "* print error: cannot write to $DESTDIR"
-			if [ "$system_mounted" != "0" ]; then
 				umount /system 2>/dev/null
-			fi
-			if [ "$data_mounted" != "0" ]; then
 				umount /data 2>/dev/null
-			fi
-			if [ "$sd_mounted" != "0" ]; then
 				umount /sdcard 2>/dev/null
-			fi
 			exit 33
 		fi
 		rm $DESTDIR/.nandroidwritable
@@ -688,21 +623,17 @@ if [ "$BACKUP" == 1 ]; then
 
 # 3.
     echo "* print checking free space on sdcard"
-    FREEBLOCKS="`df -k /sdcard| grep sdcard | awk '{ print $4 }'`"
-# we need about 130MB for the dump
-    if [ $FREEBLOCKS -le 130000 ]; then
-	echo "* print Error: not enough free space available on sdcard (need 130mb), aborting."
-		if [ "$system_mounted" != "0" ]; then
-			umount /system 2>/dev/null
-		fi
-		if [ "$data_mounted" != "0" ]; then
-			umount /data 2>/dev/null
-		fi
-		if [ "$sd_mounted" != "0" ]; then
-			umount /sdcard 2>/dev/null
-		fi
-	exit 34
-    fi
+    FREEBLOCKS="`df /sdcard| grep sdcard | awk '{ print $4 }'`"
+# we need about 300MB for the dump
+    echo "* print $FREEBLOCKS Bytes Available!"
+    if [ $FREEBLOCKS -le 300000]; then
+		echo "* print Error: not enough free space available on sdcard (need 300mb), aborting."
+		umount /system 2>/dev/null
+		umount /data 2>/dev/null
+		umount /sdcard 2>/dev/null
+		exit 34
+	fi
+	
 
 
 # 5.
@@ -737,15 +668,9 @@ if [ "$BACKUP" == 1 ]; then
 	    fi
 	    if [ "$ATTEMPT" == "5" ]; then
 		echo "* print Fatal error while trying to dump $image, aborting."
-		if [ "$system_mounted" != "0" ]; then
 			umount /system 2>/dev/null
-		fi
-		if [ "$data_mounted" != "0" ]; then
 			umount /data 2>/dev/null
-		fi
-		if [ "$sd_mounted" != "0" ]; then
 			umount /sdcard 2>/dev/null
-		fi
 		exit 35
 	    fi
 	done
@@ -800,16 +725,9 @@ if [ "$BACKUP" == 1 ]; then
     done
 
     echo "* print unmounting system, data and sdcard"
-		if [ "$system_mounted" != "0" ]; then
 			umount /system 2>/dev/null
-		fi
-		if [ "$data_mounted" != "0" ]; then
 			umount /data 2>/dev/null
-		fi
-		if [ "$sd_mounted" != "0" ]; then
 			umount /sdcard 2>/dev/null
-		fi
-
     echo "* print Backup successful."
 	echo "* print Thanks for using RZRecovery."
     if [ "$AUTOREBOOT" == 1 ]; then

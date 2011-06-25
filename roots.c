@@ -166,6 +166,25 @@ Volume* volume_for_path(const char* path) {
     return NULL;
 }
 
+int try_mount(const char* device, const char* mount_point, const char* fs_type, const char* fs_options) {
+    if (device == NULL || mount_point == NULL || fs_type == NULL)
+        return -1;
+    int ret = 0;
+    if (fs_options == NULL) {
+        ret = mount(device, mount_point, fs_type,
+                       MS_NOATIME | MS_NODEV | MS_NODIRATIME, "");
+    }
+    else {
+        char mount_cmd[PATH_MAX];
+        sprintf(mount_cmd, "mount -t %s -o%s %s %s", fs_type, fs_options, device, mount_point);
+        ret = system(mount_cmd);
+    }
+    if (ret == 0)
+        return 0;
+    LOGW("failed to mount %s (%s)\n", device, strerror(errno));
+    return ret;
+}
+
 int is_data_media() {
     Volume *data = volume_for_path("/data");
     return data != NULL && strcmp(data->fs_type, "auto") == 0 && volume_for_path("/sdcard") == NULL;
@@ -180,6 +199,15 @@ void setup_data_media() {
 int ensure_path_mounted(const char* path) {
     Volume* v = volume_for_path(path);
     if (v == NULL) {
+        // no /sdcard? let's assume /data/media
+        if (strstr(path, "/sdcard") == path && is_data_media()) {
+            LOGW("using /data/media, no /sdcard found.\n");
+            int ret;
+            if (0 != (ret = ensure_path_mounted("/data")))
+                return ret;
+            setup_data_media();
+            return 0;
+        }
         LOGE("unknown volume for path [%s]\n", path);
         return -1;
     }
@@ -216,21 +244,23 @@ int ensure_path_mounted(const char* path) {
         }
         return mtd_mount_partition(partition, v->mount_point, v->fs_type, 0);
     } else if (strcmp(v->fs_type, "ext4") == 0 ||
+               strcmp(v->fs_type, "ext3") == 0 ||
+               strcmp(v->fs_type, "rfs") == 0 ||
                strcmp(v->fs_type, "vfat") == 0) {
-        result = mount(v->device, v->mount_point, v->fs_type,
-                       MS_NOATIME | MS_NODEV | MS_NODIRATIME, "");
-        if (result == 0) return 0;
-
-        if (v->device2) {
-            LOGW("failed to mount %s (%s); trying %s\n",
-                 v->device, strerror(errno), v->device2);
-            result = mount(v->device2, v->mount_point, v->fs_type,
-                           MS_NOATIME | MS_NODEV | MS_NODIRATIME, "");
-            if (result == 0) return 0;
-        }
-
-        LOGE("failed to mount %s (%s)\n", v->mount_point, strerror(errno));
-        return -1;
+        if ((result = try_mount(v->device, v->mount_point, v->fs_type, v->fs_options)) == 0)
+            return 0;
+        if ((result = try_mount(v->device2, v->mount_point, v->fs_type, v->fs_options)) == 0)
+            return 0;
+        if ((result = try_mount(v->device, v->mount_point, v->fs_type2, v->fs_options2)) == 0)
+            return 0;
+        if ((result = try_mount(v->device2, v->mount_point, v->fs_type2, v->fs_options2)) == 0)
+            return 0;
+        return result;
+    } else {
+        // let's try mounting with the mount binary and hope for the best.
+        char mount_cmd[PATH_MAX];
+        sprintf(mount_cmd, "mount %s", path);
+        return system(mount_cmd);
     }
 
     LOGE("unknown fs_type \"%s\" for %s\n", v->fs_type, v->mount_point);
@@ -238,8 +268,17 @@ int ensure_path_mounted(const char* path) {
 }
 
 int ensure_path_unmounted(const char* path) {
+    // if we are using /data/media, do not ever unmount volumes /data or /sdcard
+    if (volume_for_path("/sdcard") == NULL && (strstr(path, "/sdcard") == path || strstr(path, "/data") == path)) {
+        return 0;
+    }
+
     Volume* v = volume_for_path(path);
     if (v == NULL) {
+        // no /sdcard? let's assume /data/media
+        if (strstr(path, "/sdcard") == path && is_data_media()) {
+            return ensure_path_unmounted("/data");
+        }
         LOGE("unknown volume for path [%s]\n", path);
         return -1;
     }
@@ -268,6 +307,9 @@ int ensure_path_unmounted(const char* path) {
 int format_volume(const char* volume) {
     Volume* v = volume_for_path(volume);
     if (v == NULL) {
+        // silent failure for sd-ext
+        if (strcmp(volume, "/sd-ext") == 0)
+            return -1;
         LOGE("unknown volume \"%s\"\n", volume);
         return -1;
     }
@@ -277,8 +319,11 @@ int format_volume(const char* volume) {
         return -1;
     }
     if (strcmp(v->mount_point, volume) != 0) {
+#if 0
         LOGE("can't give path \"%s\" to format_volume\n", volume);
         return -1;
+#endif
+        return format_unknown_device(v->device, volume, NULL);
     }
 
     if (ensure_path_unmounted(volume) != 0) {
@@ -319,6 +364,72 @@ int format_volume(const char* volume) {
         return 0;
     }
 
+#if 0
     LOGE("format_volume: fs_type \"%s\" unsupported\n", v->fs_type);
     return -1;
+#endif
+    return format_unknown_device(v->device, volume, v->fs_type);
+}
+
+int format_unknown_device(const char *device, const char* path, const char *fs_type)
+{
+    LOGI("Formatting unknown device.\n");
+
+    // device may simply be a name, like "system"
+    if (get_flash_type(fs_type) != UNSUPPORTED)
+        return erase_raw_partition(fs_type, device);
+
+    // if this is SDEXT:, don't worry about it if it does not exist.
+    if (0 == strcmp(path, "/sd-ext"))
+    {
+        struct stat st;
+        Volume *vol = volume_for_path("/sd-ext");
+        if (vol == NULL || 0 != stat(vol->device, &st))
+        {
+            ui_print("No app2sd partition found. Skipping format of /sd-ext.\n");
+            return 0;
+        }
+    }
+
+    if (NULL != fs_type) {
+        if (strcmp("ext3", fs_type) == 0) {
+            LOGI("Formatting ext3 device.\n");
+            if (0 != ensure_path_unmounted(path)) {
+                LOGE("Error while unmounting %s.\n", path);
+                return -12;
+            }
+            return format_ext3_device(device);
+        }
+
+        if (strcmp("ext2", fs_type) == 0) {
+            LOGI("Formatting ext2 device.\n");
+            if (0 != ensure_path_unmounted(path)) {
+                LOGE("Error while unmounting %s.\n", path);
+                return -12;
+            }
+            return format_ext2_device(device);
+        }
+    }
+
+    if (0 != ensure_path_mounted(path))
+    {
+        ui_print("Error mounting %s!\n", path);
+        ui_print("Skipping format...\n");
+        return 0;
+    }
+
+    static char tmp[PATH_MAX];
+    if (strcmp(path, "/data") == 0) {
+        sprintf(tmp, "cd /data ; for f in $(ls -a | grep -v ^media$); do rm -rf $f; done");
+        system(tmp);
+    }
+    else {
+        sprintf(tmp, "rm -rf %s/*", path);
+	system(tmp);
+        sprintf(tmp, "rm -rf %s/.*", path);
+        system(tmp);
+    }
+
+    ensure_path_unmounted(path);
+    return 0;
 }
