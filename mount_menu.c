@@ -81,6 +81,8 @@ static void disable_usb_mass_storage()
 void show_mount_menu()
 {
     static char* headers[] = { "Choose a mount or unmount option",
+				"",
+				"",
 			       NULL };
     
     // "Mounted partitions: /data /sdcard /system\n"
@@ -93,11 +95,11 @@ void show_mount_menu()
     int ms = is_path_mounted("/system");
     int usb = is_usb_storage_enabled();
     
-    char** items = malloc(3*sizeof(char*));
+    char** items = malloc(6*sizeof(char*));
     
     get_mount_menu_options(items,md,msd,ms,usb);
 
-    headers[2]=get_mounted_partitions_string(mounted,md,msd,ms);
+    headers[1]=get_mounted_partitions_string(mounted,md,msd,ms);
     
 #define ITEM_S   0
 #define ITEM_D   1
