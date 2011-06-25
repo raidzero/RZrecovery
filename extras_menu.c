@@ -35,7 +35,7 @@ void show_battstat() {
 		bcap[caplen-1] = 0;
 	}
 	
-	bcap = strcat(bcap,"%%");
+	bcap = strcat(bcap,"%");
 	ui_print("\nBattery Status: ");
 	ui_print("%s",bstat);
 	char* cmp;
@@ -120,7 +120,6 @@ void show_extras_menu()
 				"Toggle Flashlight",
 				"Activate Root Access in ROM",
 				"Recovery Overclocking",
-				"Toggle keyboard light",
 		      NULL };
 			  
 #define COLORS         0

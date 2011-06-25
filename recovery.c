@@ -557,7 +557,7 @@ get_menu_selection(char** headers, char** items, int menu_only,
     while (chosen_item < 0) {
         int key = ui_wait_key();
 
-	if (key == KEY_BACKSPACE || key == KEY_END) {
+	if (key == KEY_BACKSPACE || key == KEY_END || key == KEY_BACK) {
 	    return(ITEM_BACK);
 	}
 	
