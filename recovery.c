@@ -227,38 +227,30 @@ void write_files() {
 
 //read recovery files from sdcard to cache
 void read_files() {
-	if (ensure_path_mounted("/sdcard") != 0) {
-		LOGE ("Can't mount /sdcard\n");
-		return;
+	ensure_path_mounted("/system");
+	if( access("/sdcard/RZR/rgb", F_OK ) != -1 ) {
+		system("cp /sdcard/RZR/rgb /cache/rgb");		
 	} else {
-		DIR *dir;
-		dir = opendir("/sdcard/RZR");
-		if (dir == NULL) {
-			mkdir("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-			return;
-		}
-		
-		if(access("/sdcard/RZR/rgb", F_OK ) != -1 ) {
-			system("cp /sdcard/RZR/rgb /cache/rgb");		
-		} else {		
-			set_color(54,74,255);
-		}
-		
-		if(access("/sdcard/RZR/oc", F_OK ) != -1 ) {
-			system("cp /sdcard/RZR/oc /cache/oc");
-		} 
-		
-		if(access("/cache/oc", F_OK ) != -1 ) {
-			FILE* fs = fopen("/cache/oc","r");
-			char* freq = calloc(8,sizeof(char));
-			fgets(freq, 8, fs);
-			fclose(fs);
-			if( access("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq", F_OK ) != -1 ) {
-				set_cpufreq(freq);
-			}
-		}
-		ensure_path_unmounted("/sdcard");
+		mkdir("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+		set_color(54,74,255);
 	}
+	
+	if( access("/sdcard/RZR/oc", F_OK ) != -1 ) {
+		system("cp /sdcard/RZR/oc /cache/oc");
+	} else {
+		mkdir("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	}
+	
+	if(access("/cache/oc", F_OK ) != -1 ) {
+		FILE* fs = fopen("/cache/oc","r");
+		char* freq = calloc(8,sizeof(char));
+		fgets(freq, 8, fs);
+		fclose(fs);
+		if( access("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq", F_OK ) != -1 ) {
+			set_cpufreq(freq);
+		}
+	}
+	ensure_path_unmounted("/sdcard");
 }
 
 // command line args come from, in decreasing precedence:
