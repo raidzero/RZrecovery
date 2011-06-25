@@ -227,7 +227,7 @@ void write_files() {
 
 //read recovery files from sdcard to cache
 void read_files() {
-	ensure_path_mounted("/system");
+	ensure_path_mounted("/sdcard");
 	if( access("/sdcard/RZR/rgb", F_OK ) != -1 ) {
 		system("cp /sdcard/RZR/rgb /cache/rgb");		
 	} else {
