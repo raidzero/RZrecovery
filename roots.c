@@ -166,6 +166,17 @@ Volume* volume_for_path(const char* path) {
     return NULL;
 }
 
+int is_data_media() {
+    Volume *data = volume_for_path("/data");
+    return data != NULL && strcmp(data->fs_type, "auto") == 0 && volume_for_path("/sdcard") == NULL;
+}
+
+void setup_data_media() {
+    rmdir("/sdcard");
+    mkdir("/data/media", 0755);
+    symlink("/data/media", "/sdcard");
+}
+
 int ensure_path_mounted(const char* path) {
     Volume* v = volume_for_path(path);
     if (v == NULL) {

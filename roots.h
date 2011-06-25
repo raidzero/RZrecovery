@@ -40,4 +40,7 @@ int is_path_mounted(const char* path);
 // it is mounted.
 int format_volume(const char* volume);
 int erase_raw_partition(const char* partitionType, const char *partition);
+
+int is_data_media();
+void setup_data_media();
 #endif  // RECOVERY_ROOTS_H_

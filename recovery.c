@@ -193,6 +193,52 @@ void write_fstab_root(char *path, FILE *file)
     fprintf(file, "%s rw\n", vol->fs_type2 != NULL && strcmp(vol->fs_type, "rfs") != 0 ? "auto" : vol->fs_type);
 }
 
+void process_volumes() {
+    create_fstab();
+
+    if (is_data_media()) {
+        setup_data_media();
+    }
+
+    return;
+
+    // dead code.
+    if (device_flash_type() != BML)
+        return;
+
+    ui_print("Checking for ext4 partitions...\n");
+    int ret = 0;
+    ret = bml_check_volume("/system");
+    ret |= bml_check_volume("/data");
+    if (has_datadata())
+        ret |= bml_check_volume("/datadata");
+    ret |= bml_check_volume("/cache");
+    
+    if (ret == 0) {
+        ui_print("Done!\n");
+        return;
+    }
+    
+    char backup_path[PATH_MAX];
+    time_t t = time(NULL);
+    char backup_name[PATH_MAX];
+    struct timeval tp;
+    gettimeofday(&tp, NULL);
+    sprintf(backup_name, "before-ext4-convert-%d", tp.tv_sec);
+    sprintf(backup_path, "/sdcard/clockworkmod/backup/%s", backup_name);
+
+    ui_set_show_text(1);
+    ui_print("Filesystems need to be converted to ext4.\n");
+    ui_print("A backup and restore will now take place.\n");
+    ui_print("If anything goes wrong, your backup will be\n");
+    ui_print("named %s. Try restoring it\n", backup_name);
+    ui_print("in case of error.\n");
+
+    nandroid_backup(backup_path);
+    nandroid_restore(backup_path, 1, 1, 1, 1, 1, 0);
+    ui_set_show_text(0);
+}
+
 void create_fstab()
 {
     struct stat info;
@@ -259,8 +305,6 @@ void read_files() {
 //   - the contents of COMMAND_FILE (one per line)
 void
 get_args(int *argc, char ***argv) {
-    create_fstab();
-    read_files();
     struct bootloader_message boot;
     memset(&boot, 0, sizeof(boot));
     get_bootloader_message(&boot);  // this may fail, leaving a zeroed structure
@@ -646,6 +690,7 @@ print_property(const char *key, const char *name, void *cookie) {
 
 int
 main(int argc, char **argv) {
+	read_files();
 	if (strstr(argv[0], "recovery") == NULL)
 	{
 	    if (strstr(argv[0], "flash_image") != NULL)
@@ -665,6 +710,7 @@ main(int argc, char **argv) {
     ui_init();
     ui_set_background(BACKGROUND_ICON_RZ);
     load_volume_table();
+    process_volumes();
     get_args(&argc, &argv);
 
     int previous_runs = 0;

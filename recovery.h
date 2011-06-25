@@ -16,6 +16,8 @@ void wipe_data();
 void prompt_and_wait();
 void print_property(const char *key, const char *name, void *cookie);
 
+void create_fstab();
+void process_volumes();
 void write_files();
 void read_files();
 
