@@ -27,23 +27,17 @@ int slot_count(char* s)
     if (s[i++] ==' ')
       counter++;
   }
+  printf("slot_count completed.\n");
   return counter;
 }
 
 char* get_available_frequencies() {
 	FILE* available_frequencies_file = fopen("/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies","r");
-	char* available_frequencies = calloc(70,sizeof(char));
-	fgets(available_frequencies, 70, available_frequencies_file);
-	fclose(available_frequencies_file);
+	char* available_frequencies = calloc(255,sizeof(char));
+	fgets(available_frequencies, 255, available_frequencies_file);
+	fclose(available_frequencies_file);	
+	printf("get_available_frequencies complete.\n");
 	return available_frequencies;
-}
-
-char* get_current_governor() {
-	FILE* gs = fopen("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor","r");
-    char* current_governor = calloc(20,sizeof(char));
-    fgets(current_governor, 20, gs);
-	fclose(gs);
-	return current_governor;
 }
 
 char* get_max_freq() {
@@ -51,29 +45,31 @@ char* get_max_freq() {
     char* freq = calloc(8,sizeof(char));
     fgets(freq, 8, fs);
 	fclose(fs);
+	printf("get_max_freq complete.\n");
 	return freq;
 }
 
 void show_overclock_menu() {
 	if (access("/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies",F_OK)) {
-		ui_print("\nscaling_available_frequencies not found.");
+		ui_print("scaling_available_frequencies not found.");
 		return;
 	}
 	
 	char* available_frequencies = get_available_frequencies();
-	char* current_governor = get_current_governor();
 	char* freq = get_max_freq();
 	
 	int freqlen = strlen(freq);
 	if( freq[freqlen-1] == '\n' ) {
 	freq[freqlen-1] = 0;
 	}
+	printf("Removed last char in freq.\n");
 	
 	freq = strcat(freq," KHz");
 	freqlen = strlen(freq);
 	if( freq[freqlen-1] == '\n' ) {
 	freq[freqlen-1] = 0;
 	}
+	printf("Created freqlen string \n");
 	
 	// create an array from available_frequencies delimited by spaces - crude and
 	// I hope it works on all devices 
@@ -87,45 +83,48 @@ void show_overclock_menu() {
 				arglen += 10;
 				slots = realloc(slots, arglen);
 				ap = &slots[arglen-10];
-			}	
-	
+			}
+			
+	printf("available_frequencies array created.\n");
 	//since there is no way to delete the last element, I will copy all the elements up to num_slots
 	//into a new available_slots array and then free the slots array
-	int num_slots = slot_count(get_available_frequencies());		
+	int num_slots = slot_count(get_available_frequencies());			
 	char** available_slots;
 	available_slots = calloc(arglen, sizeof(char*));
 	int i;
 	for (i=0; i<num_slots; i++) {
 		available_slots[i]=slots[i];
 	}
+	printf("All elements but last copied into available_slots\n");
 	free(slots);
+	printf("\nslots[] freed\n");
+	
 	
 	//create pretty header lines
-	char governor_string[50];
 	char max_string[50];
-	strcpy(governor_string, "Current governor: ");
-	strcat(governor_string, current_governor);	
 	strcpy(max_string, "Current max speed: ");
 	strcat(max_string, freq);
-	char slot_string[25];
-	if (num_slots == 5) strcpy(slot_string,"5 slots available:");
-	if (num_slots == 7) strcpy(slot_string,"7 slots available:");
+	printf("%s",max_string);
+	printf("\nmax_string created\n");
+	
 	
     char* headers[] = { "Recovery CPU settings",
 				   max_string,
-				   governor_string,
-				   slot_string,
 				   " ",
 			       NULL };
+    printf("\nheaders[] created\n");
 			  
-#define slot1         	0
+#define slot1         		0
 #define slot2			1
-#define slot3		    2
+#define slot3		    	2
 #define slot4     		3
-#define slot5	    	4
+#define slot5	    		4
 #define slot6			5
 #define slot7			6
-
+#define slot8			7
+#define slot9			8
+#define slot10			9
+			       
 int chosen_item = -1;
 
     while(chosen_item!=ITEM_BACK) {
@@ -155,6 +154,15 @@ int chosen_item = -1;
 		return;	
 	case slot7:
 		set_oc(available_slots[6]);
+		return;
+	case slot8:
+		set_oc(available_slots[7]);
+		return;
+	case slot9:
+		set_oc(available_slots[8]);
+		return;
+	case slot10:
+		set_oc(available_slots[9]);
 		return;
         }
     }

@@ -225,8 +225,12 @@ void write_files() {
 		LOGE ("Can't mount /sdcard\n");
 		return;
 	} else {
-		system("cp /cache/rgb /sdcard/RZR/rgb");
-		system("cp /cache/oc /sdcard/RZR/oc");
+		if( access("/cache/rgb", F_OK ) != -1 ) {
+			system("cp /cache/rgb /sdcard/RZR/rgb");
+		}
+		if( access("/cache/oc", F_OK ) != -1 ) {
+			system("cp /cache/oc /sdcard/RZR/oc");
+		}
 	}
 }
 
@@ -402,7 +406,7 @@ erase_volume(const char *volume) {
     ui_set_background(BACKGROUND_ICON_RZ);
     ui_show_indeterminate_progress();
     ui_print("Formatting %s...\n", volume);
-
+	    
     if (strcmp(volume, "/cache") == 0) {
         // Any part of the log we'd copied to cache is now gone.
         // Reset the pointer so we copy from the beginning of the temp
@@ -658,6 +662,8 @@ main(int argc, char **argv) {
 	        return dump_image_main(argc, argv);
 	    if (strstr(argv[0], "erase_image") != NULL)
 	        return erase_image_main(argc, argv);
+	    if (strstr(argv[0], "format") != NULL)
+	        return erase_volume(argv[1]);
         }
     time_t start = time(NULL);
 
@@ -805,6 +811,7 @@ void reboot_recovery() {
 	write_files();
 	sync();
 	__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "recovery");
+	reboot(RB_AUTOBOOT);
 }
 
 void power_off() {

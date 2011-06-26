@@ -1,3 +1,5 @@
+#include <errno.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -62,13 +64,25 @@ static void get_mount_menu_options(char** items, int md, int msd, int ms, int us
     items[4]=NULL;
 }
 
+#ifndef BOARD_UMS_LUNFILE
+#define BOARD_UMS_LUNFILE	"/sys/devices/platform/usb_mass_storage/lun0/file"
+#endif
+
 static void enable_usb_mass_storage()
 {
-    ensure_path_unmounted("/sdcard");
-    FILE* fp = fopen("/sys/devices/platform/usb_mass_storage/lun0/file","w");
-    const char* sdcard_partition = "/dev/block/mmcblk0\n";
-    fprintf(fp,"%s",sdcard_partition);
-    fclose(fp);
+    int fd;
+    Volume *vol = volume_for_path("/sdcard");
+    if ((fd = open(BOARD_UMS_LUNFILE, O_WRONLY)) < 0) {
+        LOGE("Unable to open ums lunfile (%s)", strerror(errno));
+        return -1;
+    }
+
+    if ((write(fd, vol->device, strlen(vol->device)) < 0) &&
+        (!vol->device2 || (write(fd, vol->device, strlen(vol->device2)) < 0))) {
+        LOGE("Unable to write to ums lunfile (%s)", strerror(errno));
+        close(fd);
+        return -1;
+    }
 }
 
 static void disable_usb_mass_storage()

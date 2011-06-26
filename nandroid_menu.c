@@ -192,6 +192,8 @@ void nandroid_adv_r_choose_file(char* filename, char* nandroid_folder)
 		goto out; // again, eww
 	}
 	
+	//reverse the list
+	list = reverse_array(list);
 	int chosen_item = -1;
 	while (chosen_item < 0) {
 		chosen_item = get_menu_selection(headers, list, 1, chosen_item<0?0:chosen_item);
@@ -209,6 +211,20 @@ out:
 	free(list);
 }
 
+void reverse_array(char** inver_a)
+{
+   int j = sizeof(inver_a) / sizeof(char**);
+   int i,temp;
+   j--;
+   for(i=0;i<j;i++)
+   {
+      temp=inver_a[i];
+      inver_a[i]=inver_a[j];
+      inver_a[j]=temp;
+      j--;
+   }
+   return inver_a;
+}
 
 void get_nandroid_adv_menu_opts(char** list, char p, char* br)
 {

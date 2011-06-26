@@ -1,25 +1,5 @@
 #!/sbin/sh
 
-# Requirements:
-
-# - a modded android in recovery mode (JF 1.3 will work by default)
-# - adb shell as root in recovery mode if not using a pre-made recovery image
-# - busybox in recovery mode
-# - dump_image-arm-uclibc compiled and in path on phone
-# - mkyaffs2image-arm-uclibc compiled and installed in path on phone
-# - flash_image-arm-uclibc compiled and in path on phone
-# - for [de]compression needs gzip or bzip2, part of the busybox
-# - wget for the wireless updates
-
-# dev:    size   erasesize  name
-#mtd0: 00040000 00020000 "misc"
-#mtd1: 00500000 00020000 "recovery"
-#mtd2: 00280000 00020000 "boot"
-#mtd3: 04380000 00020000 "system"
-#mtd4: 04380000 00020000 "cache"
-#mtd5: 04ac0000 00020000 "userdata"
-
-
 SUBNAME=""
 NOBOOT=0
 NODATA=0
@@ -235,23 +215,6 @@ if [ "$BACKUP" == 1 ]; then
     else
 	tar="busybox tar cf"
     fi
-	
-    mkyaffs2image=`which mkyaffs2image`
-    if [ "$mkyaffs2image" == "" ]; then
-	mkyaffs2image=`which mkyaffs2image-arm-uclibc`
-	if [ "$mkyaffs2image" == "" ]; then
-	    echo "* print error: mkyaffs2image or mkyaffs2image-arm-uclibc not found in path"
-	    exit 6
-	fi
-    fi
-    dump_image=`which dump_image`
-    if [ "$dump_image" == "" ]; then
-	dump_image=`which dump_image-arm-uclibc`
-	if [ "$dump_image" == "" ]; then
-	    echo "* print error: dump_image or dump_image-arm-uclibc not found in path"
-	    exit 7
-	fi
-    fi
 fi
 
 if [ "$RESTORE" == 1 ]; then
@@ -259,15 +222,6 @@ if [ "$RESTORE" == 1 ]; then
 		untar="busybox tar xvf"
     else
         untar="busybox tar xf"
-    fi
-
-    flash_image=`which flash_image`
-    if [ "$flash_image" == "" ]; then
-		flash_image=`which flash_image-arm-uclibc`
-	if [ "$flash_image" == "" ]; then
-	    echo "* print error: flash_image or flash_image-arm-uclibc not found in path"
-	    exit 8
-	fi
     fi
 fi
 
@@ -495,7 +449,7 @@ if [ "$RESTORE" == 1 ]; then
             continue
         fi
         echo "* print Flashing $image..."
-		$flash_image $image $image.img $OUTPUT
+		flash_image $image $image.img $OUTPUT
 		echo "* print done."
     done
 
@@ -648,7 +602,7 @@ if [ "$BACKUP" == 1 ]; then
 		;;
 	esac
 
-	DEVICEMD5=`$dump_image $image - | md5sum | awk '{ print $1 }'`
+	DEVICEMD5=`dump_image $image - | md5sum | awk '{ print $1 }'`
 	sleep 1s
 	MD5RESULT=1
 	# 5b
@@ -657,7 +611,7 @@ if [ "$BACKUP" == 1 ]; then
 	while [ $MD5RESULT -eq 1 ]; do
 	    let ATTEMPT=$ATTEMPT+1
 		# 5b1
-	    $dump_image $image $DESTDIR/$image.img $OUTPUT
+	    dump_image $image $DESTDIR/$image.img $OUTPUT
 	    sync
 		# 5b3
 	    echo "${DEVICEMD5}  $DESTDIR/$image.img" | md5sum -c -s - $OUTPUT
