@@ -577,10 +577,14 @@ if [ "$BACKUP" == 1 ]; then
 
 # 3.
     echo "* print checking free space on sdcard"
-    FREEBLOCKS="`df /sdcard| grep sdcard | awk '{ print $4 }'`"
-# we need about 300MB for the dump
+    FREEBLOCKS="`df | grep sdcard | awk '{ print $4 }'`"
+    DATABLOCKS="`df | grep /data | awk '{print$3}'`"
+    SYSBLOCKS="`df | grep /system | awk '{print$3}'`"
+    REQBLOCKS="`expr $SYSBLOCKS + $DATABLOCKS`"
+
+    echo "* print $REQBLOCKS Bytes Required!"
     echo "* print $FREEBLOCKS Bytes Available!"
-    if [ $FREEBLOCKS -le 300000]; then
+    if [ $FREEBLOCKS -le $REQBLOCKS]; then
 		echo "* print Error: not enough free space available on sdcard (need 300mb), aborting."
 		umount /system 2>/dev/null
 		umount /data 2>/dev/null

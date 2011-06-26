@@ -205,6 +205,7 @@ static void draw_screen_locked(void)
 	gr_fill(0, row*CHAR_HEIGHT+CHAR_HEIGHT/2-1,
 	gr_fb_width(), row*CHAR_HEIGHT+CHAR_HEIGHT/2+1);
 	row++;
+	
 	if (menu_items - menu_show_start + menu_top >= MAX_ROWS)  
 	    j = MAX_ROWS - menu_top;
 	else
