@@ -231,6 +231,9 @@ void write_files() {
 		if( access("/cache/oc", F_OK ) != -1 ) {
 			system("cp /cache/oc /sdcard/RZR/oc");
 		}
+		if( access("/cache/rnd", F_OK ) != -1 ) {
+			system("cp /cache/rnd /sdcard/RZR/rnd");
+		}
 	}
 }
 
@@ -249,6 +252,12 @@ void read_files() {
 	} else {
 		mkdir("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 	}
+	
+	if( access("/sdcard/RZR/rnd", F_OK ) != -1 ) {
+		system("cp /sdcard/RZR/rnd /cache/rnd");
+	} else {
+		mkdir("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	}	
 	
 	if(access("/cache/oc", F_OK ) != -1 ) {
 		FILE* fs = fopen("/cache/oc","r");
@@ -406,7 +415,7 @@ erase_volume(const char *volume) {
     ui_set_background(BACKGROUND_ICON_RZ);
     ui_show_indeterminate_progress();
     ui_print("Formatting %s...\n", volume);
-	    
+
     if (strcmp(volume, "/cache") == 0) {
         // Any part of the log we'd copied to cache is now gone.
         // Reset the pointer so we copy from the beginning of the temp
@@ -663,7 +672,7 @@ main(int argc, char **argv) {
 	    if (strstr(argv[0], "erase_image") != NULL)
 	        return erase_image_main(argc, argv);
 	    if (strstr(argv[0], "format") != NULL)
-	        return erase_volume(argv[1]);
+	        return erase_image_main(argc, argv);
         }
     time_t start = time(NULL);
 

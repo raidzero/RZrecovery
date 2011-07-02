@@ -157,33 +157,51 @@ static void draw_text_line(int row, const char* t) {
 static void draw_screen_locked(void)
 {
 	//define menu color integers
-	int cRv;
-	int cGv;
-	int cBv;
+	char cRv;
+	char cGv;
+	char cBv;
 	//define menu highlight text color
-	int txt;
+	char txt;
 	
-	if( access("/cache/rgb", F_OK ) != -1 ) {
-		FILE *fp = fopen ("/cache/rgb", "rb");
-		fread(&cRv, 1, 1, fp);
-		fread(&cGv, 1, 1, fp);
-		fread(&cBv, 1, 1, fp);
-		fread(&txt, 1, 1, fp);
-		fclose(fp);	
-	} else {
-		cRv = 54;
-		cGv = 74;
-		cBv = 255;
-		txt = 255;
-		set_color(cRv,cGv,cBv);
-		
+	if( access("/cache/rnd", F_OK ) != -1 ) {
+		printf("random mode\n");
+		struct timeval tv;
+		struct timezone tz;
+		struct tm *tm;
+		gettimeofday(&tv, &tz);
+		tm=localtime(&tv.tv_sec);
+		srand (tv.tv_usec);	
+		cRv = rand() % 255;
+		cGv = rand() % 255;
+		cBv = rand() % 255;
+		if ( cGv >= 150) {
+			txt = 0;
+		} else { 
+			txt = 255;
+		}
+	} else {	
+		if( access("/cache/rgb", F_OK ) != -1 ) {
+			FILE *fp = fopen ("/cache/rgb", "rb");
+			fread(&cRv, 1, 1, fp);
+			fread(&cGv, 1, 1, fp);
+			fread(&cBv, 1, 1, fp);
+			fread(&txt, 1, 1, fp);	
+			fclose(fp);
+		} else {
+			cRv = 54;
+			cGv = 74;
+			cBv = 255;
+			txt = 255;
+			set_color(cRv, cGv, cBv);	
+		}
 	}
+
 	
     draw_background_locked(gCurrentIcon);
     draw_progress_locked();
 
-    gr_color(0, 0, 0, 160);
-    gr_fill(0, 0, gr_fb_width(), gr_fb_height());
+    gr_color(0, 0, 0, 200); // background color
+    gr_fill(0, 0, gr_fb_width(), gr_fb_height()); //fill the background with this color
 
     int i = 0;
     int j = 0;
@@ -482,9 +500,17 @@ void ui_start_menu(char** headers, char** items, int initial_selection) {
         menu_items = i - menu_top;
         show_menu = 1;
 	
-        menu_sel = initial_selection;
-	menu_show_start = 0;
-	
+	printf("%i", menu_sel);
+	printf("%i", initial_selection);
+	printf("\n");
+	if (initial_selection == 9999) {
+		initial_selection = 0;
+		menu_sel = 0;
+		menu_show_start = 0;
+	} else {
+		menu_sel = initial_selection;
+		menu_show_start = 0;
+	}
         update_screen_locked();
     }
     pthread_mutex_unlock(&gUpdateMutex);

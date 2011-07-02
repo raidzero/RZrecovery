@@ -1,6 +1,8 @@
+#include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/reboot.h>
+#include <sys/time.h>
 
 #include "recovery.h"
 #include "roots.h"
@@ -21,27 +23,33 @@ void set_color(char red, char green, char blue) {
 	fwrite(&blue, 1, 1, fp);
 	fwrite(&txt, 1, 1, fp);
 	fclose(fp);
+	if( access("/cache/rnd", F_OK ) != -1 ) {
+		system("rm /cache/rnd");
+	}	
+	if( access("/sdcard/rnd", F_OK ) != -1 ) {
+		system("rm /sdcard/rnd");
+	}
+	write_files();
 }
 
-void set_random() {
+void set_random(int rnd) {
+	struct timeval tv;
+	struct timezone tz;
+	struct tm *tm;
+	gettimeofday(&tv, &tz);
+	tm=localtime(&tv.tv_sec);
+	srand (tv.tv_usec);	
 	char cR = rand() % 255;
 	char cG = rand() % 255;
 	char cB = rand() % 255;
-	char txt;
-	if ( cG >= 150) {
-		txt = 0;
-	} else { 
-		txt = 255;
+	set_color(cR, cG, cB);
+	if (rnd == 1) {
+		FILE *fr = fopen ("/cache/rnd", "wb");
+		fwrite(1, 1, 1, fr);
+		fclose(fr);
 	}
-	
-	FILE *fp = fopen ("/cache/rgb", "wb");
-	fwrite(&cR, 1, 1, fp);
-	fwrite(&cG, 1, 1, fp);
-	fwrite(&cB, 1, 1, fp);
-	fwrite(&txt, 1, 1, fp);
-	fclose(fp);		
+	write_files();		
 }
-		
 
 void show_colors_menu() {
     static char* headers[] = { "Choose a color",
@@ -60,20 +68,24 @@ void show_colors_menu() {
 				"Yellow",
 				"Gold",
 				"White",
+				"Grey",
+				"Rave mode",
 		      NULL };
 			  
 #define RANDOM  		0
 #define BLUE			1
 #define CYAN			2
-#define GREEN			3
-#define ORANGE			4
+#define GREEN		3
+#define ORANGE		4
 #define PINK			5
-#define PURPLE			6
-#define RED				7
-#define SMOKED			8
-#define YELLOW			9
+#define PURPLE		6
+#define RED			7
+#define SMOKED		8
+#define YELLOW		9
 #define GOLD			10
 #define WHITE			11
+#define GREY			12
+#define RAVE			13
 
 int chosen_item = -1;
 
@@ -82,7 +94,7 @@ int chosen_item = -1;
 
         switch (chosen_item) {
 	case RANDOM:
-		set_random();
+		set_random(0);
 		break;
 	case BLUE:	
 		set_color(54,74,255);
@@ -117,6 +129,12 @@ int chosen_item = -1;
 	case WHITE:
 		set_color(255,255,255);
 		break;
+	case GREY:
+		set_color(100,100,100);
+		break;
+	case RAVE:
+		set_random(1);
+		return;
         }
     }
 }

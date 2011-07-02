@@ -21,7 +21,7 @@
 
 char* MENU_HEADERS[] = { "Welcome to RZRecovery",
                          "by raidzero",
-			 "",
+			"",
                          NULL };
 
 char* MENU_ITEMS[] = { "reboot android",
