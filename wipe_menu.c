@@ -48,11 +48,11 @@ void wipe_partition(char* title, char* operation, char* partition) {
 	if( strcmp( partition, "cache" ) == 0 ) {
 		ui_print("\n-- Wiping cache...\n");
 		ui_print("-- May take a while on gingerbread...\n");
-		//write_files();
+		write_files();
 		ensure_path_unmounted("/cache");
 		erase_volume("/cache");
 		ensure_path_mounted("/cache");
-		//read_files();
+		read_files();
 		ui_print("Cache wipe complete.");
 	}
 	if( strcmp( partition, "batts" ) == 0 ) {

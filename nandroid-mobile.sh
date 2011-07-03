@@ -1,5 +1,5 @@
 #!/sbin/sh
-
+set -o verbose
 SUBNAME=""
 NOBOOT=0
 NODATA=0
@@ -482,8 +482,16 @@ if [ "$RESTORE" == 1 ]; then
 			tarfile="secure"
 		fi
 		echo "* print Erasing /$image..."
-		cd /$image
-		rm -rf * 2>/dev/null
+		if [ "$image" -eq "sdcard/.android_secure"] ; then
+			cd /$image
+			rm -rf * 2>/dev/null
+		fi
+		if [ "$image" -eq "system"] ; then
+			format /$image
+		fi
+		if [ "$image" -eq "data"] ; then
+			format /$image
+		fi	
 		
 		TAR_OPTS="x"
 		[ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"
@@ -540,7 +548,6 @@ if [ "$BACKUP" == 1 ]; then
     if [ "$NODATA" == 0 ]; then
 	BACKUPLEGEND=$BACKUPLEGEND"D"
     fi
-    fi
     if [ "$NOSYSTEM" == 0 ]; then
 	BACKUPLEGEND=$BACKUPLEGEND"S"
     fi
@@ -580,8 +587,8 @@ if [ "$BACKUP" == 1 ]; then
     FREEBLOCKS="`df | grep sdcard | awk '{ print $4 }'`"
     DATABLOCKS="`df | grep /data | awk '{print$3}'`"
     SYSBLOCKS="`df | grep /system | awk '{print$3}'`"
-    REQBLOCKS="`expr $SYSBLOCKS + $DATABLOCKS`"
-
+    SECBLOCKS="`du -sh /sdcard/.android-secure`"
+    REQBLOCKS="`expr $DATABLOCKS + $SYSBLOCKS + $SECBLOCKS`"
     echo "* print $REQBLOCKS Bytes Required!"
     echo "* print $FREEBLOCKS Bytes Available!"
     if [ $FREEBLOCKS -le $REQBLOCKS]; then

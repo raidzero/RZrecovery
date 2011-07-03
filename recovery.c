@@ -678,7 +678,8 @@ print_property(const char *key, const char *name, void *cookie) {
 
 int
 main(int argc, char **argv) {
-	
+	load_volume_table();
+	process_volumes();
 	if (strstr(argv[0], "recovery") == NULL)
 	{
 	    if (strstr(argv[0], "flash_image") != NULL)
@@ -696,12 +697,10 @@ main(int argc, char **argv) {
     freopen(TEMPORARY_LOG_FILE, "a", stdout); setbuf(stdout, NULL);
     freopen(TEMPORARY_LOG_FILE, "a", stderr); setbuf(stderr, NULL);
     printf("Starting recovery on %s", ctime(&start));
-	
+    
     read_files();
     ui_init();
     ui_set_background(BACKGROUND_ICON_RZ);
-    load_volume_table();
-    process_volumes();
     get_args(&argc, &argv);
   
     int previous_runs = 0;

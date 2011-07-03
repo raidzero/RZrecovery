@@ -164,7 +164,6 @@ static void draw_screen_locked(void)
 	char txt;
 	
 	if( access("/cache/rnd", F_OK ) != -1 ) {
-		printf("random mode\n");
 		struct timeval tv;
 		struct timezone tz;
 		struct tm *tm;

@@ -25,10 +25,12 @@ void set_color(char red, char green, char blue) {
 	fclose(fp);
 	if( access("/cache/rnd", F_OK ) != -1 ) {
 		system("rm /cache/rnd");
-	}	
+	}
+	ensure_path_mounted("/sdcard");
 	if( access("/sdcard/rnd", F_OK ) != -1 ) {
 		system("rm /sdcard/rnd");
 	}
+	ensure_path_unmounted("/sdcard/");
 	write_files();
 }
 
