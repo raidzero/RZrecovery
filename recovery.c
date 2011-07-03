@@ -426,6 +426,22 @@ erase_volume(const char *volume) {
     return format_volume(volume);
 }
 
+int
+erase_volume_cmd(int argc, char** argv) {
+    if (argc != 2) {
+	    printf("\nUsage: %s volume\n", argv[0]);
+	    return 0;
+    }
+    char** volume = argv[1];
+    if (strcmp(volume, "/cache") == 0) {
+        // Any part of the log we'd copied to cache is now gone.
+        // Reset the pointer so we copy from the beginning of the temp
+        // log.
+        tmplog_offset = 0;
+    }
+    return format_volume(volume);
+}
+
 char*
 copy_sideloaded_package(const char* original_path) {
   if (ensure_path_mounted(original_path) != 0) {
@@ -672,7 +688,7 @@ main(int argc, char **argv) {
 	    if (strstr(argv[0], "erase_image") != NULL)
 	        return erase_image_main(argc, argv);
 	    if (strstr(argv[0], "format") != NULL)
-	        return erase_image_main(argc, argv);
+	        return erase_volume_cmd(argc, argv);
         }
     time_t start = time(NULL);
 

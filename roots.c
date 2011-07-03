@@ -308,10 +308,12 @@ int format_volume(const char* volume) {
     Volume* v = volume_for_path(volume);
     if (v == NULL) {
         // silent failure for sd-ext
-        if (strcmp(volume, "/sd-ext") == 0)
+        if (strcmp(volume, "/sd-ext") == 0) {
+	    LOGE("cannot format sd-ext n");
             return -1;
+	}
         LOGE("unknown volume \"%s\"\n", volume);
-        return -1;
+        return -1;	
     }
     if (strcmp(v->fs_type, "ramdisk") == 0) {
         // you can't format the ramdisk.
