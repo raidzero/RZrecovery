@@ -239,6 +239,7 @@ static void draw_screen_locked(void)
 	    }
 	    row++;
 	}
+	//bottom line
 	gr_fill(0, row*CHAR_HEIGHT+CHAR_HEIGHT/2-1,
 	gr_fb_width(), row*CHAR_HEIGHT+CHAR_HEIGHT/2+1);
 	row++;
@@ -501,6 +502,7 @@ void ui_start_menu(char** headers, char** items, int initial_selection) {
 	
 	printf("%i", menu_sel);
 	printf("%i", initial_selection);
+	printf("%i", menu_show_start);
 	printf("\n");
 	if (initial_selection == 9999) {
 		initial_selection = 0;

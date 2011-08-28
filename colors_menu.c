@@ -10,6 +10,15 @@
 
 
 
+void remove_rave() {
+	ensure_path_mounted("/sdcard");
+	if (access("/sdcard/RZR/rnd", F_OK) != -1 ) {
+		system("rm /sdcard/RZR/rnd");
+		system("rm /cache/rnd");
+		write_files();
+	}
+}
+
 void set_color(char red, char green, char blue) {
 	char txt;
 	if ( green >= 150) {
