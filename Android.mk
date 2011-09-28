@@ -7,7 +7,6 @@ include $(CLEAR_VARS)
 commands_recovery_local_path := $(LOCAL_PATH)
 
 LOCAL_SRC_FILES := \
-    default_recovery_ui.c \
     recovery.c \
     bootloader.c \
     install.c \
