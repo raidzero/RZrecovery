@@ -234,7 +234,8 @@ void write_files() {
 		if( access("/cache/rnd", F_OK ) != -1 ) {
 			system("cp /cache/rnd /sdcard/RZR/rnd");
 		}
-	}
+		sync();
+	} 
 }
 
 //read recovery files from sdcard to cache
@@ -268,6 +269,7 @@ void read_files() {
 			set_cpufreq(freq);
 		}
 	}
+	sync();
 	ensure_path_unmounted("/sdcard");
 }
 
