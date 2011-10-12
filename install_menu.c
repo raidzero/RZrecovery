@@ -72,6 +72,9 @@ void choose_file_menu(char* sdpath) {
 			if (strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0) {
 				ftotal++;
 			}
+			if (strcmp(de->d_name+strlen(de->d_name)-4,".apk")==0) {
+				ftotal++;
+			}
 			if (strcmp(de->d_name+strlen(de->d_name)-4,".tar")==0) {
 				ftotal++;
 			}
@@ -115,7 +118,7 @@ void choose_file_menu(char* sdpath) {
 					i++;				
 			}
 			//create files list
-			if ((de->d_type == DT_REG && (strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".tar")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".tgz")==0 || strcmp(de->d_name+strlen(de->d_name)-7,"rec.img")==0 || strcmp(de->d_name+strlen(de->d_name)-8,"boot.img")==0))) {			
+			if ((de->d_type == DT_REG && (strcmp(de->d_name+strlen(de->d_name)-4,".zip")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".apk")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".tar")==0 || strcmp(de->d_name+strlen(de->d_name)-4,".tgz")==0 || strcmp(de->d_name+strlen(de->d_name)-7,"rec.img")==0 || strcmp(de->d_name+strlen(de->d_name)-8,"boot.img")==0))) {			
 				flist[j] = (char*) malloc(strlen(sdpath)+strlen(de->d_name)+1);
 				strcpy(flist[j], sdpath);
 				strcat(flist[j], de->d_name);
@@ -187,10 +190,57 @@ int install_img(char* filename, char* partition) {
 	return 0;
 }
 
+int install_apk(char* filename, char* location) {
+	
+    ui_print("\n-- Installing APK from\n");
+	ui_print("%s",filename);
+	ui_print("\nTo\n");
+	ensure_path_mounted("/sdcard");
+	ensure_path_mounted(location);
+	
+	char locString[PATH_MAX];
+	char* basename = strrchr(filename, '/') +1;
+
+	strcpy(locString,location);
+	strcat(locString,basename);
+	
+	ui_print("%s",locString);
+	
+	char* permString;
+	
+	if (strcmp(location,"/data/app/")==0) permString="1000:1000";
+	if (strcmp(location,"/system/app/")==0) permString="0:0";
+	
+    char* argv[] = { "/sbin/busybox ",
+		     "cp",
+		     filename,
+			 location,
+		     NULL };
+
+    char* envp[] = { NULL };
+  
+    runve("/sbin/busybox",argv,envp,1);
+  
+    char* argy[] = { "/sbin/busybox ",
+		     "chown",
+		     permString,
+			 locString,
+		     NULL };
+
+    char* envy[] = { NULL };
+  
+    runve("/sbin/busybox",argy,envy,1);
+	
+	ui_print("\nAPK install from sdcard complete.");
+	ui_print("\nThanks for using RZrecovery.\n");
+	return 0;
+}
+
 void install_update_package(char* filename) {
 	char* extension = (filename+strlen(filename)-3);
 	char* boot_extension = (filename+strlen(filename)-8);
 	char* rec_extension = (filename+strlen(filename)-7);
+	char* apk_extension = (filename+strlen(filename)-3);
 	if (strcmp(extension, "zip") == 0 ) {
 		ui_print("\nZIP detected.\n");
 		remove("/block_update");
@@ -202,6 +252,11 @@ void install_update_package(char* filename) {
 		install_rom_from_tar(filename);
 		return;
 	}
+	if (strcmp(apk_extension, "apk") == 0 ) {
+		ui_print("\nAPK detected.\n");
+		preinstall_apk(filename, "recovery");
+		return;
+	}	
 	if (strcmp(rec_extension, "rec.img") == 0 ) {
 		ui_print("\nRECOVERY IMAGE detected.\n");
 		install_img(filename, "recovery");
@@ -259,6 +314,48 @@ int install_rom_from_tar(char* filename)
     }
 		ui_reset_progress();
 		return 0;
+}
+
+void preinstall_apk(char* filename) {
+				
+	char* basename = strrchr(filename, '/') +1;
+	char install_string[PATH_MAX];
+	char* location;
+	strcpy(install_string, "Install ");
+	strcat(install_string, basename);	
+	
+    char* headers[] = { "APK Install Menu",
+			"Where will this APK go?",
+			" ",
+			NULL };
+  
+    char* items[] = { "Abort APK Install",
+			  "/data/app",
+			  "/system/app",
+		      NULL };
+#define ITEM_NO 		0
+#define ITEM_DATA 		1
+#define ITEM_SYSTEM 	2
+
+		int chosen_item = -1;
+		while (chosen_item != ITEM_BACK) {
+		chosen_item = get_menu_selection(headers,items,1,chosen_item<0?0:chosen_item);
+		switch(chosen_item) {
+			case ITEM_NO:
+			chosen_item = ITEM_BACK;
+			return;
+		case ITEM_DATA:
+			ui_print("Installing to DATA...\n");
+			location="/data/app/";
+			install_apk(filename, location);	
+			return;
+		case ITEM_SYSTEM:
+			ui_print("Installing to SYSTEM...\n");
+			location="/system/app/";
+			install_apk(filename, location);	
+			return;
+		}
+	}
 }
 
 void preinstall_menu(char* filename) {
