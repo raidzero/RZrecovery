@@ -580,7 +580,7 @@ get_menu_selection(char** headers, char** items, int menu_only,
     // throw away keys pressed previously, so user doesn't
     // accidentally trigger menu items.
     ui_clear_key_queue();
-
+		
     ui_start_menu(headers, items, initial_selection);
     int selected = initial_selection;
     int chosen_item = -1;
@@ -630,7 +630,7 @@ prompt_and_wait() {
     for (;;) {
         finish_recovery(NULL);
         ui_reset_progress();
-
+	
 	int chosen_item = get_menu_selection(headers, MENU_ITEMS, 0, chosen_item<0?0:chosen_item);
         // device-specific code may take some action here.  It may
         // return one of the core actions handled in the switch
@@ -639,36 +639,36 @@ prompt_and_wait() {
 
         switch (chosen_item) {
             case MAIN_REBOOT:
-		reboot_android();
-                break;
-	    
-	    case MAIN_RECOVERY:
-		reboot_recovery();
-		break;
-	    
-	    case MAIN_SHUTDOWN:
-		power_off();
-		break;
+				reboot_android();
+				break;
+			
+			case MAIN_RECOVERY:
+				reboot_recovery();
+				break;
+			
+			case MAIN_SHUTDOWN:
+				power_off();
+				break;
 
-            case MAIN_WIPE_MENU:
-                show_wipe_menu();
-                break;
+			case MAIN_WIPE_MENU:
+				show_wipe_menu();
+				break;
 
-	    case MAIN_MOUNTS:
-		show_mount_menu();
-		break;
-	    
-	    case MAIN_NANDROID:
-		show_nandroid_menu();
-		break;
+			case MAIN_MOUNTS:
+				show_mount_menu();
+				break;
+			
+			case MAIN_NANDROID:
+				show_nandroid_menu();
+				break;
 
-	    case MAIN_INSTALL:
-                choose_file_menu("/sdcard/");
-                break;
-		
-	    case MAIN_EXTRAS:
-		show_extras_menu();
-		break;
+			case MAIN_INSTALL:
+				choose_file_menu("/sdcard/");
+				break;
+			
+			case MAIN_EXTRAS:
+				show_extras_menu();
+				break;
         }
     }
 }

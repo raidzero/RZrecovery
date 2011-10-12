@@ -194,7 +194,6 @@ static void draw_screen_locked(void)
 			set_color(cRv, cGv, cBv);	
 		}
 	}
-
 	
     draw_background_locked(gCurrentIcon);
     draw_progress_locked();
@@ -207,43 +206,50 @@ static void draw_screen_locked(void)
     int row = 0;
     
     if (show_menu) {
-	gr_color(cRv,cGv,cBv,255);
-	gr_fill(0, (menu_top+menu_sel-menu_show_start) * CHAR_HEIGHT,
-	gr_fb_width(), (menu_top+menu_sel-menu_show_start+1)*CHAR_HEIGHT+1);
-	
-	 gr_color(255,255,255,255);   
-	for (i = 0; i < menu_top; ++i) {
-	    draw_text_line(i, menu[i]);
-	    row++;
-	}
-	//draw line
-	gr_color(cRv,cGv,cBv,255);
-	row--;
-	gr_fill(0, row*CHAR_HEIGHT+CHAR_HEIGHT/2-1,
-	gr_fb_width(), row*CHAR_HEIGHT+CHAR_HEIGHT/2+1);
-	row++;
-	
-	if (menu_items - menu_show_start + menu_top >= MAX_ROWS)  
-	    j = MAX_ROWS - menu_top;
-	else
-	    j = menu_items - menu_show_start;
-	
-	for (i = menu_show_start + menu_top; i < (menu_show_start + menu_top + j); ++i) {
-	    if (i == menu_top + menu_sel) {
-		gr_color(txt,txt,txt,255);
-		draw_text_line(i - menu_show_start , menu[i]);    
+		printf("%i",menu_top);
+		printf("\n");
+		printf("%i",menu_sel);
+		printf("\n");
+		printf("%i",menu_show_start);
+		printf("\n");
 		gr_color(cRv,cGv,cBv,255);
-	    } else {
+		gr_fill(0, (menu_top+menu_sel-menu_show_start) * CHAR_HEIGHT,
+		gr_fb_width(), (menu_top+menu_sel-menu_show_start+1)*CHAR_HEIGHT+1);
+		
+		TEXTCOLOR   
+		for (i = 0; i < menu_top; ++i) {
+			draw_text_line(i, menu[i]);
+			row++;
+		}
+		
+		//draw line
 		gr_color(cRv,cGv,cBv,255);
-		draw_text_line(i - menu_show_start, menu[i]);
-	    }
-	    row++;
+		row--; //go up one to draw our top line
+		gr_fill(0, row*CHAR_HEIGHT+CHAR_HEIGHT/2-1,
+		gr_fb_width(), row*CHAR_HEIGHT+CHAR_HEIGHT/2+1);
+		row++;
+		
+		if (menu_items - menu_show_start + menu_top >= MAX_ROWS)  
+			j = MAX_ROWS - menu_top;
+		else
+			j = menu_items - menu_show_start;
+		
+		for (i = menu_show_start + menu_top; i < (menu_show_start + menu_top + j); ++i) {
+			if (i == menu_top + menu_sel) {
+				gr_color(txt,txt,txt,255);
+				draw_text_line(i - menu_show_start , menu[i]);    
+				gr_color(cRv,cGv,cBv,255);
+			} else {
+				gr_color(cRv,cGv,cBv,255);
+				draw_text_line(i - menu_show_start, menu[i]);
+			}
+			row++;
+		}
+		//bottom line
+		gr_fill(0, row*CHAR_HEIGHT+CHAR_HEIGHT/2-1,
+		gr_fb_width(), row*CHAR_HEIGHT+CHAR_HEIGHT/2+1);
+		row++;
 	}
-	//bottom line
-	gr_fill(0, row*CHAR_HEIGHT+CHAR_HEIGHT/2-1,
-	gr_fb_width(), row*CHAR_HEIGHT+CHAR_HEIGHT/2+1);
-	row++;
-    }
     TEXTCOLOR // bottom text
     for (; row < text_rows; ++row) {
 	draw_text_line(row, text[(row+text_top) % text_rows]);
@@ -482,7 +488,33 @@ void ui_print(const char *fmt, ...)
     pthread_mutex_unlock(&gUpdateMutex);
 }
 
-void ui_start_menu(char** headers, char** items, int initial_selection) {
+void ui_start_menu(char** headers, char** items, int sel) {
+    int i;
+    pthread_mutex_lock(&gUpdateMutex);
+    if (text_rows > 0 && text_cols > 0) {
+        for (i = 0; i < text_rows; ++i) {
+            if (headers[i] == NULL) break;
+            strncpy(menu[i], headers[i], text_cols-1);
+            menu[i][text_cols-1] = '\0';
+        }
+        menu_top = i;
+        for (; i < MENU_MAX_ROWS; ++i) {
+            if (items[i-menu_top] == NULL) break;
+            strncpy(menu[i], items[i-menu_top], text_cols-1);
+            menu[i][text_cols-1] = '\0';
+        }
+        menu_items = i - menu_top;
+        show_menu = 1;
+
+		menu_show_start = 0;
+		menu_sel = sel;
+		
+        update_screen_locked();
+    }
+    pthread_mutex_unlock(&gUpdateMutex);
+}
+
+/*void ui_start_menu(char** headers, char** items, int initial_selection) {
     int i;
     pthread_mutex_lock(&gUpdateMutex);
     if (text_rows > 0 && text_cols > 0) {
@@ -500,8 +532,13 @@ void ui_start_menu(char** headers, char** items, int initial_selection) {
         menu_items = i - menu_top;
         show_menu = 1;
 	
+	printf("menu_sel: ");
 	printf("%i", menu_sel);
+	printf("\n");
+	printf("initial_selection: ");
 	printf("%i", initial_selection);
+	printf("\n");
+	printf("menu_show_start: ");
 	printf("%i", menu_show_start);
 	printf("\n");
 	if (initial_selection == 9999) {
@@ -515,7 +552,7 @@ void ui_start_menu(char** headers, char** items, int initial_selection) {
         update_screen_locked();
     }
     pthread_mutex_unlock(&gUpdateMutex);
-}
+}*/
 
 
 int ui_menu_select(int sel) {
