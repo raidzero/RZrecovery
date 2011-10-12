@@ -16,7 +16,7 @@ void set_oc(char* speed) {
 	set_cpufreq(speed);
 	ui_print("\nmax frequency set to ");
 	ui_print("%s",speed);
-	ui_print(" Hz");
+	ui_print(" Hz\n");
 }
 
 int slot_count(char* s)

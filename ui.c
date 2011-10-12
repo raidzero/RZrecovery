@@ -191,7 +191,6 @@ static void draw_screen_locked(void)
 			cGv = 74;
 			cBv = 255;
 			txt = 255;
-			set_color(cRv, cGv, cBv);	
 		}
 	}
 	
