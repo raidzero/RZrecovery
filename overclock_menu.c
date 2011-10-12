@@ -16,6 +16,7 @@ void set_oc(char* speed) {
 	set_cpufreq(speed);
 	ui_print("\nmax frequency set to ");
 	ui_print("%s",speed);
+	ui_print(" Hz");
 }
 
 int slot_count(char* s)
@@ -42,8 +43,8 @@ char* get_available_frequencies() {
 
 char* get_max_freq() {
 	FILE* fs = fopen("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq","r");
-    char* freq = calloc(8,sizeof(char));
-    fgets(freq, 8, fs);
+    char* freq = calloc(9,sizeof(char));
+    fgets(freq, 9, fs);
 	fclose(fs);
 	printf("get_max_freq complete.\n");
 	return freq;
@@ -74,15 +75,15 @@ void show_overclock_menu() {
 	// create an array from available_frequencies delimited by spaces - crude and
 	// I hope it works on all devices 
 	char **ap, **slots;
-	int arglen = 10;
+	int arglen = 15;
 	slots = calloc(arglen, sizeof(char*));
 	for (ap = slots; (*ap = strsep(&available_frequencies, " \t")) != NULL;)
 		if (**ap != '\0')
 			if (++ap >= &slots[arglen])
 			{
-				arglen += 10;
+				arglen += 15;
 				slots = realloc(slots, arglen);
-				ap = &slots[arglen-10];
+				ap = &slots[arglen-15];
 			}
 			
 	printf("available_frequencies array created.\n");
@@ -98,7 +99,6 @@ void show_overclock_menu() {
 	printf("All elements but last copied into available_slots\n");
 	free(slots);
 	printf("\nslots[] freed\n");
-	
 	
 	//create pretty header lines
 	char max_string[50];
@@ -124,7 +124,8 @@ void show_overclock_menu() {
 #define slot8			7
 #define slot9			8
 #define slot10			9
-			       
+printf("\nDefinitions list created.\n");			       
+
 int chosen_item = -1;
 
     while(chosen_item!=ITEM_BACK) {

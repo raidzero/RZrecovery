@@ -205,13 +205,14 @@ static void draw_screen_locked(void)
     int j = 0;
     int row = 0;
     
-    if (show_menu) {
+    if (show_menu) {	
+		printf("\nmenu_top: ");
 		printf("%i",menu_top);
-		printf("\n");
+		printf("\nmenu_sel: ");
 		printf("%i",menu_sel);
-		printf("\n");
+		printf("\nmenu_show_start: ");
 		printf("%i",menu_show_start);
-		printf("\n");
+		
 		gr_color(cRv,cGv,cBv,255);
 		gr_fill(0, (menu_top+menu_sel-menu_show_start) * CHAR_HEIGHT,
 		gr_fb_width(), (menu_top+menu_sel-menu_show_start+1)*CHAR_HEIGHT+1);
@@ -514,46 +515,6 @@ void ui_start_menu(char** headers, char** items, int sel) {
     pthread_mutex_unlock(&gUpdateMutex);
 }
 
-/*void ui_start_menu(char** headers, char** items, int initial_selection) {
-    int i;
-    pthread_mutex_lock(&gUpdateMutex);
-    if (text_rows > 0 && text_cols > 0) {
-        for (i = 0; i < text_rows; ++i) {
-            if (headers[i] == NULL) break;
-            strncpy(menu[i], headers[i], text_cols-1);
-            menu[i][text_cols-1] = '\0';
-        }
-        menu_top = i;
-        for (; i < MENU_MAX_ROWS; ++i) {
-            if (items[i-menu_top] == NULL) break;
-            strncpy(menu[i], items[i-menu_top], text_cols-1);
-            menu[i][text_cols-1] = '\0';
-        }
-        menu_items = i - menu_top;
-        show_menu = 1;
-	
-	printf("menu_sel: ");
-	printf("%i", menu_sel);
-	printf("\n");
-	printf("initial_selection: ");
-	printf("%i", initial_selection);
-	printf("\n");
-	printf("menu_show_start: ");
-	printf("%i", menu_show_start);
-	printf("\n");
-	if (initial_selection == 9999) {
-		initial_selection = 0;
-		menu_sel = 0;
-		menu_show_start = 0;
-	} else {
-		menu_sel = initial_selection;
-		menu_show_start = 0;
-	}
-        update_screen_locked();
-    }
-    pthread_mutex_unlock(&gUpdateMutex);
-}*/
-
 
 int ui_menu_select(int sel) {
     int old_sel;
@@ -566,7 +527,7 @@ int ui_menu_select(int sel) {
 			menu_sel = menu_items - 1;
 			menu_show_start = menu_items -(text_rows - menu_top);
 			if(menu_show_start < 0) { menu_show_start = 0; }
-			} else if (menu_sel >= menu_items) {
+		} else if (menu_sel >= menu_items) {
 			menu_sel = 0;
 			menu_show_start = 0;
 		} 

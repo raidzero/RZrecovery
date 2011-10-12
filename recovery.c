@@ -170,6 +170,9 @@ void set_cpufreq(char* speed) {
 	FILE* fs = fopen("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq","w");
 	fputs(speed,fs);
 	fputs("\n",fs);
+	printf("\nMax cpu slot set to ");
+	printf("%s",speed);
+	printf("\n");
 	fclose(fs);
 }
 
@@ -227,50 +230,61 @@ void write_files() {
 	} else {
 		if( access("/cache/rgb", F_OK ) != -1 ) {
 			system("cp /cache/rgb /sdcard/RZR/rgb");
+			printf("\nColors file saved to sdcard.\n");
 		}
 		if( access("/cache/oc", F_OK ) != -1 ) {
 			system("cp /cache/oc /sdcard/RZR/oc");
+			printf("\nOverclock file saved to sdcard.\n");
 		}
 		if( access("/cache/rnd", F_OK ) != -1 ) {
 			system("cp /cache/rnd /sdcard/RZR/rnd");
+			printf("\nRave file saved to sdcard.\n");
 		}
 		sync();
 	} 
 }
 
+void read_cpufreq() {
+	ensure_path_mounted("/sdcard/RZR");
+        if( access("/sdcard/RZR/oc", F_OK ) != -1 ) {
+	        system("cp /sdcard/RZR/oc /cache/oc");
+                printf("\nCopied /sdcard/RZR/oc to /cache/oc.\n");
+        } else {
+               mkdir("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	}
+
+        if(access("/cache/oc", F_OK ) != -1 ) {
+                FILE* fs = fopen("/cache/oc","r");
+                char* freq = calloc(9,sizeof(char));
+                fgets(freq, 9, fs);
+                fclose(fs);
+                if( access("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq", F_OK ) != -1 ) {
+                     set_cpufreq(freq);
+                }
+        }
+	sync();
+}	
+
 //read recovery files from sdcard to cache
 void read_files() {
-	ensure_path_mounted("/sdcard");
+	ensure_path_mounted("/sdcard/RZR");
 	if( access("/sdcard/RZR/rgb", F_OK ) != -1 ) {
-		system("cp /sdcard/RZR/rgb /cache/rgb");		
+		system("cp /sdcard/RZR/rgb /cache/rgb");
+		printf("\nCopied /sdcard/RZR/rgb to /cache/rgb.\n");
 	} else {
 		mkdir("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 		set_color(54,74,255);
 	}
 	
-	if( access("/sdcard/RZR/oc", F_OK ) != -1 ) {
-		system("cp /sdcard/RZR/oc /cache/oc");
-	} else {
-		mkdir("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-	}
-	
 	if( access("/sdcard/RZR/rnd", F_OK ) != -1 ) {
 		system("cp /sdcard/RZR/rnd /cache/rnd");
+		printf("\nCopied /sdcard/RZR/rnd to /cache/rnd.\n");
 	} else {
 		mkdir("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 	}	
 	
-	if(access("/cache/oc", F_OK ) != -1 ) {
-		FILE* fs = fopen("/cache/oc","r");
-		char* freq = calloc(8,sizeof(char));
-		fgets(freq, 8, fs);
-		fclose(fs);
-		if( access("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq", F_OK ) != -1 ) {
-			set_cpufreq(freq);
-		}
-	}
 	sync();
-	ensure_path_unmounted("/sdcard");
+	ensure_path_unmounted("/sdcard/RZR");
 }
 
 // command line args come from, in decreasing precedence:
@@ -609,6 +623,9 @@ get_menu_selection(char** headers, char** items, int menu_only,
                     break;
                 case NO_ACTION:
                     break;
+				case ITEM_BACK:
+					if (initial_selection==9999) selected=0;
+					break;
             }
         } else if (!menu_only) {
             chosen_item = action;
@@ -730,6 +747,7 @@ main(int argc, char **argv) {
     }
 
     device_recovery_start();
+    read_cpufreq();
 
     printf("Command:");
     for (arg = 0; arg < argc; arg++) {

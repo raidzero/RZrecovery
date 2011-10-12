@@ -55,9 +55,7 @@ void set_random(int rnd) {
 	char cB = rand() % 255;
 	set_color(cR, cG, cB);
 	if (rnd == 1) {
-		FILE *fr = fopen ("/cache/rnd", "wb");
-		fwrite(1, 1, 1, fr);
-		fclose(fr);
+		system("echo > /cache/rnd");
 	}
 	write_files();		
 }
@@ -145,7 +143,7 @@ int chosen_item = -1;
 		break;
 	case RAVE:
 		set_random(1);
-		return;
+		break;
         }
     }
 }
