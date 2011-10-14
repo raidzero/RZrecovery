@@ -60,11 +60,8 @@ int device_handle_key(int key_code) {
 	    return SELECT_ITEM;
 	
 	case KEY_BACKSPACE:
-		return ITEM_BACK;
 	case KEY_BACK: //158
-		return ITEM_BACK;
 	case KEY_END:
-		return ITEM_BACK;
 	case KEY_POWER: //116
 		return ITEM_BACK;
         }
