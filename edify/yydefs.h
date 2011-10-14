@@ -18,8 +18,9 @@
 #define _YYDEFS_H_
 
 #define YYLTYPE YYLTYPE
-typedef struct {
-    int start, end;
+typedef struct
+{
+  int start, end;
 } YYLTYPE;
 
 #define YYLLOC_DEFAULT(Current, Rhs, N) \
@@ -33,6 +34,6 @@ typedef struct {
         } \
     } while (0)
 
-int yylex();
+int yylex ();
 
 #endif

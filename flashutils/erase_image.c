@@ -36,68 +36,85 @@
 
 #define LOG_TAG "erase_image"
 
-static int die(const char *msg, ...) {
-    int err = errno;
-    va_list args;
-    va_start(args, msg);
-    char buf[1024];
-    vsnprintf(buf, sizeof(buf), msg, args);
-    va_end(args);
+static int
+die (const char *msg, ...)
+{
+  int err = errno;
+  va_list args;
 
-    if (err != 0) {
-        strlcat(buf, ": ", sizeof(buf));
-        strlcat(buf, strerror(err), sizeof(buf));
-    }
+  va_start (args, msg);
+  char buf[1024];
 
-    fprintf(stderr, "%s\n", buf);
-    LOGE("%s\n", buf);
-    return 3;
+  vsnprintf (buf, sizeof (buf), msg, args);
+  va_end (args);
+
+  if (err != 0)
+	  {
+	    strlcat (buf, ": ", sizeof (buf));
+	    strlcat (buf, strerror (err), sizeof (buf));
+	  }
+
+  fprintf (stderr, "%s\n", buf);
+  LOGE ("%s\n", buf);
+  return 3;
 }
 
 
-int erase_image(char* partition_name) {
-    MtdWriteContext *out;
-    size_t erased;
-    size_t total_size;
-    size_t erase_size;
+int
+erase_image (char *partition_name)
+{
+  MtdWriteContext *out;
+  size_t erased;
+  size_t total_size;
+  size_t erase_size;
 
-    if (mtd_scan_partitions() <= 0) die("error scanning partitions");
-    const MtdPartition *partition = mtd_find_partition_by_name(partition_name);
-    if (partition == NULL) return die("can't find %s partition", partition_name);
+  if (mtd_scan_partitions () <= 0)
+    die ("error scanning partitions");
+  const MtdPartition *partition = mtd_find_partition_by_name (partition_name);
 
-    out = mtd_write_partition(partition);
-    if (out == NULL) return die("could not estabilish write context for %s", partition_name);
+  if (partition == NULL)
+    return die ("can't find %s partition", partition_name);
 
-    // do the actual erase, -1 = full partition erase
-    erased = mtd_erase_blocks(out, -1);
+  out = mtd_write_partition (partition);
+  if (out == NULL)
+    return die ("could not estabilish write context for %s", partition_name);
 
-    // erased = bytes erased, if zero, something borked
-    if (!erased) return die("error erasing %s", partition_name);
+  // do the actual erase, -1 = full partition erase
+  erased = mtd_erase_blocks (out, -1);
 
-    return 0;
+  // erased = bytes erased, if zero, something borked
+  if (!erased)
+    return die ("error erasing %s", partition_name);
+
+  return 0;
 }
 
 
 /* Erase a mtd partition */
 
-int main(int argc, char **argv) {
-    if (argc != 2) {
-        fprintf(stderr, "usage: %s <partition>\n", argv[0]);
-        return 2;
-    }
-    
-    return erase_image(argv[1]);
+int
+main (int argc, char **argv)
+{
+  if (argc != 2)
+	  {
+	    fprintf (stderr, "usage: %s <partition>\n", argv[0]);
+	    return 2;
+	  }
+
+  return erase_image (argv[1]);
 }
 
 #endif
 
 
-int main(int argc, char **argv)
+int
+main (int argc, char **argv)
 {
-    if (argc != 2) {
-        fprintf(stderr, "usage: %s partition\n", argv[0]);
-        return 2;
-    }
+  if (argc != 2)
+	  {
+	    fprintf (stderr, "usage: %s partition\n", argv[0]);
+	    return 2;
+	  }
 
-    return erase_raw_partition(NULL, argv[1]);
+  return erase_raw_partition (NULL, argv[1]);
 }

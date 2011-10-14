@@ -10,77 +10,98 @@
 
 
 
-void remove_rave() {
-	ensure_path_mounted("/sdcard");
-	if (access("/sdcard/RZR/rnd", F_OK) != -1 ) {
-		system("rm /sdcard/RZR/rnd");
-		system("rm /cache/rnd");
-		write_files();
-	}
+void
+remove_rave ()
+{
+  ensure_path_mounted ("/sdcard");
+  if (access ("/sdcard/RZR/rnd", F_OK) != -1)
+	  {
+	    system ("rm /sdcard/RZR/rnd");
+	    system ("rm /cache/rnd");
+	    write_files ();
+	  }
 }
 
-void set_color(char red, char green, char blue) {
-	char txt;
-	if ( green >= 150) {
-		txt = 0;
-	} else { 
-		txt = 255;
-	}
-	FILE *fp = fopen ("/cache/rgb", "wb");
-	fwrite(&red, 1, 1, fp);
-	fwrite(&green, 1, 1, fp);
-	fwrite(&blue, 1, 1, fp);
-	fwrite(&txt, 1, 1, fp);
-	fclose(fp);
-	if( access("/cache/rnd", F_OK ) != -1 ) {
-		system("rm /cache/rnd");
-	}
-	ensure_path_mounted("/sdcard");
-	if( access("/sdcard/rnd", F_OK ) != -1 ) {
-		system("rm /sdcard/rnd");
-	}
-	ensure_path_unmounted("/sdcard/");
-	write_files();
+void
+set_color (char red, char green, char blue)
+{
+  char txt;
+
+  if (green >= 150)
+	  {
+	    txt = 0;
+	  }
+  else
+	  {
+	    txt = 255;
+	  }
+  FILE *fp = fopen ("/cache/rgb", "wb");
+
+  fwrite (&red, 1, 1, fp);
+  fwrite (&green, 1, 1, fp);
+  fwrite (&blue, 1, 1, fp);
+  fwrite (&txt, 1, 1, fp);
+  fclose (fp);
+  if (access ("/cache/rnd", F_OK) != -1)
+	  {
+	    system ("rm /cache/rnd");
+	  }
+  ensure_path_mounted ("/sdcard");
+  if (access ("/sdcard/rnd", F_OK) != -1)
+	  {
+	    system ("rm /sdcard/rnd");
+	  }
+  ensure_path_unmounted ("/sdcard/");
+  write_files ();
 }
 
-void set_random(int rnd) {
-	struct timeval tv;
-	struct timezone tz;
-	struct tm *tm;
-	gettimeofday(&tv, &tz);
-	tm=localtime(&tv.tv_sec);
-	srand (tv.tv_usec);	
-	char cR = rand() % 255;
-	char cG = rand() % 255;
-	char cB = rand() % 255;
-	set_color(cR, cG, cB);
-	if (rnd == 1) {
-		system("echo > /cache/rnd");
-	}
-	write_files();		
+void
+set_random (int rnd)
+{
+  struct timeval tv;
+  struct timezone tz;
+  struct tm *tm;
+
+  gettimeofday (&tv, &tz);
+  tm = localtime (&tv.tv_sec);
+  srand (tv.tv_usec);
+  char cR = rand () % 255;
+  char cG = rand () % 255;
+  char cB = rand () % 255;
+
+  set_color (cR, cG, cB);
+  if (rnd == 1)
+	  {
+	    system ("echo > /cache/rnd");
+	  }
+  write_files ();
 }
 
-void show_colors_menu() {
-    static char* headers[] = { "Choose a color",
-			       "",
-			       NULL };
+void
+show_colors_menu ()
+{
+  static char *headers[] = { "Choose a color",
+    "",
+    NULL
+  };
 
-    char* items[] = { "Random",
-				"Blue",
-				"Cyan",
-				"Green",
-				"Orange",
-				"Pink",
-				"Purple",
-				"Red",
-				"Smoked",
-				"Yellow",
-				"Gold",
-				"White",
-				"Grey",
-				"Rave mode",
-		      NULL };
-			  
+  char *items[] = { "Random",
+    "Blue",
+    "Cyan",
+    "Green",
+    "Orange",
+    "Pink",
+    "Purple",
+    "Red",
+    "Smoked",
+    "Yellow",
+    "Gold",
+    "White",
+    "Grey",
+    "Rave mode",
+    NULL
+  };
+
 #define RANDOM  		0
 #define BLUE			1
 #define CYAN			2
@@ -96,54 +117,58 @@ void show_colors_menu() {
 #define GREY			12
 #define RAVE			13
 
-int chosen_item = -1;
+  int chosen_item = -1;
 
-    while(chosen_item!=ITEM_BACK) {
-	chosen_item = get_menu_selection(headers,items,0,chosen_item<0?0:chosen_item);
+  while (chosen_item != ITEM_BACK)
+	  {
+	    chosen_item =
+	      get_menu_selection (headers, items, 0,
+				  chosen_item < 0 ? 0 : chosen_item);
 
-        switch (chosen_item) {
-	case RANDOM:
-		set_random(0);
-		break;
-	case BLUE:	
-		set_color(54,74,255);
-		break;
-	case CYAN:
-		set_color(0,255,255);
-		break;
-	case GREEN:
-		set_color(0,255,74); 
-		break;
-	case ORANGE:
-		set_color(255,115,0);
-		break;
-	case PINK:
-		set_color(255,0,255);
-		break;
-	case PURPLE:
-		set_color(175,0,255);
-		break;
-	case RED:
-		set_color(255,0,0);
-		break;
-	case SMOKED:
-		set_color(200,200,200);
-		break;
-	case YELLOW:
-		set_color(255,255,0);
-		break;
-	case GOLD:
-		set_color(255,204,102);
-		break;
-	case WHITE:
-		set_color(255,255,255);
-		break;
-	case GREY:
-		set_color(100,100,100);
-		break;
-	case RAVE:
-		set_random(1);
-		break;
-        }
-    }
+	    switch (chosen_item)
+		    {
+		    case RANDOM:
+		      set_random (0);
+		      break;
+		    case BLUE:
+		      set_color (54, 74, 255);
+		      break;
+		    case CYAN:
+		      set_color (0, 255, 255);
+		      break;
+		    case GREEN:
+		      set_color (0, 255, 74);
+		      break;
+		    case ORANGE:
+		      set_color (255, 115, 0);
+		      break;
+		    case PINK:
+		      set_color (255, 0, 255);
+		      break;
+		    case PURPLE:
+		      set_color (175, 0, 255);
+		      break;
+		    case RED:
+		      set_color (255, 0, 0);
+		      break;
+		    case SMOKED:
+		      set_color (200, 200, 200);
+		      break;
+		    case YELLOW:
+		      set_color (255, 255, 0);
+		      break;
+		    case GOLD:
+		      set_color (255, 204, 102);
+		      break;
+		    case WHITE:
+		      set_color (255, 255, 255);
+		      break;
+		    case GREY:
+		      set_color (100, 100, 100);
+		      break;
+		    case RAVE:
+		      set_random (1);
+		      break;
+		    }
+	  }
 }

@@ -1,32 +1,33 @@
-FILE* fopen_path(const char *path, const char *mode);
-void check_and_fclose(FILE *fp, const char *name);
-void set_sdcard_update_bootloader_message();
-void copy_log_file(const char* destination, int append);
-void finish_recovery(const char *send_intent);
+FILE *fopen_path (const char *path, const char *mode);
+void check_and_fclose (FILE * fp, const char *name);
+void set_sdcard_update_bootloader_message ();
+void copy_log_file (const char *destination, int append);
+void finish_recovery (const char *send_intent);
 
-int erase_volume(const char *volume);
-char* copy_sideloaded_package(const char* original_path);
-char** prepend_title(const char** headers) ;
+int erase_volume (const char *volume);
+char *copy_sideloaded_package (const char *original_path);
+char **prepend_title (const char **headers);
 
-int get_menu_selection(char** headers, char** items, int menu_only, int initial_selection);
-int compare_string(const void* a, const void* b);
-int install_file(const char* path);
+int get_menu_selection (char **headers, char **items, int menu_only,
+			int initial_selection);
+int compare_string (const void *a, const void *b);
+int install_file (const char *path);
 
-void wipe_data();
-void prompt_and_wait();
-void print_property(const char *key, const char *name, void *cookie);
+void wipe_data ();
+void prompt_and_wait ();
+void print_property (const char *key, const char *name, void *cookie);
 
-void create_fstab();
-void process_volumes();
-void write_files();
-void read_files();
+void create_fstab ();
+void process_volumes ();
+void write_files ();
+void read_files ();
 
-void reboot_android();
-void reboot_recovery();
-void power_off();
+void reboot_android ();
+void reboot_recovery ();
+void power_off ();
 
-void ui_printf_int(const char* format, int arg);
-void show_check_menu(char** headers, char** chk_items, int* flags);
-void get_check_menu_opts(char** items, char** chk_items, int* flags);
+void ui_printf_int (const char *format, int arg);
+void show_check_menu (char **headers, char **chk_items, int *flags);
+void get_check_menu_opts (char **items, char **chk_items, int *flags);
 
-int runve(char* filename, char** argv, char** envp, int secs);
+int runve (char *filename, char **argv, char **envp, int secs);

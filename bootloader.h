@@ -35,24 +35,25 @@
  * for the system to send a message to recovery or the
  * other way around.
  */
-struct bootloader_message {
-    char command[32];
-    char status[32];
-    char recovery[1024];
+struct bootloader_message
+{
+  char command[32];
+  char status[32];
+  char recovery[1024];
 };
 
 /* Read and write the bootloader command from the "misc" partition.
  * These return zero on success.
  */
-int get_bootloader_message(struct bootloader_message *out);
-int set_bootloader_message(const struct bootloader_message *in);
+int get_bootloader_message (struct bootloader_message *out);
+int set_bootloader_message (const struct bootloader_message *in);
 
 /* Write an update to the cache partition for update-radio or update-hboot.
  * Note, this destroys any filesystem on the cache partition!
  * The expected bitmap format is 240x320, 16bpp (2Bpp), RGB 5:6:5.
  */
-int write_update_for_bootloader(
-        const char *update, int update_len,
-        int bitmap_width, int bitmap_height, int bitmap_bpp,
-        const char *busy_bitmap, const char *error_bitmap);
+int write_update_for_bootloader (const char *update, int update_len,
+				 int bitmap_width, int bitmap_height,
+				 int bitmap_bpp, const char *busy_bitmap,
+				 const char *error_bitmap);
 #endif

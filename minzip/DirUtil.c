@@ -26,255 +26,311 @@
 
 #include "DirUtil.h"
 
-typedef enum { DMISSING, DDIR, DILLEGAL } DirStatus;
+typedef enum
+{ DMISSING, DDIR, DILLEGAL } DirStatus;
 
 static DirStatus
-getPathDirStatus(const char *path)
+getPathDirStatus (const char *path)
 {
-    struct stat st;
-    int err;
+  struct stat st;
+  int err;
 
-    err = stat(path, &st);
-    if (err == 0) {
-        /* Something's there; make sure it's a directory.
-         */
-        if (S_ISDIR(st.st_mode)) {
-            return DDIR;
-        }
-        errno = ENOTDIR;
-        return DILLEGAL;
-    } else if (errno != ENOENT) {
-        /* Something went wrong, or something in the path
-         * is bad.  Can't do anything in this situation.
-         */
-        return DILLEGAL;
-    }
-    return DMISSING;
+  err = stat (path, &st);
+  if (err == 0)
+	  {
+	    /* Something's there; make sure it's a directory.
+	     */
+	    if (S_ISDIR (st.st_mode))
+		    {
+		      return DDIR;
+		    }
+	    errno = ENOTDIR;
+	    return DILLEGAL;
+	  }
+  else if (errno != ENOENT)
+	  {
+	    /* Something went wrong, or something in the path
+	     * is bad.  Can't do anything in this situation.
+	     */
+	    return DILLEGAL;
+	  }
+  return DMISSING;
 }
 
 int
-dirCreateHierarchy(const char *path, int mode,
-        const struct utimbuf *timestamp, bool stripFileName)
+dirCreateHierarchy (const char *path, int mode,
+		    const struct utimbuf *timestamp, bool stripFileName)
 {
-    DirStatus ds;
+  DirStatus ds;
 
-    /* Check for an empty string before we bother
-     * making any syscalls.
-     */
-    if (path[0] == '\0') {
-        errno = ENOENT;
-        return -1;
-    }
+  /* Check for an empty string before we bother
+   * making any syscalls.
+   */
+  if (path[0] == '\0')
+	  {
+	    errno = ENOENT;
+	    return -1;
+	  }
 
-    /* Allocate a path that we can modify; stick a slash on
-     * the end to make things easier.
-     */
-    size_t pathLen = strlen(path);
-    char *cpath = (char *)malloc(pathLen + 2);
-    if (cpath == NULL) {
-        errno = ENOMEM;
-        return -1;
-    }
-    memcpy(cpath, path, pathLen);
-    if (stripFileName) {
-        /* Strip everything after the last slash.
-         */
-        char *c = cpath + pathLen - 1;
-        while (c != cpath && *c != '/') {
-            c--;
-        }
-        if (c == cpath) {
+  /* Allocate a path that we can modify; stick a slash on
+   * the end to make things easier.
+   */
+  size_t pathLen = strlen (path);
+  char *cpath = (char *) malloc (pathLen + 2);
+
+  if (cpath == NULL)
+	  {
+	    errno = ENOMEM;
+	    return -1;
+	  }
+  memcpy (cpath, path, pathLen);
+  if (stripFileName)
+	  {
+	    /* Strip everything after the last slash.
+	     */
+	    char *c = cpath + pathLen - 1;
+
+	    while (c != cpath && *c != '/')
+		    {
+		      c--;
+		    }
+	    if (c == cpath)
+		    {
 //xxx test this path
-            /* No directory component.  Act like the path was empty.
-             */
-            errno = ENOENT;
-            free(cpath);
-            return -1;
-        }
-        c[1] = '\0';    // Terminate after the slash we found.
-    } else {
-        /* Make sure that the path ends in a slash.
-         */
-        cpath[pathLen] = '/';
-        cpath[pathLen + 1] = '\0';
-    }
+		      /* No directory component.  Act like the path was empty.
+		       */
+		      errno = ENOENT;
+		      free (cpath);
+		      return -1;
+		    }
+	    c[1] = '\0';	// Terminate after the slash we found.
+	  }
+  else
+	  {
+	    /* Make sure that the path ends in a slash.
+	     */
+	    cpath[pathLen] = '/';
+	    cpath[pathLen + 1] = '\0';
+	  }
 
-    /* See if it already exists.
-     */
-    ds = getPathDirStatus(cpath);
-    if (ds == DDIR) {
-        return 0;
-    } else if (ds == DILLEGAL) {
-        return -1;
-    }
+  /* See if it already exists.
+   */
+  ds = getPathDirStatus (cpath);
+  if (ds == DDIR)
+	  {
+	    return 0;
+	  }
+  else if (ds == DILLEGAL)
+	  {
+	    return -1;
+	  }
 
-    /* Walk up the path from the root and make each level.
-     * If a directory already exists, no big deal.
-     */
-    char *p = cpath;
-    while (*p != '\0') {
-        /* Skip any slashes, watching out for the end of the string.
-         */
-        while (*p != '\0' && *p == '/') {
-            p++;
-        }
-        if (*p == '\0') {
-            break;
-        }
+  /* Walk up the path from the root and make each level.
+   * If a directory already exists, no big deal.
+   */
+  char *p = cpath;
 
-        /* Find the end of the next path component.
-         * We know that we'll see a slash before the NUL,
-         * because we added it, above.
-         */
-        while (*p != '/') {
-            p++;
-        }
-        *p = '\0';
+  while (*p != '\0')
+	  {
+	    /* Skip any slashes, watching out for the end of the string.
+	     */
+	    while (*p != '\0' && *p == '/')
+		    {
+		      p++;
+		    }
+	    if (*p == '\0')
+		    {
+		      break;
+		    }
 
-        /* Check this part of the path and make a new directory
-         * if necessary.
-         */
-        ds = getPathDirStatus(cpath);
-        if (ds == DILLEGAL) {
-            /* Could happen if some other process/thread is
-             * messing with the filesystem.
-             */
-            free(cpath);
-            return -1;
-        } else if (ds == DMISSING) {
-            int err;
+	    /* Find the end of the next path component.
+	     * We know that we'll see a slash before the NUL,
+	     * because we added it, above.
+	     */
+	    while (*p != '/')
+		    {
+		      p++;
+		    }
+	    *p = '\0';
 
-            err = mkdir(cpath, mode);
-            if (err != 0) {
-                free(cpath);
-                return -1;
-            }
-            if (timestamp != NULL && utime(cpath, timestamp)) {
-                free(cpath);
-                return -1;
-            }
-        }
-        // else, this directory already exists.
-        
-        /* Repair the path and continue.
-         */
-        *p = '/';
-    }
-    free(cpath);
+	    /* Check this part of the path and make a new directory
+	     * if necessary.
+	     */
+	    ds = getPathDirStatus (cpath);
+	    if (ds == DILLEGAL)
+		    {
+		      /* Could happen if some other process/thread is
+		       * messing with the filesystem.
+		       */
+		      free (cpath);
+		      return -1;
+		    }
+	    else if (ds == DMISSING)
+		    {
+		      int err;
 
-    return 0;
+		      err = mkdir (cpath, mode);
+		      if (err != 0)
+			      {
+				free (cpath);
+				return -1;
+			      }
+		      if (timestamp != NULL && utime (cpath, timestamp))
+			      {
+				free (cpath);
+				return -1;
+			      }
+		    }
+	    // else, this directory already exists.
+
+	    /* Repair the path and continue.
+	     */
+	    *p = '/';
+	  }
+  free (cpath);
+
+  return 0;
 }
 
 int
-dirUnlinkHierarchy(const char *path)
+dirUnlinkHierarchy (const char *path)
 {
-    struct stat st;
-    DIR *dir;
-    struct dirent *de;
-    int fail = 0;
+  struct stat st;
+  DIR *dir;
+  struct dirent *de;
+  int fail = 0;
 
-    /* is it a file or directory? */
-    if (lstat(path, &st) < 0) {
-        return -1;
-    }
+  /* is it a file or directory? */
+  if (lstat (path, &st) < 0)
+	  {
+	    return -1;
+	  }
 
-    /* a file, so unlink it */
-    if (!S_ISDIR(st.st_mode)) {
-        return unlink(path);
-    }
+  /* a file, so unlink it */
+  if (!S_ISDIR (st.st_mode))
+	  {
+	    return unlink (path);
+	  }
 
-    /* a directory, so open handle */
-    dir = opendir(path);
-    if (dir == NULL) {
-        return -1;
-    }
+  /* a directory, so open handle */
+  dir = opendir (path);
+  if (dir == NULL)
+	  {
+	    return -1;
+	  }
 
-    /* recurse over components */
-    errno = 0;
-    while ((de = readdir(dir)) != NULL) {
+  /* recurse over components */
+  errno = 0;
+  while ((de = readdir (dir)) != NULL)
+	  {
 //TODO: don't blow the stack
-        char dn[PATH_MAX];
-        if (!strcmp(de->d_name, "..") || !strcmp(de->d_name, ".")) {
-            continue;
-        }
-        snprintf(dn, sizeof(dn), "%s/%s", path, de->d_name);
-        if (dirUnlinkHierarchy(dn) < 0) {
-            fail = 1;
-            break;
-        }
-        errno = 0;
-    }
-    /* in case readdir or unlink_recursive failed */
-    if (fail || errno < 0) {
-        int save = errno;
-        closedir(dir);
-        errno = save;
-        return -1;
-    }
+	    char dn[PATH_MAX];
 
-    /* close directory handle */
-    if (closedir(dir) < 0) {
-        return -1;
-    }
+	    if (!strcmp (de->d_name, "..") || !strcmp (de->d_name, "."))
+		    {
+		      continue;
+		    }
+	    snprintf (dn, sizeof (dn), "%s/%s", path, de->d_name);
+	    if (dirUnlinkHierarchy (dn) < 0)
+		    {
+		      fail = 1;
+		      break;
+		    }
+	    errno = 0;
+	  }
+  /* in case readdir or unlink_recursive failed */
+  if (fail || errno < 0)
+	  {
+	    int save = errno;
 
-    /* delete target directory */
-    return rmdir(path);
+	    closedir (dir);
+	    errno = save;
+	    return -1;
+	  }
+
+  /* close directory handle */
+  if (closedir (dir) < 0)
+	  {
+	    return -1;
+	  }
+
+  /* delete target directory */
+  return rmdir (path);
 }
 
 int
-dirSetHierarchyPermissions(const char *path,
-        int uid, int gid, int dirMode, int fileMode)
+dirSetHierarchyPermissions (const char *path,
+			    int uid, int gid, int dirMode, int fileMode)
 {
-    struct stat st;
-    if (lstat(path, &st)) {
-        return -1;
-    }
+  struct stat st;
 
-    /* ignore symlinks */
-    if (S_ISLNK(st.st_mode)) {
-        return 0;
-    }
+  if (lstat (path, &st))
+	  {
+	    return -1;
+	  }
 
-    /* directories and files get different permissions */
-    if (chown(path, uid, gid) ||
-        chmod(path, S_ISDIR(st.st_mode) ? dirMode : fileMode)) {
-        return -1;
-    }
+  /* ignore symlinks */
+  if (S_ISLNK (st.st_mode))
+	  {
+	    return 0;
+	  }
 
-    /* recurse over directory components */
-    if (S_ISDIR(st.st_mode)) {
-        DIR *dir = opendir(path);
-        if (dir == NULL) {
-            return -1;
-        }
+  /* directories and files get different permissions */
+  if (chown (path, uid, gid) ||
+      chmod (path, S_ISDIR (st.st_mode) ? dirMode : fileMode))
+	  {
+	    return -1;
+	  }
 
-        errno = 0;
-        const struct dirent *de;
-        while (errno == 0 && (de = readdir(dir)) != NULL) {
-            if (!strcmp(de->d_name, "..") || !strcmp(de->d_name, ".")) {
-                continue;
-            }
+  /* recurse over directory components */
+  if (S_ISDIR (st.st_mode))
+	  {
+	    DIR *dir = opendir (path);
 
-            char dn[PATH_MAX];
-            snprintf(dn, sizeof(dn), "%s/%s", path, de->d_name);
-            if (!dirSetHierarchyPermissions(dn, uid, gid, dirMode, fileMode)) {
-                errno = 0;
-            } else if (errno == 0) {
-                errno = -1;
-            }
-        }
+	    if (dir == NULL)
+		    {
+		      return -1;
+		    }
 
-        if (errno != 0) {
-            int save = errno;
-            closedir(dir);
-            errno = save;
-            return -1;
-        }
+	    errno = 0;
+	    const struct dirent *de;
 
-        if (closedir(dir)) {
-            return -1;
-        }
-    }
+	    while (errno == 0 && (de = readdir (dir)) != NULL)
+		    {
+		      if (!strcmp (de->d_name, "..")
+			  || !strcmp (de->d_name, "."))
+			      {
+				continue;
+			      }
 
-    return 0;
+		      char dn[PATH_MAX];
+
+		      snprintf (dn, sizeof (dn), "%s/%s", path, de->d_name);
+		      if (!dirSetHierarchyPermissions
+			  (dn, uid, gid, dirMode, fileMode))
+			      {
+				errno = 0;
+			      }
+		      else if (errno == 0)
+			      {
+				errno = -1;
+			      }
+		    }
+
+	    if (errno != 0)
+		    {
+		      int save = errno;
+
+		      closedir (dir);
+		      errno = save;
+		      return -1;
+		    }
+
+	    if (closedir (dir))
+		    {
+		      return -1;
+		    }
+	  }
+
+  return 0;
 }

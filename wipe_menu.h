@@ -1,1 +1,1 @@
-void show_wipe_menu();
+void show_wipe_menu ();

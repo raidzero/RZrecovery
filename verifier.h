@@ -22,9 +22,10 @@
 /* Look in the file for a signature footer, and verify that it
  * matches one of the given keys.  Return one of the constants below.
  */
-int verify_file(const char* path, const RSAPublicKey *pKeys, unsigned int numKeys);
+int verify_file (const char *path, const RSAPublicKey * pKeys,
+		 unsigned int numKeys);
 
 #define VERIFY_SUCCESS        0
 #define VERIFY_FAILURE        1
 
-#endif  /* _RECOVERY_VERIFIER_H */
+#endif /* _RECOVERY_VERIFIER_H */

@@ -18,13 +18,13 @@
 #define _RECOVERY_UI_H
 
 // Called when recovery starts up.  Returns 0.
-extern int device_recovery_start();
+extern int device_recovery_start ();
 
 // Called in the input thread when a new key (key_code) is pressed.
 // *key_pressed is an array of KEY_MAX+1 bytes indicating which other
 // keys are already pressed.  Return true if the device should reboot
 // immediately.
-extern int device_reboot_now(volatile char* key_pressed, int key_code);
+extern int device_reboot_now (volatile char *key_pressed, int key_code);
 
 // Called from the main thread when recovery is waiting for input and
 // a key is pressed.  key is the code of the key pressed; visible is
@@ -36,14 +36,14 @@ extern int device_reboot_now(volatile char* key_pressed, int key_code);
 //   - invoke the highlighted item (SELECT_ITEM)
 //   - do nothing (NO_ACTION)
 //   - invoke a specific action (a menu position: any non-negative number)
-extern int device_handle_key(int key/*, int visible*/);
+extern int device_handle_key (int key /*, int visible */ );
 
 // Perform a recovery action selected from the menu.  'which' will be
 // the item number of the selected menu item, or a non-negative number
 // returned from device_handle_key().  The menu will be hidden when
 // this is called; implementations can call ui_print() to print
 // information to the screen.
-extern int device_perform_action(int which);
+extern int device_perform_action (int which);
 
 // Called when we do a wipe data/factory reset operation (either via a
 // reboot from the main system with the --wipe_data flag, or when the
@@ -51,7 +51,7 @@ extern int device_perform_action(int which);
 // menu.)  Can perform whatever device-specific wiping actions are
 // needed.  Return 0 on success.  The userdata and cache partitions
 // are erased after this returns (whether it returns success or not).
-int device_wipe_data();
+int device_wipe_data ();
 
 #define NO_ACTION           -1
 
@@ -71,9 +71,9 @@ int device_wipe_data();
 #define MAIN_EXTRAS  		7
 
 // Header text to display above the main menu.
-extern char* MENU_HEADERS[];
+extern char *MENU_HEADERS[];
 
 // Text of menu items.
-extern char* MENU_ITEMS[];
+extern char *MENU_ITEMS[];
 
 #endif

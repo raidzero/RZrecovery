@@ -1,1 +1,1 @@
-void show_overclock_menu();
+void show_overclock_menu ();

@@ -23,4 +23,4 @@
 #define INLINE
 #endif
 
-#endif  // MINZIP_INLINE_MAGIC_H_
+#endif // MINZIP_INLINE_MAGIC_H_

@@ -44,101 +44,144 @@ static const char *kPartitions[] = { "/system", "/data", "/cache", NULL };
  * 2. Write a log entry with the number of files in lost+found directories.
  */
 
-int main(int argc, char **argv) {
-    mkdir(kOutputDir, 0755);
-    chown(kOutputDir, AID_SYSTEM, AID_SYSTEM);
-    FILE *out = fopen(kOutputFile, "a");
-    if (out == NULL) {
-        fprintf(stderr, "Can't write %s: %s\n", kOutputFile, strerror(errno));
-        return 1;
-    }
+int
+main (int argc, char **argv)
+{
+  mkdir (kOutputDir, 0755);
+  chown (kOutputDir, AID_SYSTEM, AID_SYSTEM);
+  FILE *out = fopen (kOutputFile, "a");
 
-    // Note: only the first 8K of log will be uploaded, so be terse.
-    time_t start = time(NULL);
-    fprintf(out, "*** check-lost+found ***\nStarted: %s", ctime(&start));
+  if (out == NULL)
+	  {
+	    fprintf (stderr, "Can't write %s: %s\n", kOutputFile,
+		     strerror (errno));
+	    return 1;
+	  }
 
-    struct stat st;
-    if (stat(kMarkerFile, &st)) {
-        // No reboot marker -- need to force an unclean reboot.
-        // But first, try to create the marker file.  If that fails,
-        // skip the reboot, so we don't get caught in an infinite loop.
+  // Note: only the first 8K of log will be uploaded, so be terse.
+  time_t start = time (NULL);
 
-        int fd = open(kMarkerFile, O_WRONLY|O_CREAT, 0444);
-        if (fd >= 0 && close(fd) == 0) {
-            fprintf(out, "Wrote %s, rebooting\n", kMarkerFile);
-            fflush(out);
-            sync();  // Make sure the marker file is committed to disk
+  fprintf (out, "*** check-lost+found ***\nStarted: %s", ctime (&start));
 
-            // If possible, dirty each of these partitions before rebooting,
-            // to make sure the filesystem has to do a scan on mount.
-            int i;
-            for (i = 0; kPartitions[i] != NULL; ++i) {
-                char fn[PATH_MAX];
-                snprintf(fn, sizeof(fn), "%s/%s", kPartitions[i], "dirty");
-                fd = open(fn, O_WRONLY|O_CREAT, 0444);
-                if (fd >= 0) {  // Don't sweat it if we can't write the file.
-                    write(fd, fn, sizeof(fn));  // write, you know, some data
-                    close(fd);
-                    unlink(fn);
-                }
-            }
+  struct stat st;
 
-            reboot(RB_AUTOBOOT);  // reboot immediately, with dirty filesystems
-            fprintf(out, "Reboot failed?!\n");
-            exit(1);
-        } else {
-            fprintf(out, "Can't write %s: %s\n", kMarkerFile, strerror(errno));
-        }
-    } else {
-        fprintf(out, "Found %s\n", kMarkerFile);
-    }
+  if (stat (kMarkerFile, &st))
+	  {
+	    // No reboot marker -- need to force an unclean reboot.
+	    // But first, try to create the marker file.  If that fails,
+	    // skip the reboot, so we don't get caught in an infinite loop.
 
-    int i;
-    for (i = 0; kPartitions[i] != NULL; ++i) {
-        char fn[PATH_MAX];
-        snprintf(fn, sizeof(fn), "%s/%s", kPartitions[i], "lost+found");
-        DIR *dir = opendir(fn);
-        if (dir == NULL) {
-            fprintf(out, "Can't open %s: %s\n", fn, strerror(errno));
-        } else {
-            int count = 0;
-            struct dirent *ent;
-            while ((ent = readdir(dir))) {
-                if (strcmp(ent->d_name, ".") && strcmp(ent->d_name, ".."))
-                    ++count;
-            }
-            closedir(dir);
-            if (count > 0) {
-                fprintf(out, "OMGZ FOUND %d FILES IN %s\n", count, fn);
-            } else {
-                fprintf(out, "%s is clean\n", fn);
-            }
-        }
-    }
+	    int fd = open (kMarkerFile, O_WRONLY | O_CREAT, 0444);
 
-    char dmesg[131073];
-    int len = klogctl(KLOG_READ_ALL, dmesg, sizeof(dmesg) - 1);
-    if (len < 0) {
-        fprintf(out, "Can't read kernel log: %s\n", strerror(errno));
-    } else {  // To conserve space, only write lines with certain keywords
-        fprintf(out, "--- Kernel log ---\n");
-        dmesg[len] = '\0';
-        char *saveptr, *line;
-        int in_yaffs = 0;
-        for (line = strtok_r(dmesg, "\n", &saveptr); line != NULL;
-             line = strtok_r(NULL, "\n", &saveptr)) {
-            if (strstr(line, "yaffs: dev is")) in_yaffs = 1;
+	    if (fd >= 0 && close (fd) == 0)
+		    {
+		      fprintf (out, "Wrote %s, rebooting\n", kMarkerFile);
+		      fflush (out);
+		      sync ();	// Make sure the marker file is committed to disk
 
-            if (in_yaffs ||
-                    strstr(line, "yaffs") ||
-                    strstr(line, "mtd") ||
-                    strstr(line, "msm_nand")) {
-                fprintf(out, "%s\n", line);
-            }
+		      // If possible, dirty each of these partitions before rebooting,
+		      // to make sure the filesystem has to do a scan on mount.
+		      int i;
 
-            if (strstr(line, "yaffs_read_super: isCheckpointed")) in_yaffs = 0;
-        }
-    }
+		      for (i = 0; kPartitions[i] != NULL; ++i)
+			      {
+				char fn[PATH_MAX];
 
-    return 0;
+				snprintf (fn, sizeof (fn), "%s/%s",
+					  kPartitions[i], "dirty");
+				fd = open (fn, O_WRONLY | O_CREAT, 0444);
+				if (fd >= 0)
+					{	// Don't sweat it if we can't write the file.
+					  write (fd, fn, sizeof (fn));	// write, you know, some data
+					  close (fd);
+					  unlink (fn);
+					}
+			      }
+
+		      reboot (RB_AUTOBOOT);	// reboot immediately, with dirty filesystems
+		      fprintf (out, "Reboot failed?!\n");
+		      exit (1);
+		    }
+	    else
+		    {
+		      fprintf (out, "Can't write %s: %s\n", kMarkerFile,
+			       strerror (errno));
+		    }
+	  }
+  else
+	  {
+	    fprintf (out, "Found %s\n", kMarkerFile);
+	  }
+
+  int i;
+
+  for (i = 0; kPartitions[i] != NULL; ++i)
+	  {
+	    char fn[PATH_MAX];
+
+	    snprintf (fn, sizeof (fn), "%s/%s", kPartitions[i], "lost+found");
+	    DIR *dir = opendir (fn);
+
+	    if (dir == NULL)
+		    {
+		      fprintf (out, "Can't open %s: %s\n", fn,
+			       strerror (errno));
+		    }
+	    else
+		    {
+		      int count = 0;
+		      struct dirent *ent;
+
+		      while ((ent = readdir (dir)))
+			      {
+				if (strcmp (ent->d_name, ".")
+				    && strcmp (ent->d_name, ".."))
+				  ++count;
+			      }
+		      closedir (dir);
+		      if (count > 0)
+			      {
+				fprintf (out, "OMGZ FOUND %d FILES IN %s\n",
+					 count, fn);
+			      }
+		      else
+			      {
+				fprintf (out, "%s is clean\n", fn);
+			      }
+		    }
+	  }
+
+  char dmesg[131073];
+  int len = klogctl (KLOG_READ_ALL, dmesg, sizeof (dmesg) - 1);
+
+  if (len < 0)
+	  {
+	    fprintf (out, "Can't read kernel log: %s\n", strerror (errno));
+	  }
+  else
+	  {			// To conserve space, only write lines with certain keywords
+	    fprintf (out, "--- Kernel log ---\n");
+	    dmesg[len] = '\0';
+	    char *saveptr, *line;
+	    int in_yaffs = 0;
+
+	    for (line = strtok_r (dmesg, "\n", &saveptr); line != NULL;
+		 line = strtok_r (NULL, "\n", &saveptr))
+		    {
+		      if (strstr (line, "yaffs: dev is"))
+			in_yaffs = 1;
+
+		      if (in_yaffs ||
+			  strstr (line, "yaffs") ||
+			  strstr (line, "mtd") || strstr (line, "msm_nand"))
+			      {
+				fprintf (out, "%s\n", line);
+			      }
+
+		      if (strstr (line, "yaffs_read_super: isCheckpointed"))
+			in_yaffs = 0;
+		    }
+	  }
+
+  return 0;
 }

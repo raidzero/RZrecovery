@@ -74,18 +74,16 @@
 typedef struct MmcPartition MmcPartition;
 
 /* Functions */
-int mmc_scan_partitions();
-const MmcPartition *mmc_find_partition_by_name(const char *name);
-int mmc_format_ext3 (MmcPartition *partition);
-int mmc_mount_partition(const MmcPartition *partition, const char *mount_point, \
-                        int read_only);
-int mmc_raw_copy (const MmcPartition *partition, char *in_file);
-int mmc_raw_read (const MmcPartition *partition, char *data, int data_size);
-int mmc_raw_write (const MmcPartition *partition, char *data, int data_size);
+int mmc_scan_partitions ();
+const MmcPartition *mmc_find_partition_by_name (const char *name);
+int mmc_format_ext3 (MmcPartition * partition);
+int mmc_mount_partition (const MmcPartition * partition,
+			 const char *mount_point, int read_only);
+int mmc_raw_copy (const MmcPartition * partition, char *in_file);
+int mmc_raw_read (const MmcPartition * partition, char *data, int data_size);
+int mmc_raw_write (const MmcPartition * partition, char *data, int data_size);
 
-int format_ext2_device(const char *device);
-int format_ext3_device(const char *device);
+int format_ext2_device (const char *device);
+int format_ext3_device (const char *device);
 
-#endif  // MMCUTILS_H_
-
-
+#endif // MMCUTILS_H_
