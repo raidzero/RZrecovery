@@ -101,7 +101,7 @@ void show_choose_cwnand_menu()
 
 	int chosen_item = -1;
 	while (chosen_item < 0) {
-	    chosen_item = get_menu_selection(headers, list, 1, chosen_item<0?0:chosen_item);
+	    chosen_item = get_menu_selection(headers, list, 0, chosen_item<0?0:chosen_item);
 	    if (chosen_item >= 0 && chosen_item != ITEM_BACK) {
 		restore_cw_nandroid(files[chosen_item]);
 	    }

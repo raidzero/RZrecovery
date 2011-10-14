@@ -91,7 +91,7 @@ void root_menu() {
                           " OK, give me root!",
                           NULL };
 
-        int chosen_item = get_menu_selection(title_headers, items, 1, 0);
+        int chosen_item = get_menu_selection(title_headers, items, 0, 0);
         if (chosen_item != 1) {
             return;
         }
@@ -132,7 +132,7 @@ void show_extras_menu()
 int chosen_item = -1;
 
     while(chosen_item!=ITEM_BACK) {
-	chosen_item = get_menu_selection(headers,items,1,chosen_item<0?0:chosen_item);
+	chosen_item = get_menu_selection(headers,items,0,chosen_item<0?0:chosen_item);
 
 
         switch (chosen_item) {

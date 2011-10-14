@@ -152,7 +152,7 @@ void choose_file_menu(char* sdpath) {
 		
 		int chosen_item = -1;
 		while (chosen_item < 0) {
-			chosen_item = get_menu_selection(headers, list, 1, chosen_item<0?0:chosen_item);
+			chosen_item = get_menu_selection(headers, list, 0, chosen_item<0?0:chosen_item);
 			if (chosen_item >= 0 && chosen_item != ITEM_BACK ) {
 			
 				char install_string[PATH_MAX]; //create real path from selection

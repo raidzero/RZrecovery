@@ -129,7 +129,7 @@ printf("\nDefinitions list created.\n");
 int chosen_item = -1;
 
     while(chosen_item!=ITEM_BACK) {
-	chosen_item = get_menu_selection(headers,available_slots,1,chosen_item<0?0:chosen_item);
+	chosen_item = get_menu_selection(headers,available_slots,0,chosen_item<0?0:chosen_item);
 	if (chosen_item == ITEM_BACK) {
         return;
 	}

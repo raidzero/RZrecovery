@@ -123,7 +123,7 @@ void show_mount_menu()
     int chosen_item = -1;
 
     while(chosen_item!=ITEM_BACK) {
-	chosen_item = get_menu_selection(headers,items,1,chosen_item<0?0:chosen_item);
+	chosen_item = get_menu_selection(headers,items,0,chosen_item<0?0:chosen_item);
 
 	/*      char* act_str = malloc(18*sizeof(char));
 		sprintf(act_str, "Action is %d\n", chosen_item);

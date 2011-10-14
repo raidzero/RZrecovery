@@ -99,7 +99,7 @@ void show_colors_menu() {
 int chosen_item = -1;
 
     while(chosen_item!=ITEM_BACK) {
-	chosen_item = get_menu_selection(headers,items,1,chosen_item<0?0:chosen_item);
+	chosen_item = get_menu_selection(headers,items,0,chosen_item<0?0:chosen_item);
 
         switch (chosen_item) {
 	case RANDOM:

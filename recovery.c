@@ -602,10 +602,13 @@ get_menu_selection(char** headers, char** items, int menu_only,
     while (chosen_item < 0) {
         int key = ui_wait_key();
 
-	if (key == KEY_BACKSPACE || key == KEY_END || key == KEY_BACK) {
-	    return(ITEM_BACK);
-	}
+	//if (key == KEY_BACKSPACE || key == KEY_END || key == KEY_BACK) {
+	//    return(ITEM_BACK);
+	//}
 	
+	//debug stuff
+	printf("\nKey %i pressed.\n",key);
+
         int action = device_handle_key(key);
 
         if (action < 0) {
@@ -623,9 +626,9 @@ get_menu_selection(char** headers, char** items, int menu_only,
                     break;
                 case NO_ACTION:
                     break;
-				case ITEM_BACK:
-					if (initial_selection==9999) selected=0;
-					break;
+		case ITEM_BACK:
+		    return(ITEM_BACK);
+		    break;
             }
         } else if (!menu_only) {
             chosen_item = action;

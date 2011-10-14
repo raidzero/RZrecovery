@@ -196,7 +196,7 @@ void nandroid_adv_r_choose_file(char* filename, char* nandroid_folder)
 	list = reverse_array(list);
 	int chosen_item = -1;
 	while (chosen_item < 0) {
-		chosen_item = get_menu_selection(headers, list, 1, chosen_item<0?0:chosen_item);
+		chosen_item = get_menu_selection(headers, list, 0, chosen_item<0?0:chosen_item);
 		if(chosen_item >= 0 && chosen_item != ITEM_BACK) {
 		strcpy(filename,list[chosen_item]);
 		}
@@ -279,7 +279,7 @@ void show_nandroid_adv_r_menu()
 
 	while(chosen_item!=ITEM_BACK) {
 	get_nandroid_adv_menu_opts(items+2,partitions,"restore"); // put the menu options in items[] starting at index 2
-	chosen_item=get_menu_selection(headers,items,1,chosen_item<0?0:chosen_item);
+	chosen_item=get_menu_selection(headers,items,0,chosen_item<0?0:chosen_item);
 
 	switch(chosen_item) {
 		case ITEM_CHSE:
@@ -332,7 +332,7 @@ void show_nandroid_adv_b_menu()
 
 	while(chosen_item!=ITEM_BACK) {
 	get_nandroid_adv_menu_opts(items+1,partitions,"backup"); // put the menu options in items[] starting at index 1
-	chosen_item=get_menu_selection(headers,items,1,chosen_item<0?0:chosen_item);
+	chosen_item=get_menu_selection(headers,items,0,chosen_item<0?0:chosen_item);
 
 	switch(chosen_item) {
 	case B_ITEM_PERF:
@@ -372,7 +372,7 @@ void show_nandroid_menu()
 	int chosen_item = -1;
 
 	while(chosen_item!=ITEM_BACK) {
-	chosen_item = get_menu_selection(headers,items,1,chosen_item<0?0:chosen_item);
+	chosen_item = get_menu_selection(headers,items,0,chosen_item<0?0:chosen_item);
 	  
 	switch(chosen_item) {
 	case ITEM_ADV_BACKUP:
