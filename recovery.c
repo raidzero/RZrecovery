@@ -758,7 +758,7 @@ prompt_and_wait ()
 	    finish_recovery (NULL);
 	    ui_reset_progress ();
 	     int chosen_item =
-	      get_menu_selection (headers, MENU_ITEMS, 0,
+	      get_menu_selection (headers, MENU_ITEMS, 1,
 				  chosen_item < 0 ? 0 : chosen_item);
 	    
 	      // device-specific code may take some action here.  It may
