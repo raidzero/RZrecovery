@@ -33,7 +33,7 @@
 #define MAX_ROWS 32
   
 #define MENU_MAX_COLS 64
-#define MENU_MAX_ROWS 250
+#define MENU_MAX_ROWS 750
   
 #define CHAR_WIDTH 10
 #define CHAR_HEIGHT 18

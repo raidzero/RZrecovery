@@ -38,7 +38,7 @@
 #define SYN_MT_REPORT 2
 
 // The amount of time in ms to delay before duplicating a held down key.
-#define KEYHOLD_DELAY 200
+#define KEYHOLD_DELAY 175
 
 enum {
     DOWN_NOT,

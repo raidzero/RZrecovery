@@ -26,14 +26,14 @@ char *MENU_HEADERS[] = { "Welcome to RZRecovery",
 };
 
 char *MENU_ITEMS[] = { "reboot android",
-  "reboot recovery",
-  "power off",
-  "bootloader",
-  "wipe menu",
-  "mount menu",
-  "nandroid menu",
-  "install from sdcard",
-  "extras",
+  "Reboot recovery",
+  "Power off",
+  "Bootloader",
+  "Wipe menu",
+  "Mount menu",
+  "Nandroid menu",
+  "Install from sdcard",
+  "Extras menu",
   NULL
 };
 
