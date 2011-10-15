@@ -25,7 +25,7 @@ char *MENU_HEADERS[] = { "Welcome to RZRecovery",
   NULL
 };
 
-char *MENU_ITEMS[] = { "reboot android",
+char *MENU_ITEMS[] = { "Reboot android",
   "Reboot recovery",
   "Power off",
   "Bootloader",
