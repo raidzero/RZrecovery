@@ -707,9 +707,6 @@ get_menu_selection (char **headers, char **items, int menu_only,
 	  {
 	    int key = ui_wait_key ();
 
-	     
-	      //debug stuff
-	      printf ("\nKey %i pressed.\n", key);
 	     int action = device_handle_key (key);
 
 	     if (action < 0)

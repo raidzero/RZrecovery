@@ -151,12 +151,12 @@ show_extras_menu ()
     NULL
   };
 
-#define COLORS         0
-#define OTA			   1
-#define BATT		   2
-#define FLASHLIGHT     3
-#define ROOT_MENU	   4
-#define OVERCLOCK	   5
+#define COLORS			0
+#define OTA			1
+#define BATT 			2
+#define FLASHLIGHT     		3
+#define ROOT_MENU	   	4
+#define OVERCLOCK	   	5
 
   int chosen_item = -1;
 
@@ -171,7 +171,7 @@ show_extras_menu ()
 		    {
 		    case COLORS:
 		      show_colors_menu ();
-		      return;
+		      break;
 		    case OTA:
 		      disable_OTA ();
 		      break;

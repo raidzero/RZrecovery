@@ -245,13 +245,7 @@ draw_screen_locked (void)
 
    if (show_menu)
 	  {
-	    printf ("\nmenu_top: ");
-	    printf ("%i", menu_top);
-	    printf ("\nmenu_sel: ");
-	    printf ("%i", menu_sel);
-	    printf ("\nmenu_show_start: ");
-	    printf ("%i", menu_show_start);
-	     gr_color (cRv, cGv, cBv, 255);
+	    gr_color (cRv, cGv, cBv, 255);
 	    gr_fill (0,
 		      (menu_top + menu_sel - menu_show_start) * CHAR_HEIGHT,
 		      gr_fb_width (),
@@ -263,8 +257,8 @@ draw_screen_locked (void)
 		      row++;
 		    }
 	     
-	      //draw line
-	      gr_color (cRv, cGv, cBv, 255);
+	    //draw line
+	    gr_color (cRv, cGv, cBv, 255);
 	    row--;		//go up one to draw our top line
 	    gr_fill (0, row * CHAR_HEIGHT + CHAR_HEIGHT / 2 - 1,
 		     gr_fb_width (),
@@ -379,6 +373,8 @@ input_thread (void *cookie)
 {
   int rel_sum = 0;
   int fake_key = 0;
+  int last_code = 0;
+  unsigned keyheld;
 
   for (;;)
 	  {
@@ -389,7 +385,24 @@ input_thread (void *cookie)
 	    
 	    do
 		    {
-		      ev_get (&ev, 0);
+		    if (ev_get(&ev, 0, keyheld) != 1) {
+			// Check for an up/down key press
+			if (ev.type == EV_KEY && (ev.code == KEY_UP
+				|| ev.code == KEY_DOWN || ev.code == KEY_VOLUMEUP
+				|| ev.code == KEY_VOLUMEDOWN) && ev.value == 1) {
+					keyheld = 1;
+					last_code = ev.code;
+				} else { 
+					keyheld =0;
+				}
+			} else {
+				// A return value of 1 means the last key should be repeated
+				ev.type = EV_KEY;
+				ev.code = last_code;
+				ev.value = 1;
+			}
+
+
 		       if (ev.type == EV_SYN)
 			      {
 				continue;
