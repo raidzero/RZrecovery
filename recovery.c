@@ -773,6 +773,9 @@ prompt_and_wait ()
 		     case MAIN_SHUTDOWN:
 		      power_off ();
 		      break;
+		     case MAIN_BOOTLOADER:
+		      reboot_bootloader();
+		      break;
 		     case MAIN_WIPE_MENU:
 		      show_wipe_menu ();
 		      break;
@@ -997,7 +1000,7 @@ main (int argc, char **argv)
  void
 reboot_android ()
 {
-  ui_print ("\n-- Rebooting into android...\n");
+  ui_print ("\n-- Rebooting into android --\n");
   ensure_path_mounted ("/system");
   remove ("/system/recovery_from_boot.p");
   write_files ();
@@ -1011,17 +1014,27 @@ reboot_android ()
 
 reboot_recovery ()
 {
-  ui_print ("\n-- Rebooting into recovery...\n");
+  ui_print ("\n-- Rebooting into recovery --\n");
   write_files ();
   sync ();
   __reboot (LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2,
 	     LINUX_REBOOT_CMD_RESTART2, "recovery");
   reboot (RB_AUTOBOOT);
-}  void
+} 
 
-power_off ()
+void reboot_bootloader() 
 {
-  ui_print ("\n-- Shutting down...");
+	ui_print("\n-- Rebooting into bootloader --\n");
+	write_files();
+	sync();
+	__reboot (LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2,
+		LINUX_REBOOT_CMD_RESTART2, "bootloader");
+	reboot (RB_AUTOBOOT);
+}	
+
+void power_off ()
+{
+  ui_print ("\n-- Shutting down --");
   write_files ();
   sync ();
   __reboot (LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2,

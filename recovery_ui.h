@@ -64,11 +64,12 @@ int device_wipe_data ();
 #define MAIN_REBOOT           	0
 #define MAIN_RECOVERY	     	1
 #define MAIN_SHUTDOWN     	2
-#define MAIN_WIPE_MENU	3
-#define MAIN_MOUNTS		4
-#define MAIN_NANDROID		5
-#define MAIN_INSTALL		6
-#define MAIN_EXTRAS  		7
+#define MAIN_BOOTLOADER		3
+#define MAIN_WIPE_MENU		4
+#define MAIN_MOUNTS		5
+#define MAIN_NANDROID		6
+#define MAIN_INSTALL		7
+#define MAIN_EXTRAS  		8
 
 // Header text to display above the main menu.
 extern char *MENU_HEADERS[];
