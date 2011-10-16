@@ -32,9 +32,6 @@ show_battstat ()
   fgets (bcap, 4, fc);
   
   int noTemp;
-  if (access ("/sys/class/power_supply/battery/temp", F_OK)) {
-  	noTemp = 1;
-  }
 
   int caplen = strlen (bcap);
 
@@ -52,8 +49,8 @@ show_battstat ()
 	  {
 	    ui_print ("Charge Level: ");
 	    ui_print ("%s", bcap);
-	    if ( noTemp != 1 ) {
-	    	ui_print ("\nTemperature: ");
+	    if (!access ("/sys/class/power_supply/battery/temp", F_OK)) {
+		ui_print ("\nTemperature: ");
 		FILE *ft = fopen ("/sys/class/power_supply/battery/temp", "r");
 		char *btemp = calloc (13, sizeof (char));
 		fgets (btemp, 3, ft);
@@ -61,7 +58,7 @@ show_battstat ()
 	    	ui_print ("%s", btemp);
 		fclose(ft);
 	    }
-	  }
+	   }
   fclose (fc);
   fclose (fs);
 }
@@ -147,21 +144,21 @@ show_extras_menu ()
     NULL
   };
 
-  char *items[] = { "Custom Colors",
-    "Disable OTA Update Downloads in ROM",
-    "Show Battery Status",
-    "Toggle Flashlight",
-    "Activate Root Access in ROM",
-    "Recovery Overclocking",
-    NULL
-  };
+
+  char* items[] = { "Custom Colors",
+  		"Disable OTA Update Downloads in ROM",
+    		"Show Battery Status",
+    		"Activate Root Access in ROM",
+    		"Recovery Overclocking",
+    		NULL
+  	};
 
 #define COLORS			0
 #define OTA			1
 #define BATT 			2
-#define FLASHLIGHT     		3
-#define ROOT_MENU	   	4
-#define OVERCLOCK	   	5
+#define ROOT_MENU	   	3	
+#define OVERCLOCK	   	4
+#define FLASHLIGHT		5
 
   int chosen_item = -1;
 

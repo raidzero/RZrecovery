@@ -180,6 +180,16 @@ draw_text_line (int row, const char *t)
 }
 
  
+//experimental light up screen in white until back is pressed
+void light_screen() {
+  int key = ui_wait_key ();
+  int action = device_handle_key(key);
+  while ( action == ITEM_BACK ) {
+  	gr_color (255,255,255,255);
+	gr_fill (0, 0, gr_fb_width (), gr_fb_height ());
+  }
+}
+
 // Redraw everything on the screen.  Does not flip pages.
 // Should only be called with gUpdateMutex locked.
   static void
