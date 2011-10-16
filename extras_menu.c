@@ -22,21 +22,20 @@ void
 show_battstat ()
 {
   FILE *fs = fopen ("/sys/class/power_supply/battery/status", "r");
-  char *bstat = calloc (13, sizeof (char));
+  char *bstat = calloc (14, sizeof (char));
 
-  fgets (bstat, 13, fs);
+  fgets (bstat, 14, fs);
 
   FILE *fc = fopen ("/sys/class/power_supply/battery/capacity", "r");
-  char *bcap = calloc (4, sizeof (char));
+  char *bcap = calloc (14, sizeof (char));
 
   fgets (bcap, 4, fc);
+  
+  int noTemp;
+  if (access ("/sys/class/power_supply/battery/temp", F_OK)) {
+  	noTemp = 1;
+  }
 
-  FILE *ft = fopen ("/sys/class/power_supply/battery/temp", "r");
-  char *btemp = calloc (3, sizeof (char));
-
-  fgets (btemp, 3, ft);
-
-  btemp = strcat (btemp, " C");
   int caplen = strlen (bcap);
 
   if (bcap[caplen - 1] == '\n')
@@ -53,10 +52,16 @@ show_battstat ()
 	  {
 	    ui_print ("Charge Level: ");
 	    ui_print ("%s", bcap);
-	    ui_print ("\nTemperature: ");
-	    ui_print ("%s", btemp);
+	    if ( noTemp != 1 ) {
+	    	ui_print ("\nTemperature: ");
+		FILE *ft = fopen ("/sys/class/power_supply/battery/temp", "r");
+		char *btemp = calloc (13, sizeof (char));
+		fgets (btemp, 3, ft);
+		btemp = strcat (btemp, " C");
+	    	ui_print ("%s", btemp);
+		fclose(ft);
+	    }
 	  }
-  fclose (ft);
   fclose (fc);
   fclose (fs);
 }

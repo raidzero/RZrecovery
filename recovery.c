@@ -326,6 +326,14 @@ read_files ()
 	  }
    sync ();
   ensure_path_unmounted ("/sdcard/RZR");
+
+// turn on button backlights if available
+  if (!access ("/sys/class/leds/button-backlight/brightness", F_OK)) {
+	FILE *cbb = fopen ("/sys/class/leds/button-backlight/brightness", "w");
+	fputs("255",cbb);
+	fputs("\n",cbb);
+	fclose(cbb);
+  }
 }
 
  
