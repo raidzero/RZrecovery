@@ -82,7 +82,6 @@ show_overclock_menu ()
 	    freq[freqlen - 1] = 0;
 	  }
   printf ("Removed last char in freq.\n");
-   freq = strcat (freq, " KHz");
   freqlen = strlen (freq);
   if (freq[freqlen - 1] == '\n')
 	  {
@@ -123,12 +122,18 @@ show_overclock_menu ()
   free (slots);
   printf ("\nslots[] freed\n");
    
-    //create pretty header lines
-  char max_string[50];
+  //create pretty header lines
+  char max_string[50]; 
 
-  strcpy (max_string, "Current max speed: ");
-  strcat (max_string, freq);
-  printf ("%s", max_string);
+  int freqMHz = atoi(freq)/1000;
+  char freqstring[50];
+
+  sprintf(freqstring,"%i",freqMHz);
+
+  strcpy(max_string,"Current Max Speed: ");
+  strcat(max_string, freqstring);
+  strcat(max_string," MHz");
+
   printf ("\nmax_string created\n");
     char *headers[] = { "Recovery CPU settings", max_string, " ", NULL
   };
@@ -144,7 +149,8 @@ show_overclock_menu ()
 #define slot8			7
 #define slot9			8
 #define slot10			9
-    printf ("\nDefinitions list created.\n");
+
+   printf ("\nDefinitions list created.\n");
    int chosen_item = -1;
 
    while (chosen_item != ITEM_BACK)

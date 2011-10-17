@@ -334,6 +334,18 @@ read_files ()
 	fputs("\n",cbb);
 	fclose(cbb);
   }
+  if (!access ("/sys/class/leds/button-backlight-portait/brightness", F_OK)) {
+          FILE *cbp = fopen ("/sys/class/leds/button-backlight-portait/brightness", "w");
+	  fputs("255",cbp);
+	  fputs("\n",cbp);
+	  fclose(cbp);
+  }
+  if (!access ("/sys/class/leds/button-backlight-landscape/brightness", F_OK)) {
+  	FILE *cbl = fopen("/sys/class/leds/button-backlight-landscape/brightness", "w");
+	fputs("255",cbl);
+	fputs("\n",cbl);
+	fclose(cbl);
+  }
 }
 
  
