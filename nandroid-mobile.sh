@@ -256,7 +256,7 @@ fi
 
 if [ "$INSTALL_ROM" == 1 ]; then
 	
-    batteryAtLeast 30
+    batteryAtLeast 20
 
     $ECHO "* show_indeterminate_progress"
 
