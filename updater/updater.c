@@ -146,7 +146,7 @@ main (int argc, char **argv)
 		    {
 		      fprintf (stderr, "script aborted: %s\n", state.errmsg);
 		      //show error on the screen to help debugging
-		      fprintf (cmd_pipe, "\nScript aborted: %s\n", state.errmsg);
+		      fprintf (cmd_pipe, "ui_print \nScript aborted: %s\n", state.errmsg);
 
 		      char *line = strtok (state.errmsg, "\n");
 
