@@ -57,6 +57,35 @@ if [ "`echo $0 | grep /sbin/nandroid-mobile.sh`" == "" ]; then
 fi
 
 
+
+if [ -e /proc/mtd ]; then
+	flashfile="/proc/mtd"
+fi
+
+if [ -e /proc/emmc ]; then
+	flashfile="/proc/emmc"	
+fi
+
+bootP=`cat $flashfile | grep \"boot\" | awk '{print $1}' | sed 's/://g'`
+
+if [ ! -z `echo $bootP | grep mtd` ]; then
+	pNum=`echo $bootP | sed "s/[^0-9]//g"`
+	blkDevice="/dev/block/mtdblock$pNum"
+fi
+
+if [ ! -z `echo $bootP | grep mmc` ]; then
+	blkDevice="/dev/block/$bootP"
+fi
+
+dump_boot() 
+{
+	echo "* print Dumping boot from $blkDevice..."
+	dd if="$blkDevice" of=$1
+}
+
+	
+
+
 # Hm, have to handle old options for the current UI
 case $1 in
     restore)
@@ -580,24 +609,25 @@ if [ "$BACKUP" == 1 ]; then
 			exit 33
 		fi
 		rm $DESTDIR/.nandroidwritable
+        fi
     fi
 
 # 3.
     echo "* print checking free space on sdcard"
-    FREEBLOCKS="`df | grep sdcard | awk '{ print $4 }'`"
-    DATABLOCKS="`df | grep /data | awk '{print$3}'`"
-    SYSBLOCKS="`df | grep /system | awk '{print$3}'`"
-    SECBLOCKS="`du -sh /sdcard/.android-secure`"
-    REQBLOCKS="`expr $DATABLOCKS + $SYSBLOCKS + $SECBLOCKS`"
+    FREEBLOCKS=`df | grep sdcard | awk '{print$3}'`
+    DATABLOCKS=`df | grep /data | awk '{print$3}'`
+    SYSBLOCKS=`df | grep /system | awk '{print$3}'`
+    SECBLOCKS=`du -sh /sdcard/.android-secure`
+    REQBLOCKS=`expr $DATABLOCKS + $SYSBLOCKS + $SECBLOCKS`
     echo "* print $REQBLOCKS Bytes Required!"
     echo "* print $FREEBLOCKS Bytes Available!"
     if [ $FREEBLOCKS -le $REQBLOCKS]; then
-		echo "* print Error: not enough free space available on sdcard (need 300mb), aborting."
-		umount /system 2>/dev/null
-		umount /data 2>/dev/null
-		umount /sdcard 2>/dev/null
-		exit 34
-	fi
+	echo "* print Error: not enough free space available on sdcard (need 300mb), aborting."
+	umount /system 2>/dev/null
+	umount /data 2>/dev/null
+	umount /sdcard 2>/dev/null
+	exit 34
+    fi
 	
 
 
@@ -613,20 +643,17 @@ if [ "$BACKUP" == 1 ]; then
 		;;
 	esac
 
-	DEVICEMD5=`dump_image $image - | md5sum | awk '{ print $1 }'`
 	sleep 1s
 	MD5RESULT=1
-	# 5b
-	echo "* print Dumping $image..."
 	ATTEMPT=0
 	while [ $MD5RESULT -eq 1 ]; do
 	    let ATTEMPT=$ATTEMPT+1
-		# 5b1
-	    dump_image $image $DESTDIR/$image.img $OUTPUT
+	    dump_boot $DESTDIR/$image.img 
 	    sync
-		# 5b3
-	    echo "${DEVICEMD5}  $DESTDIR/$image.img" | md5sum -c -s - $OUTPUT
-	    if [ $? -eq 1 ]; then
+	    echo "* print Verifying $image dump..."
+	    IMGMD5=`md5sum $DESTDIR/$image.img | awk '{print$1}'`		
+	    DEVICEMD5=`md5sum $blkDevice | awk '{print$1}'`
+	    if [ $IMGMD5 -eq $DEVICEMD5 ]; then
 		true
 	    else
 		MD5RESULT=0
