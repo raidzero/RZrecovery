@@ -613,7 +613,7 @@ if [ "$BACKUP" == 1 ]; then
 		;;
 	esac
 
-	DEVICEMD5=`dump_image $image | md5sum | awk '{ print $1 }'`
+	DEVICEMD5=`dump_image $image - | md5sum | awk '{ print $1 }'`
 	sleep 1s
 	MD5RESULT=1
 	# 5b
