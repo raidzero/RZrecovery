@@ -820,11 +820,8 @@ print_property (const char *key, const char *name, void *cookie)
 
 main (int argc, char **argv)
 {
-  load_volume_table ();
-  process_volumes ();
   if (strstr (argv[0], "recovery") == NULL)
-    
-	  {
+	 {
 	    if (strstr (argv[0], "flash_image") != NULL)
 	      return flash_image_main (argc, argv);
 	    if (strstr (argv[0], "dump_image") != NULL)
@@ -833,6 +830,8 @@ main (int argc, char **argv)
 	      return erase_image_main (argc, argv);
 	    if (strstr (argv[0], "format") != NULL)
 	      return erase_volume_cmd (argc, argv);
+	    //we dont need to keep executing stuff past this point if an embedded function was called 
+	    return 0;
 	  }
   time_t start = time (NULL);
    
@@ -842,6 +841,8 @@ main (int argc, char **argv)
   freopen (TEMPORARY_LOG_FILE, "a", stderr);
   setbuf (stderr, NULL);
   printf ("Starting recovery on %s", ctime (&start));
+  load_volume_table ();
+  process_volumes ();
   read_files ();
   ui_init ();
   activateLEDs();
