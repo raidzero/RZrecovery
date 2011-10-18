@@ -8,33 +8,12 @@
 #include "roots.h"
 #include "recovery_ui.h"
 
-
-
-void
-remove_rave ()
-{
-  ensure_path_mounted ("/sdcard");
-  if (access ("/sdcard/RZR/rnd", F_OK) != -1)
-	  {
-	    system ("rm /sdcard/RZR/rnd");
-	    system ("rm /cache/rnd");
-	    write_files ();
-	  }
-}
-
 void
 set_color (char red, char green, char blue)
 {
   char txt;
 
-  if (green >= 150)
-	  {
-	    txt = 0;
-	  }
-  else
-	  {
-	    txt = 255;
-	  }
+  if (green >= 150) txt = 0; else txt = 255;
   FILE *fp = fopen ("/cache/rgb", "wb");
 
   fwrite (&red, 1, 1, fp);
@@ -42,16 +21,9 @@ set_color (char red, char green, char blue)
   fwrite (&blue, 1, 1, fp);
   fwrite (&txt, 1, 1, fp);
   fclose (fp);
-  if (access ("/cache/rnd", F_OK) != -1)
-	  {
-	    system ("rm /cache/rnd");
-	  }
+  if (access ("/cache/rnd", F_OK) != -1) remove("/cache/rnd");
   ensure_path_mounted ("/sdcard");
-  if (access ("/sdcard/rnd", F_OK) != -1)
-	  {
-	    system ("rm /sdcard/rnd");
-	  }
-  ensure_path_unmounted ("/sdcard/");
+  if (access ("/sdcard/rnd", F_OK) != -1) remove("/sdcard/rnd");
   write_files ();
 }
 
@@ -71,9 +43,10 @@ set_random (int rnd)
 
   set_color (cR, cG, cB);
   if (rnd == 1)
-	  {
-	    system ("echo > /cache/rnd");
-	  }
+  {
+    remove("/cache/rgb");
+    system ("echo > /cache/rnd"); 
+  }
   write_files ();
 }
 
@@ -105,13 +78,13 @@ show_colors_menu ()
 #define RANDOM  		0
 #define BLUE			1
 #define CYAN			2
-#define GREEN		3
-#define ORANGE		4
+#define GREEN			3
+#define ORANGE			4
 #define PINK			5
-#define PURPLE		6
+#define PURPLE			6
 #define RED			7
-#define SMOKED		8
-#define YELLOW		9
+#define SMOKED			8
+#define YELLOW			9
 #define GOLD			10
 #define WHITE			11
 #define GREY			12

@@ -197,57 +197,42 @@ draw_screen_locked (void)
 {
   
     //define menu color integers
-  char cRv;
-  char cGv;
-  char cBv;
+  char cRv , cGv, cBv, txt;
 
+  if (access ("/cache/rnd", F_OK) != -1)
+  {
+    struct timeval tv;
+    struct timezone tz;
+    struct tm *tm;
+
+    gettimeofday (&tv, &tz);
+    tm = localtime (&tv.tv_sec);
+    srand (tv.tv_usec);
+    cRv = rand () % 255;
+    cGv = rand () % 255;
+    cBv = rand () % 255;
+    if (cGv >= 150) txt = 0; else txt = 255;
+  } else {
   
-    //define menu highlight text color
-  char txt;
-
-   if (access ("/cache/rnd", F_OK) != -1)
-	  {
-	    struct timeval tv;
-	    struct timezone tz;
-	    struct tm *tm;
-
-	    gettimeofday (&tv, &tz);
-	    tm = localtime (&tv.tv_sec);
-	    srand (tv.tv_usec);
-	    cRv = rand () % 255;
-	    cGv = rand () % 255;
-	    cBv = rand () % 255;
-	    if (cGv >= 150)
-		    {
-		      txt = 0;
-		    }
-	    else
-		    {
-		      txt = 255;
-		    }
-	  }
-  else
-	  {
-	    if (access ("/cache/rgb", F_OK) != -1)
-		    {
-		      FILE * fp = fopen ("/cache/rgb", "rb");
-		      fread (&cRv, 1, 1, fp);
-		      fread (&cGv, 1, 1, fp);
-		      fread (&cBv, 1, 1, fp);
-		      fread (&txt, 1, 1, fp);
-		      fclose (fp);
-		    }
-	    else
-		    {
-		      cRv = 54;
-		      cGv = 74;
-		      cBv = 255;
-		      txt = 255;
-		    }
-	  }
-   draw_background_locked (gCurrentIcon);
+  	if (access ("/cache/rgb", F_OK) != -1)
+  	{
+      		FILE * fp = fopen ("/cache/rgb", "rb");
+      		fread (&cRv, 1, 1, fp);
+      		fread (&cGv, 1, 1, fp);
+     		fread (&cBv, 1, 1, fp);
+      		fread (&txt, 1, 1, fp);
+      		fclose (fp);
+  	} else {
+      		cRv = 54;
+      		cGv = 74;
+      		cBv = 255;
+      		txt = 255;
+  	}
+  }
+  
+  draw_background_locked (gCurrentIcon);
   draw_progress_locked ();
-   gr_color (0, 0, 0, 200);	// background color
+  gr_color (0, 0, 0, 200);	// background color
   gr_fill (0, 0, gr_fb_width (), gr_fb_height ());	//fill the background with this color
   int i = 0;
   int j = 0;
