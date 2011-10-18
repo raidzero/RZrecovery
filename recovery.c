@@ -326,7 +326,10 @@ read_files ()
 	  }
    sync ();
   ensure_path_unmounted ("/sdcard/RZR");
+}
 
+void activateLEDs() 
+{
 // turn on button backlights if available
   if (!access ("/sys/class/leds/button-backlight/brightness", F_OK)) {
 	FILE *cbb = fopen ("/sys/class/leds/button-backlight/brightness", "w");
@@ -841,6 +844,7 @@ main (int argc, char **argv)
   printf ("Starting recovery on %s", ctime (&start));
   read_files ();
   ui_init ();
+  activateLEDs();
   ui_set_background (BACKGROUND_ICON_RZ);
   get_args (&argc, &argv);
    int previous_runs = 0;
