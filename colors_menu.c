@@ -23,7 +23,7 @@ set_color (char red, char green, char blue)
   fclose (fp);
   if (access ("/cache/rnd", F_OK) != -1) remove("/cache/rnd");
   ensure_path_mounted ("/sdcard");
-  if (access ("/sdcard/rnd", F_OK) != -1) remove("/sdcard/rnd");
+  if (access ("/sdcard/RZR/rnd", F_OK) != -1) remove("/sdcard/RZR/rnd");
   write_files ();
 }
 
@@ -45,7 +45,10 @@ set_random (int rnd)
   if (rnd == 1)
   {
     remove("/cache/rgb");
+    ensure_path_mounted("/sdcard");
+    remove("/sdcard/RZR/rgb");
     system ("echo > /cache/rnd"); 
+    ensure_path_unmounted("/sdcard");
   }
   write_files ();
 }

@@ -211,7 +211,7 @@ write_fstab_root (char *path, FILE * file)
 process_volumes ()
 {
   create_fstab ();
-  printf ("process_volumes done.");
+  printf ("process_volumes done.\n");
 }  void
 
 create_fstab () 
@@ -252,17 +252,17 @@ write_files ()
 	  {
 	    if (access ("/cache/rgb", F_OK) != -1)
 		    {
-		      system ("cp /cache/rgb /sdcard/RZR/rgb");
+		      copyFile("/cache/rgb","/sdcard/RZR/rgb");
 		      printf ("\nColors file saved to sdcard.\n");
 		    }
 	    if (access ("/cache/oc", F_OK) != -1)
 		    {
-		      system ("cp /cache/oc /sdcard/RZR/oc");
+		      copyFile("/cache/oc","/sdcard/RZR/oc");
 		      printf ("\nOverclock file saved to sdcard.\n");
 		    }
 	    if (access ("/cache/rnd", F_OK) != -1)
 		    {
-		      system ("cp /cache/rnd /sdcard/RZR/rnd");
+		      copyFile("/cache/rnd","/sdcard/RZR/rnd");
 		      printf ("\nRave file saved to sdcard.\n");
 		    }
 	    sync ();
@@ -272,11 +272,11 @@ write_files ()
  void
 read_cpufreq ()
 {
-  ensure_path_mounted ("/sdcard/RZR");
+  ensure_path_mounted ("/sdcard");
   if (access ("/sdcard/RZR/oc", F_OK) != -1)
 	  {
-	    system ("cp /sdcard/RZR/oc /cache/oc");
-	    printf ("\nCopied /sdcard/RZR/oc to /cache/oc.\n");
+	    copyFile("/sdcard/RZR/oc","/cache/oc");
+	    printf ("\nCopied /sdcard/RZR/oc to /cache.\n");
 	  }
   else
 	  {
@@ -304,28 +304,27 @@ read_cpufreq ()
   void
 read_files ()
 {
-  ensure_path_mounted ("/sdcard/RZR");
-  if (access ("/sdcard/RZR/rgb", F_OK) != -1)
-	  {
-	    system ("cp /sdcard/RZR/rgb /cache/rgb");
-	    printf ("\nCopied /sdcard/RZR/rgb to /cache/rgb.\n");
-	  }
-  else
-	  {
-	    mkdir ("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-	    set_color (54, 74, 255);
-	  }
-   if (access ("/sdcard/RZR/rnd", F_OK) != -1)
-	  {
-	    system ("cp /sdcard/RZR/rnd /cache/rnd");
-	    printf ("\nCopied /sdcard/RZR/rnd to /cache/rnd.\n");
-	  }
-  else
-	  {
-	    mkdir ("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-	  }
-   sync ();
-  ensure_path_unmounted ("/sdcard/RZR");
+  ensure_path_mounted ("/sdcard");
+ if (access ("/sdcard/RZR/rgb", F_OK) != -1)
+  {
+    copyFile("/sdcard/RZR/rgb","/cache/rgb");
+    printf ("\nCopied /sdcard/RZR/rgb to /cache.\n");
+  }
+ else
+  {
+    mkdir ("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  }
+ if (access ("/sdcard/RZR/rnd", F_OK) != -1)
+  {
+    copyFile("/sdcard/RZR/rnd","/cache/rnd");
+    printf ("\nCopied /sdcard/RZR/rnd to /cache.\n");
+  }
+ else
+  {
+    mkdir ("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  }
+  sync ();
+  ensure_path_unmounted("/sdcard");
 }
 
 void activateLEDs() 
@@ -843,6 +842,8 @@ main (int argc, char **argv)
   printf ("Starting recovery on %s", ctime (&start));
   load_volume_table ();
   process_volumes ();
+  ensure_path_mounted("/sdcard");
+  sleep(1); //mounting sdcard might take a second
   read_files ();
   ui_init ();
   activateLEDs();
@@ -888,6 +889,7 @@ main (int argc, char **argv)
 	  }
    device_recovery_start ();
   read_cpufreq ();
+  ensure_path_unmounted("/sdcard");
    printf ("Command:");
   for (arg = 0; arg < argc; arg++)
 	  {
@@ -1308,6 +1310,49 @@ runve (char *filename, char **argv, char **envp, int secs)
   ui_print ("\n");
   free (cur_line);
   return status;
+}
+
+int copyFile(FILE *from, FILE *to)
+{
+  char ch;
+
+  /* open source file */
+  if((from = fopen(from, "rb"))==NULL) {
+    printf("Cannot open source file.\n");
+    exit(1);
+  }
+
+  /* open destination file */
+  if((to = fopen(to, "wb"))==NULL) {
+    printf("Cannot open destination file.\n");
+    exit(1);
+  }
+
+  /* copy the file */
+  while(!feof(from)) {
+    ch = fgetc(from);
+    if(ferror(from)) {
+      printf("Error reading source file.\n");
+      exit(1);
+    }
+    if(!feof(from)) fputc(ch, to);
+    if(ferror(to)) {
+      printf("Error writing destination file.\n");
+      exit(1);
+    }
+  }
+
+  if(fclose(from)==EOF) {
+    printf("Error closing source file.\n");
+    exit(1);
+  }
+
+  if(fclose(to)==EOF) {
+    printf("Error closing destination file.\n");
+    exit(1);
+  }
+
+  return 0;
 }
 
 

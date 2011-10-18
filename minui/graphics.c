@@ -289,7 +289,8 @@ gr_init (void)
   if (gr_vt_fd < 0)
 	  {
 	    // This is non-fatal; post-Cupcake kernels don't have tty0.
-	    perror ("can't open /dev/tty0");
+	    // so why even mention it?
+	    // perror ("can't open /dev/tty0");
 	  }
   else if (ioctl (gr_vt_fd, KDSETMODE, (void *) KD_GRAPHICS))
 	  {
