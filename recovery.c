@@ -340,12 +340,6 @@ read_files ()
 	  fputs("\n",cbp);
 	  fclose(cbp);
   }
-  if (!access ("/sys/class/leds/button-backlight-landscape/brightness", F_OK)) {
-  	FILE *cbl = fopen("/sys/class/leds/button-backlight-landscape/brightness", "w");
-	fputs("255",cbl);
-	fputs("\n",cbl);
-	fclose(cbl);
-  }
 }
 
  
@@ -845,7 +839,7 @@ main (int argc, char **argv)
   freopen (TEMPORARY_LOG_FILE, "a", stderr);
   setbuf (stderr, NULL);
   printf ("Starting recovery on %s", ctime (&start));
-   read_files ();
+  read_files ();
   ui_init ();
   ui_set_background (BACKGROUND_ICON_RZ);
   get_args (&argc, &argv);
