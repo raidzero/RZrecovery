@@ -336,8 +336,8 @@ void activateLEDs()
 	fputs("\n",cbb);
 	fclose(cbb);
   }
-  if (!access ("/sys/class/leds/button-backlight-portait/brightness", F_OK)) {
-          FILE *cbp = fopen ("/sys/class/leds/button-backlight-portait/brightness", "w");
+  if (!access ("/sys/class/leds/button-backlight-portrait/brightness", F_OK)) {
+          FILE *cbp = fopen ("/sys/class/leds/button-backlight-portrait/brightness", "w");
 	  fputs("255",cbp);
 	  fputs("\n",cbp);
 	  fclose(cbp);
