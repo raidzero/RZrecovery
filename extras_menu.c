@@ -6,20 +6,7 @@
 #include "roots.h"
 #include "recovery_ui.h"
 
-void
-disable_OTA ()
-{
-  ui_print ("\nDisabling OTA updates in ROM...");
-  ensure_path_mounted ("/system");
-  remove ("/system/etc/security/otacerts.zip");
-  remove ("/cache/signed-*.*");
-  ui_print ("\nOTA-updates disabled.\n");
-  ensure_path_unmounted ("/system");
-  return;
-}
-
-void
-show_battstat ()
+void show_battstat ()
 {
   FILE *fs = fopen ("/sys/class/power_supply/battery/status", "r");
   char *bstat = calloc (14, sizeof (char));
@@ -94,49 +81,6 @@ flashlight ()
 }
 
 void
-root_menu ()
-{
-
-  static char **title_headers = NULL;
-
-  if (title_headers == NULL)
-	  {
-	    char *headers[] = { "ROOT installed ROM?",
-	      " ",
-	      "Rooting without the superuser app installed",
-	      "does nothing. Please install the superuser app",
-	      "from the market! (by ChainsDD)",
-	      " ",
-	      NULL
-	    };
-	    title_headers = prepend_title (headers);
-	  }
-
-  char *items[] = { " No",
-    " OK, give me root!",
-    NULL
-  };
-
-  int chosen_item = get_menu_selection (title_headers, items, 0, 0);
-
-  if (chosen_item != 1)
-	  {
-	    return;
-	  }
-
-  ui_print ("\nMounting system...");
-  ensure_path_mounted ("/system");
-  ui_print ("\ncopying su binary to /system/bin...");
-  system ("busybox cp /rootfiles/su /system/bin");
-  ui_print ("\nSetting permissions on su binary...");
-  system ("busybox chown 0:0 /system/bin/su");
-  system ("busybox chmod 6755 /system/bin/su");
-  ui_print ("\nDone! Please install superuser APK.");
-  ensure_path_unmounted ("/system");
-  return;
-}
-
-void
 show_extras_menu ()
 {
   static char *headers[] = { "Extras",
@@ -146,19 +90,16 @@ show_extras_menu ()
 
 
   char* items[] = { "Custom Colors",
-  		"Disable OTA Update Downloads in ROM",
     		"Show Battery Status",
-    		"Activate Root Access in ROM",
     		"Recovery Overclocking",
-    		NULL
+    		"ROM Tweaks",
+		NULL
   	};
 
 #define COLORS			0
-#define OTA			1
-#define BATT 			2
-#define ROOT_MENU	   	3	
-#define OVERCLOCK	   	4
-#define FLASHLIGHT		5
+#define BATT 			1	
+#define OVERCLOCK	   	2
+#define ROMTWEAKS		3
 
   int chosen_item = -1;
 
@@ -174,20 +115,14 @@ show_extras_menu ()
 		    case COLORS:
 		      show_colors_menu ();
 		      break;
-		    case OTA:
-		      disable_OTA ();
-		      break;
 		    case BATT:
 		      show_battstat ();
 		      break;
-		    case FLASHLIGHT:
-		      flashlight ();
-		      break;
-		    case ROOT_MENU:
-		      root_menu ();
-		      break;
 		    case OVERCLOCK:
 		      show_overclock_menu ();
+		      break;
+		    case ROMTWEAKS:
+		      show_romTweaks_menu();
 		      break;
 		    }
 	  }
