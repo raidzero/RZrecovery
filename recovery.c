@@ -176,9 +176,7 @@ set_cpufreq (char *speed)
     fopen ("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq", "w");
   fputs (speed, fs);
   fputs ("\n", fs);
-  printf ("\nMax cpu slot set to ");
-  printf ("%s", speed);
-  printf ("\n");
+  printf ("Max cpu slot set to %s", speed);
   fclose (fs);
 }  void
 
@@ -275,8 +273,7 @@ read_cpufreq ()
   ensure_path_mounted ("/sdcard");
   if (access ("/sdcard/RZR/oc", F_OK) != -1)
 	  {
-	    copyFile("/sdcard/RZR/oc","/cache/oc");
-	    printf ("\nCopied /sdcard/RZR/oc to /cache.\n");
+	    if (!copyFile("/sdcard/RZR/oc","/cache/oc")) printf("Overclock file copied to /cache.\n");
 	  }
   else
 	  {
@@ -304,27 +301,38 @@ read_cpufreq ()
   void
 read_files ()
 {
-  ensure_path_mounted ("/sdcard");
- if (access ("/sdcard/RZR/rgb", F_OK) != -1)
-  {
-    copyFile("/sdcard/RZR/rgb","/cache/rgb");
-    printf ("\nCopied /sdcard/RZR/rgb to /cache.\n");
-  }
- else
-  {
-    mkdir ("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-  }
- if (access ("/sdcard/RZR/rnd", F_OK) != -1)
-  {
-    copyFile("/sdcard/RZR/rnd","/cache/rnd");
-    printf ("\nCopied /sdcard/RZR/rnd to /cache.\n");
-  }
+ int attempt=0;
+ STARTREAD:
+ attempt += 1;
+ ensure_path_mounted ("/sdcard");
+ sleep(1);
+ if (access("/sdcard/RZR", F_OK) != -1) {
+   system("chmod -R 777 /sdcard/RZR"); //some ROMs go messing with my files!
+   if (access ("/sdcard/RZR/rgb", F_OK) != -1 && access("/cache/rgb",F_OK) == -1)
+    {
+      if (!copyFile("/sdcard/RZR/rgb","/cache/rgb")) printf("RGB file copied to /cache.\n");
+    }
+   if (access ("/sdcard/RZR/rnd", F_OK) != -1 && access("/cache/rnd",F_OK) == -1)
+    {
+      if (!copyFile("/sdcard/RZR/rnd","/cache/rnd")) printf("Rave file copied to /cache.\n");
+    }
+    if (access("/sdcard/RZR/rgb",F_OK) != -1 && access("/cache/rgb",F_OK) == -1) {
+    	printf("RGB file failed to copy. Retrying...\n");
+	if (attempt < 5) goto STARTREAD;
+	else printf("RGB copy failed 5 times. Abandoning all hope :(\n");
+    }
+    if (access("/sdcard/RZR/rnd",F_OK) != -1 && access("/cache/rnd",F_OK) == -1) {
+    	printf("RND file failed to copy. Retrying...\n");
+	if (attempt < 5) goto STARTREAD;
+	else printf("RND copy failed 5 times. Abandoning all hope :(\n");
+    }
  else
   {
     mkdir ("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   }
   sync ();
   ensure_path_unmounted("/sdcard");
+  }
 }
 
 void activateLEDs() 
@@ -844,10 +852,7 @@ main (int argc, char **argv)
   process_volumes ();
   ensure_path_mounted("/sdcard");
   sleep(1); //mounting sdcard might take a second
-  read_files ();
-  ui_init ();
   activateLEDs();
-  ui_set_background (BACKGROUND_ICON_RZ);
   get_args (&argc, &argv);
    int previous_runs = 0;
   const char *send_intent = NULL;
@@ -887,10 +892,13 @@ main (int argc, char **argv)
 		      continue;
 		    }
 	  }
-   device_recovery_start ();
+  read_files();
+  ui_init();
+  ui_set_background (BACKGROUND_ICON_RZ);
+  device_recovery_start ();
   read_cpufreq ();
   ensure_path_unmounted("/sdcard");
-   printf ("Command:");
+  printf ("Command:");
   for (arg = 0; arg < argc; arg++)
 	  {
 	    printf (" \"%s\"", argv[arg]);

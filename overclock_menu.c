@@ -7,20 +7,18 @@
 #include "recovery.h"
 #include "roots.h"
 #include "recovery_ui.h"
-  void
-set_oc (char *speed)
+
+void set_oc (char *speed)
 {
   FILE * f = fopen ("/cache/oc", "w");
   fputs (speed, f);
   fputs ("\n", f);
   fclose (f);
   set_cpufreq (speed);
-  ui_print ("\nmax frequency set to ");
-  ui_print ("%s", speed);
-  ui_print (" Hz\n");
-}  int
+  ui_print ("max frequency set to %s Hz\n", speed);
+}
 
-slot_count (char *s) 
+int slot_count (char *s) 
 {
   int i = 0;
   int counter = 0;
@@ -120,7 +118,7 @@ show_overclock_menu ()
 	  }
   printf ("All elements but last copied into available_slots\n");
   free (slots);
-  printf ("\nslots[] freed\n");
+  printf ("slots[] freed\n");
    
   //create pretty header lines
   char max_string[50]; 
@@ -134,10 +132,10 @@ show_overclock_menu ()
   strcat(max_string, freqstring);
   strcat(max_string," MHz");
 
-  printf ("\nmax_string created\n");
+  printf ("max_string created\n");
     char *headers[] = { "Recovery CPU settings", max_string, " ", NULL
   };
-  printf ("\nheaders[] created\n");
+  printf ("headers[] created\n");
    
 #define slot1         		0
 #define slot2			1
@@ -150,7 +148,7 @@ show_overclock_menu ()
 #define slot9			8
 #define slot10			9
 
-   printf ("\nDefinitions list created.\n");
+   printf ("Definitions list created.\n");
    int chosen_item = -1;
 
    while (chosen_item != ITEM_BACK)
