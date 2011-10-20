@@ -70,7 +70,7 @@ bootP=`cat $flashfile | grep \"boot\" | awk '{print $1}' | sed 's/://g'`
 
 if [ ! -z `echo $bootP | grep mtd` ]; then
 	pNum=`echo $bootP | sed "s/[^0-9]//g"`
-	blkDevice="/dev/block/mtdblock$pNum"
+	blkDevice="/dev/mtd/mtd$pNum"
 fi
 
 if [ ! -z `echo $bootP | grep mmc` ]; then
