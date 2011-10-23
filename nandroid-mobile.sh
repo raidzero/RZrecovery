@@ -69,8 +69,7 @@ fi
 bootP=`cat $flashfile | grep \"boot\" | awk '{print $1}' | sed 's/://g'`
 
 if [ ! -z `echo $bootP | grep mtd` ]; then
-	pNum=`echo $bootP | sed "s/[^0-9]//g"`
-	blkDevice="/dev/mtd/mtd$pNum"
+	blkDevice="/dev/mtd/$bootP"
 fi
 
 if [ ! -z `echo $bootP | grep mmc` ]; then
@@ -212,21 +211,15 @@ pipeline() {
 touch /cache/recovery/log
 
 if [ ! "$SUBNAME" == "" ]; then
-    if [ "$BACKUP" == 1 ]; then
-        echo "* print Using $SUBNAME- prefix to create a backup folder"
-    else
-        if [ "$RESTORE" == 1 ]; then
-            echo "* print Searching for backup directories, matching $SUBNAME, restore."
-            echo "* print "
-        fi
-    fi
+   if [ "$RESTORE" == 1 ]; then
+       echo "* print Searching for backup directories, matching $SUBNAME, restore."
+       echo "* print "
+   fi
 else
     if [ "$BACKUP" == 1 ]; then
         if [ "$ASSUMEDEFAULTUSERINPUT" == 0 ]; then
             read SUBNAME
         fi
-        echo "* print "
-        echo "* print Using $SUBNAME- prefix to create a backup folder"
         echo "* print "
     else
         if [ "$RESTORE" == 1 -o "$DELETE" == 1 ]; then
@@ -555,7 +548,7 @@ if [ "$BACKUP" == 1 ]; then
     TAR_OPTS="${TAR_OPTS}f"
 
 
-    echo "* print mounting system and data read-only, sdcard read-write"
+    echo "* print Mounting..."
 	
 		umount /system 2>/dev/null
 		umount /data 2>/dev/null
@@ -590,6 +583,10 @@ if [ "$BACKUP" == 1 ]; then
 
     TIMESTAMP="`date +%Y%m%d-%H%M`"
     DESTDIR="$BACKUPPATH/$SUBNAME$BACKUPLEGEND$TIMESTAMP"
+    DESTDIRFM=`echo $DESTDIR | sed 's/\/\//\//g'`
+    echo "* print Destination:"
+    echo "* print $DESTDIRFM"
+    echo "* print "
     if [ ! -d $DESTDIR ]; then 
 	mkdir -p $DESTDIR
 	if [ ! -d $DESTDIR ]; then 
@@ -613,16 +610,18 @@ if [ "$BACKUP" == 1 ]; then
     fi
 
 # 3.
-    echo "* print checking free space on sdcard"
-    FREEBLOCKS=`df | grep sdcard | awk '{print$3}'`
-    DATABLOCKS=`df | grep /data | awk '{print$3}'`
-    SYSBLOCKS=`df | grep /system | awk '{print$3}'`
-    SECBLOCKS=`du -sh /sdcard/.android-secure`
+    mount sdcard; mount data; mount system
+    FREEBLOCKS=`df -m /sdcard | grep /sdcard | awk '{print$3}'`
+    DATABLOCKS=`df -m /data | grep /data | awk '{print$2}'`
+    SYSBLOCKS=`df -m /system | grep /system | awk '{print$2}'`
+    SECBLOCKS=`du -sm /sdcard/.android_secure | awk '{print$1}'`
     REQBLOCKS=`expr $DATABLOCKS + $SYSBLOCKS + $SECBLOCKS`
-    echo "* print $REQBLOCKS Bytes Required!"
-    echo "* print $FREEBLOCKS Bytes Available!"
-    if [ $FREEBLOCKS -le $REQBLOCKS]; then
-	echo "* print Error: not enough free space available on sdcard (need 300mb), aborting."
+    REQBLOCKSSTRING=`echo $REQBLOCKS | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`
+    FREEBLOCKSSTRING=`echo $FREEBLOCKS | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`
+    echo "* print $REQBLOCKSSTRING MB Required!"
+    echo "* print $FREEBLOCKSSTRING MB Available!"
+    if [ "$FREEBLOCKS" -le "$REQBLOCKS" ]; then
+	echo "* print Error: not enough free space available on sdcard, aborting."
 	umount /system 2>/dev/null
 	umount /data 2>/dev/null
 	umount /sdcard 2>/dev/null
@@ -646,15 +645,15 @@ if [ "$BACKUP" == 1 ]; then
 	sleep 1s
 	MD5RESULT=1
 	ATTEMPT=0
+	DEVICEMD5=`dump_image $image - | md5sum | awk '{print$1}'`
 	while [ $MD5RESULT -eq 1 ]; do
 	    let ATTEMPT=$ATTEMPT+1
-	    dump_boot $DESTDIR/$image.img 
+	    dump_image $image $DESTDIR/$image.img
 	    sync
-	    echo "* print Verifying $image dump..."
-	    IMGMD5=`md5sum $DESTDIR/$image.img | awk '{print$1}'`		
-	    DEVICEMD5=`md5sum $blkDevice | awk '{print$1}'`
-	    if [ $IMGMD5 -eq $DEVICEMD5 ]; then
-		true
+	    echo -n "* print Verifying $image dump..."
+	    IMGMD5=`md5sum $DESTDIR/$image.img | awk '{print$1}'`
+	    if [ "$IMGMD5" -eq "$DEVICEMD5" ]; then
+		MD5RESULT=1
 	    else
 		MD5RESULT=0
 	    fi
@@ -666,7 +665,7 @@ if [ "$BACKUP" == 1 ]; then
 		exit 35
 	    fi
 	done
-	echo "* print done."
+	echo " complete!"
     done
 
 # 6
@@ -710,13 +709,10 @@ if [ "$BACKUP" == 1 ]; then
 
 	tar $TAR_OPTS $DESTDIR/$dest.tar . 2>/dev/null | pipeline $PTOTAL
 	
-
 	sync
-	echo "* print $image backup complete!"
-
     done
 
-    echo "* print unmounting system, data and sdcard"
+    echo "* print Unmounting..."
 			umount /system 2>/dev/null
 			umount /data 2>/dev/null
 			umount /sdcard 2>/dev/null
@@ -725,5 +721,5 @@ if [ "$BACKUP" == 1 ]; then
     if [ "$AUTOREBOOT" == 1 ]; then
 	reboot
     fi
-    exit 0
+    exit
 fi

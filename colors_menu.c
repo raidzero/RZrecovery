@@ -74,6 +74,7 @@ show_colors_menu ()
     "Gold",
     "White",
     "Grey",
+    "Rootzwiki",
     "Rave mode",
     NULL
   };
@@ -91,7 +92,8 @@ show_colors_menu ()
 #define GOLD			10
 #define WHITE			11
 #define GREY			12
-#define RAVE			13
+#define ROOTZ			13
+#define RAVE			14
 
   int chosen_item = -1;
 
@@ -113,7 +115,7 @@ show_colors_menu ()
 		      set_color (0, 255, 255);
 		      break;
 		    case GREEN:
-		      set_color (0, 255, 74);
+		      set_color (30, 247, 115);
 		      break;
 		    case ORANGE:
 		      set_color (255, 115, 0);
@@ -141,6 +143,9 @@ show_colors_menu ()
 		      break;
 		    case GREY:
 		      set_color (100, 100, 100);
+		      break;
+		    case ROOTZ:
+		      set_color (164, 198, 57);
 		      break;
 		    case RAVE:
 		      set_random (1);
