@@ -343,7 +343,6 @@ install_update_zip (char *filename)
 
   if (status != INSTALL_SUCCESS)
 	  {
-	    ui_set_background (BACKGROUND_ICON_RZ);
 	    ui_print ("Installation aborted.\n");
 	    return 0;
 	  }

@@ -67,6 +67,7 @@ device_handle_key (int key_code)
 	  case KEY_CAMERA:
 	  case KEY_CENTER:
 	  case KEY_HOME:	//102
+	  case 272:  		//trackball press
 	    return SELECT_ITEM;
 
 	  case KEY_BACKSPACE:

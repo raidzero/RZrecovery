@@ -301,38 +301,20 @@ read_cpufreq ()
   void
 read_files ()
 {
- int attempt=0;
- STARTREAD:
- attempt += 1;
  ensure_path_mounted ("/sdcard");
  sleep(1);
  if (access("/sdcard/RZR", F_OK) != -1) {
    system("chmod -R 777 /sdcard/RZR"); //some ROMs go messing with my files!
-   if (access ("/sdcard/RZR/rgb", F_OK) != -1 && access("/cache/rgb",F_OK) == -1)
-    {
-      if (!copyFile("/sdcard/RZR/rgb","/cache/rgb")) printf("RGB file copied to /cache.\n");
-    }
-   if (access ("/sdcard/RZR/rnd", F_OK) != -1 && access("/cache/rnd",F_OK) == -1)
-    {
-      if (!copyFile("/sdcard/RZR/rnd","/cache/rnd")) printf("Rave file copied to /cache.\n");
-    }
-    if (access("/sdcard/RZR/rgb",F_OK) != -1 && access("/cache/rgb",F_OK) == -1) {
-    	printf("RGB file failed to copy. Retrying...\n");
-	if (attempt < 5) goto STARTREAD;
-	else printf("RGB copy failed 5 times. Abandoning all hope :(\n");
-    }
-    if (access("/sdcard/RZR/rnd",F_OK) != -1 && access("/cache/rnd",F_OK) == -1) {
-    	printf("RND file failed to copy. Retrying...\n");
-	if (attempt < 5) goto STARTREAD;
-	else printf("RND copy failed 5 times. Abandoning all hope :(\n");
-    }
- else
-  {
+   system("cp /sdcard/RZR/* /cache");
+   if ( access("/cache/icon_rw",F_OK) == -1 && access("/cache/icon_rz",F_OK == -1) ) {
+     system("echo > /cache/icon_rz");
+   }
+ } else {
     mkdir ("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-  }
-  sync ();
-  ensure_path_unmounted("/sdcard");
-  }
+    system("echo > /cache/icon_rz");
+ }
+ sync ();
+ ensure_path_unmounted("/sdcard");
 }
 
 void activateLEDs() 
@@ -531,7 +513,6 @@ finish_recovery (const char *send_intent)
  int 
 erase_volume (const char *volume)
 {
-  ui_set_background (BACKGROUND_ICON_RZ);
   ui_show_indeterminate_progress ();
   ui_print ("Formatting %s...\n", volume);
    if (strcmp (volume, "/cache") == 0)
@@ -780,7 +761,7 @@ prompt_and_wait ()
 	    ui_reset_progress ();
 	     int chosen_item =
 	      get_menu_selection (headers, MENU_ITEMS, 1,
-				  chosen_item < 0 ? 0 : chosen_item);
+				  chosen_item < 0 ? 1 : chosen_item);
 	    
 	      // device-specific code may take some action here.  It may
 	      // return one of the core actions handled in the switch
@@ -894,7 +875,9 @@ main (int argc, char **argv)
 	  }
   read_files();
   ui_init();
-  ui_set_background (BACKGROUND_ICON_RZ);
+  if (access("/cache/icon_rw",F_OK) != -1) ui_set_background(BACKGROUND_ICON_RW);
+  if (access("/cache/icon_rz",F_OK) != -1) ui_set_background(BACKGROUND_ICON_RZ); 
+  
   device_recovery_start ();
   read_cpufreq ();
   ensure_path_unmounted("/sdcard");
@@ -1012,7 +995,6 @@ main (int argc, char **argv)
 	    status = INSTALL_ERROR;	// No command specified
 	  }
    if (status != INSTALL_SUCCESS)
-    ui_set_background (BACKGROUND_ICON_RZ);
   if (status != INSTALL_SUCCESS /*|| ui_text_visible() */ )
 	  {
 	    prompt_and_wait ();

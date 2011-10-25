@@ -9,7 +9,7 @@
 #include "recovery_ui.h"
 
 void
-set_color (char red, char green, char blue)
+set_color (char red, char green, char blue, char bg)
 {
   char txt;
 
@@ -20,12 +20,29 @@ set_color (char red, char green, char blue)
   fwrite (&green, 1, 1, fp);
   fwrite (&blue, 1, 1, fp);
   fwrite (&txt, 1, 1, fp);
+  fwrite (&bg, 1, 1, fp);
   fclose (fp);
   if (access ("/cache/rnd", F_OK) != -1) remove("/cache/rnd");
   ensure_path_mounted ("/sdcard");
   if (access ("/sdcard/RZR/rnd", F_OK) != -1) remove("/sdcard/RZR/rnd");
   write_files ();
 }
+
+void set_icon (char* icon) {
+  ensure_path_mounted("/sdcard");
+  system("rm /sdcard/RZR/icon*");
+  system("rm /cache/icon*");
+  if (strcmp(icon,"rz")==0) {
+    ui_set_background(BACKGROUND_ICON_RZ);
+    system("echo > /sdcard/RZR/icon_rz && echo > /cache/icon_rz");
+  }
+  if (strcmp(icon,"rw")==0) { 
+    ui_set_background(BACKGROUND_ICON_RW);
+    system("echo > /sdcard/RZR/icon_rw && echo > /cache/icon_rw");
+  }
+  ensure_path_unmounted("/sdcard");
+}
+
 
 void
 set_random (int rnd)
@@ -41,9 +58,10 @@ set_random (int rnd)
   char cG = rand () % 255;
   char cB = rand () % 255;
 
-  set_color (cR, cG, cB);
+  set_color (cR, cG, cB, 0);
   if (rnd == 1)
   {
+    set_color(cR, cG, cB, 0);
     remove("/cache/rgb");
     ensure_path_mounted("/sdcard");
     remove("/sdcard/RZR/rgb");
@@ -74,7 +92,8 @@ show_colors_menu ()
     "Gold",
     "White",
     "Grey",
-    "Rootzwiki",
+    "RootzWiki (grey)",
+    "RootzWiki (black)",
     "Rave mode",
     NULL
   };
@@ -92,8 +111,9 @@ show_colors_menu ()
 #define GOLD			10
 #define WHITE			11
 #define GREY			12
-#define ROOTZ			13
-#define RAVE			14
+#define ROOTZG			13
+#define ROOTZB			14
+#define RAVE			15
 
   int chosen_item = -1;
 
@@ -106,48 +126,67 @@ show_colors_menu ()
 	    switch (chosen_item)
 		    {
 		    case RANDOM:
+		      set_icon("rz");
 		      set_random (0);
 		      break;
 		    case BLUE:
-		      set_color (54, 74, 255);
+		      set_icon("rz");
+		      set_color (54, 74, 255, 0);
 		      break;
 		    case CYAN:
-		      set_color (0, 255, 255);
+		      set_icon("rz");
+		      set_color (0, 255, 255, 0);
 		      break;
 		    case GREEN:
-		      set_color (30, 247, 115);
+		      set_icon("rz");
+		      set_color (30, 247, 115, 0);
 		      break;
 		    case ORANGE:
-		      set_color (255, 115, 0);
+		      set_icon("rz");
+		      set_color (255, 115, 0, 0);
 		      break;
 		    case PINK:
-		      set_color (255, 0, 255);
+		      set_icon("rz");
+		      set_color (255, 0, 255, 0);
 		      break;
 		    case PURPLE:
-		      set_color (175, 0, 255);
+		      set_icon("rz");
+		      set_color (175, 0, 255, 0);
 		      break;
 		    case RED:
-		      set_color (255, 0, 0);
+		      set_icon("rz");
+		      set_color (255, 0, 0, 0);
 		      break;
 		    case SMOKED:
-		      set_color (200, 200, 200);
+		      set_icon("rz");
+		      set_color (200, 200, 200, 0);
 		      break;
 		    case YELLOW:
-		      set_color (255, 255, 0);
+		      set_icon("rz");
+		      set_color (255, 255, 0, 0);
 		      break;
 		    case GOLD:
-		      set_color (255, 204, 102);
+		      set_icon("rz");
+		      set_color (255, 204, 102, 0);
 		      break;
 		    case WHITE:
-		      set_color (255, 255, 255);
+		      set_icon("rz");
+		      set_color (255, 255, 255, 0);
 		      break;
 		    case GREY:
-		      set_color (100, 100, 100);
+		      set_icon("rz");
+		      set_color (100, 100, 100, 0);
 		      break;
-		    case ROOTZ:
-		      set_color (164, 198, 57);
+		    case ROOTZG:
+		      set_icon("rw");
+		      set_color(139, 181, 79, 20);
+		      break;
+		    case ROOTZB:
+		      set_icon("rw");
+		      set_color (139, 181, 79, 0);
 		      break;
 		    case RAVE:
+		      set_icon("rz");
 		      set_random (1);
 		      break;
 		    }

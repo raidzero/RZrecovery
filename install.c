@@ -312,7 +312,6 @@ try_update_binary (const char *path, ZipArchive * zip)
 int
 install_package (const char *path)
 {
-  ui_set_background (BACKGROUND_ICON_RZ);
   ui_print ("Finding update package...\n");
   ui_show_indeterminate_progress ();
   LOGI ("Update location: %s\n", path);

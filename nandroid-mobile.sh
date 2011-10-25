@@ -212,7 +212,6 @@ touch /cache/recovery/log
 
 if [ ! "$SUBNAME" == "" ]; then
    if [ "$RESTORE" == 1 ]; then
-       echo "* print Searching for backup directories, matching $SUBNAME, restore."
        echo "* print "
    fi
 else
@@ -396,15 +395,13 @@ if [ "$RESTORE" == 1 ]; then
 
 
     RESTOREPATH=`ls -trd $BACKUPPATH/*$SUBNAME* 2>/dev/null | tail -1`
-    echo "* print  "
 
     if [ "$RESTOREPATH" = "" ]; then
 		echo "* print Error: no backups found"
 		exit 21
     else
-        echo "* print Default backup is the latest: $RESTOREPATH"
-        ls -trd $BACKUPPATH/*$SUBNAME* 2>/dev/null | grep -v $RESTOREPATH $OUTPUT
-        echo "* print "
+        LATEST=1
+	ls -trd $BACKUPPATH/*$SUBNAME* 2>/dev/null | grep -v $RESTOREPATH $OUTPUT
 
         if [ "$ASSUMEDEFAULTUSERINPUT" == 0 ]; then
             read SUBSTRING
@@ -424,9 +421,14 @@ if [ "$RESTORE" == 1 ]; then
         fi
     fi
     
-    echo "* print Restore path: $RESTOREPATH"
+    RESTOREPATHSTRING=`echo $RESTOREPATH | sed 's/\/\//\//g'`
+    echo "* print Restore path: $RESTOREPATHSTRING"
+
+    if [ $LATEST == 1 ]; then
+    	echo "* print is the latest."
+    fi
     echo "* print "
-	
+
     mount /system 2>/dev/null
     mount /data 2>/dev/null
     if [ "$datadata" != "0" && -z "$(mount | grep datadata)" ]; then
@@ -470,9 +472,9 @@ if [ "$RESTORE" == 1 ]; then
             echo "* print "
             continue
         fi
-        echo "* print Flashing $image..."
+        echo -n "* print Flashing $image..."
 		flash_image $image $image.img $OUTPUT
-		echo "* print done."
+		echo " done."
     done
 
     for image in data system secure; do
@@ -490,16 +492,16 @@ if [ "$RESTORE" == 1 ]; then
             echo "* print Not restoring system image!"
             echo "* print "
             continue
-        elif [ "$NOSYSTEM" == 0 -a "$image" == "system" ]; then
+        elif [ "$NOSYSTEM" == 0 ] && [ "$image" == "system" ]; then
 			image="system"	
 			tarfile="system"
-		fi
-        if [ "$NOSECURE" == 1 -a "$image" == "secure" ]; then
+	fi
+        if [ "$NOSECURE" == 1 ] && [ "$image" == "secure" ]; then
             echo "* print "
             echo "* print Not restoring .android_secure!"
             echo "* print "
             continue
-        elif [ "$NOSECURE" == 0 -a "$image" == "secure" ]; then
+        elif [ "$NOSECURE" == 0 ] && [ "$image" == "secure" ]; then
 			image="sdcard/.android_secure"	
 			tarfile="secure"
 		fi
@@ -524,14 +526,15 @@ if [ "$RESTORE" == 1 ]; then
 
 		tar $TAR_OPTS $RESTOREPATH/$tarfile.tar -C /$image | pipeline $PTOTAL
 		if [ "$image" == "data" ]; then
-			rm /data/misc/ril/pppd-notifier.fifo
+			if [ -e /data/misc/ril/pppd-notifier.fifo ]; then
+				rm /data/misc/ril/pppd-notifier.fifo
+			fi
 		fi
 
 		cd /
 		sync
 		umount /$image 2> /dev/null
 
-    echo "* print done."
     done
     
     exit 0
@@ -541,7 +544,7 @@ fi
 
 # 2.
 if [ "$BACKUP" == 1 ]; then
-	datadata_present= `cat /etc/fstab | grep datadata | wc -l`
+    datadata_present= `cat /etc/fstab | grep datadata | wc -l`
 	
     TAR_OPTS="c"
     [ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"
