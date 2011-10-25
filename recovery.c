@@ -39,7 +39,7 @@
 #include "roots.h"
 #include "recovery_ui.h"
 #include "encryptedfs_provisioning.h"
-  
+#include "recovery_ui.h"  
 #include "flashutils/flashutils.h"
 #include "mounts.h"
 static const struct option OPTIONS[] = { 
