@@ -78,9 +78,9 @@ if [ ! -z "$flashfile" ]; then
 	fi
 fi	
 
-bootP=`cat /etc/recovery.fstab | grep boot | awk '{print$2}'`
+bootP=`cat /etc/recovery.fstab | grep boot  | grep -v bootloader | awk '{print$2}'`
 if [ "$bootP" -eq "vfat" ]; then
-	bootIsMountable=1 #boot is not raw
+	bootIsMountable="true" #boot is not raw
 fi
 
 # Hm, have to handle old options for the current UI
@@ -466,7 +466,7 @@ if [ "$RESTORE" == 1 ]; then
         NOSECURE=1
     fi
 
-    if [ -z "$bootIsMountable"]; then 
+    if [ -z "$bootIsMountable" ]; then 
     	for image in boot; do
         	if [ "$NOBOOT" == "1" -a "$image" == "boot" ]; then
             	echo "* print "
@@ -618,7 +618,6 @@ if [ "$BACKUP" == 1 ]; then
 		umount /data 2>/dev/null
 		umount /sdcard 2>/dev/null
 	    exit 32
-#	fi
     else
 		touch $DESTDIR/.nandroidwritable
 		if [ ! -e $DESTDIR/.nandroidwritable ]; then
@@ -635,8 +634,17 @@ if [ "$BACKUP" == 1 ]; then
 # 3.
     mount sdcard; mount data; mount system
     FREEBLOCKS=`df -m /sdcard | grep /sdcard | awk '{print$4}'`
+    if [ ! -z `echo $FREEBLOCKS | grep %` ]; then #fs name must be too long
+    	FREEBLOCKS=`df -m /sdcard | grep /sdcard | awk '{print$3}'`
+    fi
     DATABLOCKS=`df -m /data | grep /data | awk '{print$3}'`
+    if [ ! -z `echo $DATABLOCKS | grep %` ]; then #fs name must be too long
+        DATABLOCKS=`df -m /data | grep /data | awk '{print$3}'`
+    fi
     SYSBLOCKS=`df -m /system | grep /system | awk '{print$3}'`
+    if [ ! -z `echo $SYSBLOCKS | grep %` ]; then #fs name must be too long
+       SYSBLOCKS=`df -m /system | grep /system | awk '{print$3}'`
+    fi
     SECBLOCKS=`du -sm /sdcard/.android_secure | awk '{print$1}'`
     REQBLOCKS=`expr $DATABLOCKS + $SYSBLOCKS + $SECBLOCKS`
     REQBLOCKSSTRING=`echo $REQBLOCKS | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`
@@ -665,7 +673,7 @@ if [ "$BACKUP" == 1 ]; then
 		;;
 	esac
 	
-	if [ ! -z $"bootIsMountable" ]; then
+	if [ ! -z "$bootIsMountable" ]; then
 		cd /boot
 		PTOTAL=$(find . | wc -l)
 	 	[ "$PROGRESS" == "1" ] tar $TAR_OPTS $DESTDIR/boot.tar . 2>/dev/null | pipeline $PTOTAL
