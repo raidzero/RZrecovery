@@ -90,7 +90,7 @@ show_overclock_menu ()
     // create an array from available_frequencies delimited by spaces - crude and
     // I hope it works on all devices 
   char **ap, **slots;
-  int arglen = 15;
+  int arglen = 35;
 
   slots = calloc (arglen, sizeof (char *));
   for (ap = slots; (*ap = strsep (&available_frequencies, " \t")) != NULL;)
@@ -98,9 +98,9 @@ show_overclock_menu ()
       if (++ap >= &slots[arglen])
 	
 	      {
-		arglen += 15;
+		arglen += 35;
 		slots = realloc (slots, arglen);
-		ap = &slots[arglen - 15];
+		ap = &slots[arglen - 35];
 	      }
    printf ("available_frequencies array created.\n");
   
@@ -147,6 +147,33 @@ show_overclock_menu ()
 #define slot8			7
 #define slot9			8
 #define slot10			9
+#define slot11			10
+#define slot12                  11
+#define slot13                  12
+#define slot14                  13
+#define slot15                  14
+#define slot16                  15
+#define slot17                  16
+#define slot18                  17
+#define slot19                  18
+#define slot20                  19
+#define slot21                  20
+#define slot22                  21
+#define slot23                  22
+#define slot24                  23
+#define slot25                  24
+#define slot26                  25
+#define slot27                  26
+#define slot28                  27
+#define slot29                  28
+#define slot30                  29
+#define slot31                  30
+#define slot32                  31
+#define slot33                  32
+#define slot34                  33
+#define slot35                  34
+
+
 
    printf ("Definitions list created.\n");
    int chosen_item = -1;
@@ -192,7 +219,82 @@ show_overclock_menu ()
 		    case slot10:
 		      set_oc (available_slots[9]);
 		      return;
-		    }
+		    case slot11:
+		      set_oc (available_slots[10]);
+		      return;
+		    case slot12:
+		      set_oc (available_slots[11]);
+		      return;
+		    case slot13:
+		      set_oc (available_slots[12]);
+		      return;			  
+		    case slot14:
+		      set_oc (available_slots[13]);
+		      return;			  
+		    case slot15:
+		      set_oc (available_slots[14]);
+		      return;
+		    case slot16:
+		      set_oc (available_slots[15]);
+		      return;			  
+		    case slot17:
+		      set_oc (available_slots[16]);
+		      return;
+		    case slot18:
+		      set_oc (available_slots[17]);
+		      return;
+		    case slot19:
+		      set_oc (available_slots[18]);
+		      return;	
+		    case slot20:
+		      set_oc (available_slots[19]);
+		      return;			  
+		    case slot21:
+		      set_oc (available_slots[20]);
+		      return;	
+		    case slot22:
+		      set_oc (available_slots[21]);
+		      return;				  
+		    case slot23:
+		      set_oc (available_slots[22]);
+		      return;	
+		    case slot24:
+		      set_oc (available_slots[23]);
+		      return;	
+		    case slot25:
+		      set_oc (available_slots[24]);
+		      return;	
+		    case slot26:
+		      set_oc (available_slots[25]);
+		      return;	
+		    case slot27:
+		      set_oc (available_slots[26]);
+		      return;	
+		    case slot28:
+		      set_oc (available_slots[27]);
+		      return;	
+		    case slot29:
+		      set_oc (available_slots[28]);
+		      return;				  
+		    case slot30:
+		      set_oc (available_slots[29]);
+		      return;		
+		    case slot31:
+		      set_oc (available_slots[30]);
+		      return;	
+		    case slot32:
+		      set_oc (available_slots[31]);
+		      return;	
+		    case slot33:
+		      set_oc (available_slots[32]);
+		      return;	
+		    case slot34:
+		      set_oc (available_slots[33]);
+		      return;	
+		    case slot35:
+		      set_oc (available_slots[34]);
+		      return;				  
+		}
 	  }
 }
 

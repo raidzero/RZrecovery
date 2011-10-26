@@ -35,9 +35,9 @@ RECOVERY_API_VERSION := 2
 
 LOCAL_CFLAGS += -DRECOVERY_API_VERSION=$(RECOVERY_API_VERSION)
 
-RECOVERY_DEVICE := $(PRODUCT_DEVICE)
+TARGET_DEVICE := $(shell echo $$TARGET_PRODUCT | cut -d '_' -f2)
 RECOVERY_VERSION := 2.1.0
-VERS_STRING := "$(RECOVERY_VERSION)-($(RECOVERY_DEVICE)) finally"
+VERS_STRING := "$(RECOVERY_VERSION)-$(TARGET_DEVICE) finally"
 
 # This binary is in the recovery ramdisk, which is otherwise a copy of root.
 # It gets copied there in config/Makefile.  LOCAL_MODULE_TAGS suppresses
@@ -62,23 +62,15 @@ RECOVERY_LINKS := flash_image dump_image erase_image format
 RECOVERY_SYMLINKS := $(addprefix $(TARGET_RECOVERY_ROOT_OUT)/sbin/,$(RECOVERY_LINKS))
 $(RECOVERY_SYMLINKS): RECOVERY_BINARY := $(LOCAL_MODULE)
 $(RECOVERY_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
-	echo "Symlink: $@ -> $(RECOVERY_BINARY)"
+	@echo "Symlink: $@ -> $(RECOVERY_BINARY)"
 	@mkdir -p $(dir $@)
 	@rm -rf $@
-	echo "$(VERS_STRING)" > $(TARGET_RECOVERY_ROOT_OUT)/recovery.version
+	@echo "$(VERS_STRING)" > $(TARGET_RECOVERY_ROOT_OUT)/recovery.version
 	$(hide) ln -sf $(RECOVERY_BINARY) $@
 ALL_DEFAULT_INSTALLED_MODULES += $(RECOVERY_SYMLINKS)
 
 
 # copy prebuilt items
-#include $(CLEAR_VARS)
-#LOCAL_MODULE := recovery.version
-#LOCAL_MODULE_TAGS := eng
-#LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
-#LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)
-#LOCAL_SRC_FILES := recovery.version
-#include $(BUILD_PREBUILT)
-
 include $(CLEAR_VARS)
 LOCAL_MODULE := initlogo.rle
 LOCAL_MODULE_TAGS := eng
@@ -127,8 +119,8 @@ LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
 LOCAL_SRC_FILES := unyaffs-arm-uclibc
 include $(BUILD_PREBUILT)
 
+#busybox links
 include $(CLEAR_VARS)
-#busybox symlinks
 BUSYBOX_LINKS := [ [[ arp ash awk base64 basename bbconfig blockdev brctl bunzip2 bzcat bzip2 cal cat catv chattr chgrp chmod chown chroot clear cmp comm cp cpio crond crontab cut date dc dd depmod devmem df diff dirname dmesg dnsd dos2unix du echo ed egrep env expand expr false fdisk fgrep find flashcp flash_unlock flash_lock flock fold free freeramdisk fsync ftpget ftpput fuser getopt grep groups gunzip gzip halt head hexdump id ifconfig insmod iostat install ip kill killall killall5 length less ln losetup ls lsattr lsmod lsusb lzcat lzma lzop lzopcat man md5sum mesg mkdir mke2fs mkfifo mkfs.ext2 mkfs.vfat mknod mkswap mktemp modinfo modprobe more mount mountpoint mpstat mv nanddump nandwrite nc netstat nice nohup nslookup ntpd od patch pgrep pidof ping pkill printenv printf ps pstree pmap poweroff pwd pwdx rdev readlink realpath renice reset resize rev rm rmdir rmmod route run-parts rx sed seq setconsole setserial setsid sh sha1sum sha256sum sha512sum sleep sort split stat strings stty sum swapoff swapon sync sysctl tac tail tar tee telnet telnetd test tftp tftpd time timeout top touch tr traceroute true ttysize tune2fs umount uname uncompress unexpand uniq unix2dos unxz unlzma unlzop unzip uptime usleep uudecode uuencode vi watch wc wget which whoami xargs xzcat xz yes zcat
 BUSYBOX_SYMLINKS := $(addprefix $(TARGET_RECOVERY_ROOT_OUT)/sbin/,$(BUSYBOX_LINKS))
 $(BUSYBOX_SYMLINKS): BUSYBOX_BINARY := busybox
@@ -138,7 +130,6 @@ $(BUSYBOX_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
 	@rm -rf $@
 	$(hide) ln -sf $(BUSYBOX_BINARY) $@
 ALL_DEFAULT_INSTALLED_MODULES += $(BUSYBOX_SYMLINKS)
-
 
 include $(CLEAR_VARS)
 
