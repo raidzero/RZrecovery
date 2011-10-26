@@ -66,24 +66,22 @@ if [ -e /proc/emmc ]; then
 	flashfile="/proc/emmc"	
 fi
 
-bootP=`cat $flashfile | grep \"boot\" | awk '{print $1}' | sed 's/://g'`
+if [ ! -z "$flashfile" ]; then
+	bootP=`cat $flashfile | grep \"boot\" | awk '{print $1}' | sed 's/://g'`
 
-if [ ! -z `echo $bootP | grep mtd` ]; then
-	blkDevice="/dev/mtd/$bootP"
-fi
-
-if [ ! -z `echo $bootP | grep mmc` ]; then
-	blkDevice="/dev/block/$bootP"
-fi
-
-dump_boot() 
-{
-	echo "* print Dumping boot from $blkDevice..."
-	dd if="$blkDevice" of=$1
-}
-
+	if [ ! -z `echo $bootP | grep mtd` ]; then
+		blkDevice="/dev/mtd/$bootP"
+	fi
 	
+	if [ ! -z `echo $bootP | grep mmc` ]; then
+		blkDevice="/dev/block/$bootP"
+	fi
+fi	
 
+bootP=`cat /etc/recovery.fstab | grep boot | awk '{print$2}'`
+if [ "$bootP" -eq "vfat" ]; then
+	bootIsMountable=1 #boot is not raw
+fi
 
 # Hm, have to handle old options for the current UI
 case $1 in
@@ -431,6 +429,9 @@ if [ "$RESTORE" == 1 ]; then
 
     mount /system 2>/dev/null
     mount /data 2>/dev/null
+    if [ ! -z "$bootIsMountable" ]; then
+    	mount /boot 2>/dev/null
+    fi
     if [ "$datadata" != "0" && -z "$(mount | grep datadata)" ]; then
 	mount /datadata 2>/dev/null
     fi
@@ -465,17 +466,32 @@ if [ "$RESTORE" == 1 ]; then
         NOSECURE=1
     fi
 
-    for image in boot; do
-        if [ "$NOBOOT" == "1" -a "$image" == "boot" ]; then
-            echo "* print "
-            echo "* print Not flashing boot image!"
-            echo "* print "
-            continue
-        fi
-        echo -n "* print Flashing $image..."
-		flash_image $image $image.img $OUTPUT
-		echo " done."
-    done
+    if [ -z "$bootIsMountable"]; then 
+    	for image in boot; do
+        	if [ "$NOBOOT" == "1" -a "$image" == "boot" ]; then
+            	echo "* print "
+            	echo "* print Not flashing boot image!"
+            	echo "* print "
+            	continue
+        	fi
+        	echo -n "* print Flashing $image..."
+			flash_image $image $image.img $OUTPUT
+			echo " done."
+    	done
+    else 
+	echo "* print Erasing /boot..."
+	cd /boot
+	rm -rf * 2> /dev/null
+        TAR_OPTS="x"
+	[ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"
+	TAR_OPTS="${TAR_OPTS}f"
+       	PTOTAL=$(tar tf $RESTOREPATH/boot.tar | wc -l)
+        [ "$PROGRESS" == "1" ] && $ECHO "* print Unpacking boot..."
+        tar $TAR_OPTS $RESTOREPATH/boot.tar -C /boot | pipeline $PTOTAL
+	cd /
+	sync
+	umount boot
+    fi
 
     for image in data system secure; do
         if [ "$NODATA" == 1 -a "$image" == "data" ]; then
@@ -553,6 +569,10 @@ if [ "$BACKUP" == 1 ]; then
 
     echo "* print Mounting..."
 	
+		if [ ! -z "$bootIsMountable" ]; then 
+			umount /boot 2>/dev/null
+			mount /boot
+		fi	
 		umount /system 2>/dev/null
 		umount /data 2>/dev/null
 		umount /sdcard 2>/dev/null
@@ -614,9 +634,9 @@ if [ "$BACKUP" == 1 ]; then
 
 # 3.
     mount sdcard; mount data; mount system
-    FREEBLOCKS=`df -m /sdcard | grep /sdcard | awk '{print$3}'`
-    DATABLOCKS=`df -m /data | grep /data | awk '{print$2}'`
-    SYSBLOCKS=`df -m /system | grep /system | awk '{print$2}'`
+    FREEBLOCKS=`df -m /sdcard | grep /sdcard | awk '{print$4}'`
+    DATABLOCKS=`df -m /data | grep /data | awk '{print$3}'`
+    SYSBLOCKS=`df -m /system | grep /system | awk '{print$3}'`
     SECBLOCKS=`du -sm /sdcard/.android_secure | awk '{print$1}'`
     REQBLOCKS=`expr $DATABLOCKS + $SYSBLOCKS + $SECBLOCKS`
     REQBLOCKSSTRING=`echo $REQBLOCKS | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`
@@ -644,30 +664,38 @@ if [ "$BACKUP" == 1 ]; then
 		fi
 		;;
 	esac
-
-	sleep 1s
-	MD5RESULT=1
-	ATTEMPT=0
-	DEVICEMD5=`dump_image $image - | md5sum | awk '{print$1}'`
-	while [ $MD5RESULT -eq 1 ]; do
-	    let ATTEMPT=$ATTEMPT+1
-	    dump_image $image $DESTDIR/$image.img
-	    sync
-	    echo -n "* print Verifying $image dump..."
-	    IMGMD5=`md5sum $DESTDIR/$image.img | awk '{print$1}'`
-	    if [ "$IMGMD5" -eq "$DEVICEMD5" ]; then
+	
+	if [ ! -z $"bootIsMountable" ]; then
+		cd /boot
+		PTOTAL=$(find . | wc -l)
+	 	[ "$PROGRESS" == "1" ] tar $TAR_OPTS $DESTDIR/boot.tar . 2>/dev/null | pipeline $PTOTAL
+		cd /
+		sync
+	else
+		sleep 1s
 		MD5RESULT=1
-	    else
-		MD5RESULT=0
-	    fi
-	    if [ "$ATTEMPT" == "5" ]; then
-		echo "* print Fatal error while trying to dump $image, aborting."
+		ATTEMPT=0
+		DEVICEMD5=`dump_image $image - | md5sum | awk '{print$1}'`
+		while [ $MD5RESULT -eq 1 ]; do
+	    		let ATTEMPT=$ATTEMPT+1
+	    		dump_image $image $DESTDIR/$image.img
+	    		sync
+	    		echo -n "* print Verifying $image dump..."
+	    		IMGMD5=`md5sum $DESTDIR/$image.img | awk '{print$1}'`
+	    	if [ "$IMGMD5" -eq "$DEVICEMD5" ]; then
+			MD5RESULT=1
+		else
+			MD5RESULT=0
+	    	fi
+	   	 if [ "$ATTEMPT" == "5" ]; then
+			echo "* print Fatal error while trying to dump $image, aborting."
 			umount /system 2>/dev/null
 			umount /data 2>/dev/null
 			umount /sdcard 2>/dev/null
-		exit 35
-	    fi
-	done
+			exit 35
+	    	fi
+		done
+	fi	
 	echo " complete!"
     done
 
@@ -719,6 +747,7 @@ if [ "$BACKUP" == 1 ]; then
 			umount /system 2>/dev/null
 			umount /data 2>/dev/null
 			umount /sdcard 2>/dev/null
+			umount /boot 2>/dev/null
     echo "* print Backup successful."
 	echo "* print Thanks for using RZRecovery."
     if [ "$AUTOREBOOT" == 1 ]; then

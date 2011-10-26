@@ -203,6 +203,11 @@ write_fstab_root (char *path, FILE * file)
     // special case rfs cause auto will mount it as vfat on samsung.
     fprintf (file, "%s rw\n", vol->fs_type2 != NULL
 	     && strcmp (vol->fs_type, "rfs") != 0 ? "auto" : vol->fs_type);
+    //if mount point doesnt exist, create it
+    if (access(path,F_OK) == -1) { 
+      mkdir (path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+      printf("\nMountpoint %s did not exist, created.\n", path);
+    }  
 }
 
 int volume_present(char* volume) {
@@ -235,13 +240,14 @@ create_fstab ()
   Volume * vol = volume_for_path ("/boot");
   if (NULL != vol && strcmp (vol->fs_type, "mtd") != 0
        && strcmp (vol->fs_type, "emmc") != 0)
-    write_fstab_root ("/boot", file);
+  write_fstab_root ("/boot", file);
   write_fstab_root ("/cache", file);
   write_fstab_root ("/data", file);
   if (volume_present("/datadata")) write_fstab_root ("/datadata", file);
   write_fstab_root ("/system", file);
   write_fstab_root ("/sdcard", file);
-  write_fstab_root ("/sd-ext", file);
+  if (volume_present("/sd-ext")) write_fstab_root ("/sd-ext", file);
+  if (volume_present("/emmc")) write_fstab_root("/emmc", file);
   fclose (file);
   LOGI ("Completed outputting fstab.\n\n");
 }
@@ -325,6 +331,9 @@ read_files ()
  }
  sync ();
  ensure_path_unmounted("/sdcard");
+ if (access("/sbin/postrecoveryboot.sh",F_OK) != -1 ) {
+   system("sh /sbin/postrecoveryboot.sh");
+ }
 }
 
 void activateLEDs() 

@@ -7,33 +7,6 @@
 #include "roots.h"
 #include "recovery_ui.h"
 
-static char *
-get_mounted_partitions_string (char *destination, int md, int msd, int ms)
-{
-  static const char *mounted_prefix = "Mounted partitions: ";
-  static const char *mounted_data = "/data ";
-  static const char *mounted_sdcard = "/sdcard ";
-  static const char *mounted_system = "/system";
-  static const char *newline = "\n";
-
-  strcpy (destination, mounted_prefix);
-  if (md)
-	  {
-	    strcat (destination, mounted_data);
-	  }
-  if (msd)
-	  {
-	    strcat (destination, mounted_sdcard);
-	  }
-  if (ms)
-	  {
-	    strcat (destination, mounted_system);
-	  }
-  strcat (destination, newline);
-
-  return (destination);
-}
-
 static int
 is_usb_storage_enabled ()
 {
@@ -53,26 +26,32 @@ is_usb_storage_enabled ()
 }
 
 static void
-get_mount_menu_options (char **items, int md, int msd, int ms, int usb)
+get_mount_menu_options (char **items, int usb, int ms, int md, int msd, int mb, int me)
 {
-  static char *items1[] = { "Mount /system",
+  static char *items1[] = { "Enable USB Mass Storage",
+    "Mount /system",
     "Mount /data",
     "Mount /sdcard",
-    "Enable USB Mass Storage",
+    "Mount /boot",
+    "Mount /emmc",
     NULL
   };
-  static char *items2[] = { "Umount /system",
-    "Umount /data",
-    "Umount /sdcard",
-    "Disable USB Mass Storage",
+  static char *items2[] = {  "Disable USB Mass Storage",
+    "Unmount /system",
+    "Unmount /data",
+    "Unmount /sdcard",
+    "Unmount /boot",
+    "Unmount /emmc",
     NULL
   };
 
-  items[0] = ms ? items2[0] : items1[0];
-  items[1] = md ? items2[1] : items1[1];
-  items[2] = msd ? items2[2] : items1[2];
-  items[3] = usb ? items2[3] : items1[3];
-  items[4] = NULL;
+  items[0] = usb ? items2[0] : items1[0];
+  items[1] = ms ? items2[1] : items1[1];
+  items[2] = md ? items2[2] : items1[2];
+  items[3] = msd ? items2[3] : items1[3];
+  items[4] = mb ? items2[4] : items1[4];
+  items[5] = me ? items2[5] : items1[5];
+  items[6] = NULL;
 }
 
 #ifndef BOARD_UMS_LUNFILE
@@ -87,14 +66,14 @@ enable_usb_mass_storage ()
 
   if ((fd = open (BOARD_UMS_LUNFILE, O_WRONLY)) < 0)
 	  {
-	    LOGE ("Unable to open ums lunfile (%s)", strerror (errno));
+	    LOGE ("\nUnable to open ums lunfile (%s)", strerror (errno));
 	    return -1;
 	  }
 
   if ((write (fd, vol->device, strlen (vol->device)) < 0) &&
       (!vol->device2 || (write (fd, vol->device, strlen (vol->device2)) < 0)))
 	  {
-	    LOGE ("Unable to write to ums lunfile (%s)", strerror (errno));
+	    LOGE ("\nUnable to write to ums lunfile (%s)", strerror (errno));
 	    close (fd);
 	    return -1;
 	  }
@@ -114,30 +93,27 @@ show_mount_menu ()
 {
   static char *headers[] = { "Choose a mount or unmount option",
     "",
-    "",
     NULL
   };
 
-  // "Mounted partitions: /data /sdcard /system\n"
-  //  123456789012345678901234567890123456789012345678
-  //  0        1         2         3        
-  char *mounted = malloc (50 * sizeof (char));
 
+  int usb = is_usb_storage_enabled ();
+  int ms = is_path_mounted ("/system");
   int md = is_path_mounted ("/data");
   int msd = is_path_mounted ("/sdcard");
-  int ms = is_path_mounted ("/system");
-  int usb = is_usb_storage_enabled ();
+  int mb = is_path_mounted ("/boot");
+  int me = is_path_mounted ("/emmc");
 
-  char **items = malloc (6 * sizeof (char *));
+  char **items = malloc (7 * sizeof (char *));
 
-  get_mount_menu_options (items, md, msd, ms, usb);
+  get_mount_menu_options (items, usb, ms, md, msd, mb, me);
 
-  headers[1] = get_mounted_partitions_string (mounted, md, msd, ms);
-
-#define ITEM_S   0
-#define ITEM_D   1
-#define ITEM_SD  2
-#define ITEM_USB 3
+#define ITEM_USB 0
+#define ITEM_S   1
+#define ITEM_D   2
+#define ITEM_SD  3
+#define ITEM_B   4
+#define ITEM_E   5
 
   int chosen_item = -1;
 
@@ -147,70 +123,60 @@ show_mount_menu ()
 	      get_menu_selection (headers, items, 0,
 				  chosen_item < 0 ? 0 : chosen_item);
 
-	    /*      char* act_str = malloc(18*sizeof(char));
-	       sprintf(act_str, "Action is %d\n", chosen_item);
-	       ui_print(act_str); */
-
 	    switch (chosen_item)
 		    {
 		    case ITEM_S:
-		      if (ms)
-			      {
-				ensure_path_unmounted ("/system");
-				ui_print ("%s", "Unm");
-			      }
-		      else
-			      {
-				ensure_path_mounted ("/system");
-				ui_print ("M");
-			      }
-		      ui_print ("ounted /system\n");
+		      if (ms) { 
+		        ensure_path_unmounted ("/system");
+		      } else {
+		        ensure_path_mounted ("/system");
+		      }
 		      ms ^= 1;
 		      break;
 		    case ITEM_D:
-		      if (md)
-			      {
-				ensure_path_unmounted ("/data");
-				ui_print ("Unm");
-			      }
-		      else
-			      {
-				ensure_path_mounted ("/data");
-				ui_print ("M");
-			      }
-		      ui_print ("ounted /data\n");
+		      if (md) {
+		        ensure_path_unmounted ("/data");
+		      } else {
+		        ensure_path_mounted ("/data");
+		      }
 		      md ^= 1;
 		      break;
 		    case ITEM_SD:
-		      if (msd)
-			      {
-				ensure_path_unmounted ("/sdcard");
-				ui_print ("Unm");
-			      }
-		      else
-			      {
-				disable_usb_mass_storage ();
-				usb = 0;
-				ensure_path_mounted ("/sdcard");
-				ui_print ("M");
-			      }
-		      ui_print ("ounted /sdcard\n");
+		      if (msd) {
+		        ensure_path_unmounted ("/sdcard");
+		      } else { 
+		        disable_usb_mass_storage ();
+		        usb = 0;
+		        ensure_path_mounted ("/sdcard");
+		      }
 		      msd ^= 1;
 		      break;
 		    case ITEM_USB:
-		      if (usb)
-			      {
-				disable_usb_mass_storage ();
-			      }
-		      else
-			      {
-				enable_usb_mass_storage ();
-				msd = 0;
-			      }
+		      if (usb) {
+		        disable_usb_mass_storage ();
+		      } else { 
+		        enable_usb_mass_storage ();
+		        msd = 0;
+		      }
 		      usb ^= 1;
 		      break;
+		    case ITEM_B:
+		      if (mb) { 
+		        ensure_path_unmounted("/boot");
+		      } else { 
+		        ensure_path_mounted("/boot");
+		      }
+		      mb ^= 1;
+		      break;
+		    case ITEM_E:
+		      if (me) {
+		        ensure_path_unmounted("/emmc");
+		      } else { 
+		        ensure_path_mounted("/emmc");
+		      }
+		      me ^= 1;
+		      break;
 		    }
-	    get_mounted_partitions_string (mounted, md, msd, ms);
-	    get_mount_menu_options (items, md, msd, ms, usb);
+	    get_mount_menu_options (items, usb, ms, md, msd, mb, me);
 	  }
 }
