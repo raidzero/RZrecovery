@@ -205,6 +205,15 @@ write_fstab_root (char *path, FILE * file)
 	     && strcmp (vol->fs_type, "rfs") != 0 ? "auto" : vol->fs_type);
 }
 
+int volume_present(char* volume) {
+  Volume *vol = volume_for_path(volume);
+  if ( vol != NULL ) {
+    return 1;
+  } else { 
+    return 0;
+  }
+}
+
  void
 process_volumes ()
 {
@@ -229,6 +238,7 @@ create_fstab ()
     write_fstab_root ("/boot", file);
   write_fstab_root ("/cache", file);
   write_fstab_root ("/data", file);
+  if (volume_present("/datadata")) write_fstab_root ("/datadata", file);
   write_fstab_root ("/system", file);
   write_fstab_root ("/sdcard", file);
   write_fstab_root ("/sd-ext", file);

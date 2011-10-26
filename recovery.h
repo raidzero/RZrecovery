@@ -19,6 +19,7 @@ void print_property (const char *key, const char *name, void *cookie);
 
 void create_fstab ();
 void process_volumes ();
+int has_datadata();
 void write_files ();
 void read_files ();
 

@@ -47,6 +47,11 @@ wipe_partition (char *title, char *operation, char *partition)
 	    ui_print ("\n-- Wiping data...\n");
 	    ensure_path_unmounted ("/data");
 	    erase_volume ("/data");
+	    if (volume_present("/datadata")) {
+	      ui_print("\n-- Wiping datadata...\n");
+	      ensure_path_mounted("/datadata");
+	      erase_volume("/datadata");
+	    }
 	    ui_print ("Data wipe complete.\n");
 	  }
   if (strcmp (partition, "boot") == 0)
