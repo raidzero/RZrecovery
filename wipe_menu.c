@@ -81,9 +81,9 @@ wipe_partition (char *title, char *operation, char *partition)
 	  {
 	    ui_print ("\n-- Wiping dalvik-cache...\n");
 	    ensure_path_mounted ("/data");
-	    system ("rm -rf /data/dalvik-cache/*");
+	    __system("rm -rf /data/dalvik-cache/*");
 	    ensure_path_mounted ("/cache");
-	    system ("rm -rf /cache/dalvik-cache/*");
+	    __system("rm -rf /cache/dalvik-cache/*");
 	    ui_print ("\n dalvik-cache cleared.\n");
 	  }
   if (strcmp (partition, "android-secure") == 0)

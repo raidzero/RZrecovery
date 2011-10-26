@@ -42,10 +42,10 @@ root_menu ()
   ui_print ("\nMounting system...\n");
   ensure_path_mounted ("/system");
   ui_print ("Copying su binary to /system/bin...\n");
-  system ("busybox cp /rootfiles/su /system/bin");
+  __system("busybox cp /rootfiles/su /system/bin");
   ui_print ("Setting permissions on su binary...\n");
-  system ("busybox chown 0:0 /system/bin/su");
-  system ("busybox chmod 6755 /system/bin/su");
+  __system("busybox chown 0:0 /system/bin/su");
+  __system("busybox chmod 6755 /system/bin/su");
   ui_print ("Done! Please install superuser APK.\n");
   ensure_path_unmounted ("/system");
   return;
@@ -66,12 +66,12 @@ static char *headers[] = { "Dalvik Bytecode Tweaks",
 	  int chosen_item = get_menu_selection(headers, items, 0, 0);
 
 	  if (chosen_item == 0) {
-		system("/sbin/RZR-noverify.sh disable");
+		__system("/sbin/RZR-noverify.sh disable");
 		ui_print("Disabled Dalvik Bytecode Verification.\n");
 		return;
 	  }
 	  if (chosen_item == 1) {
-		system("/sbin/RZR-noverify.sh enable");
+		__system("/sbin/RZR-noverify.sh enable");
 		ui_print("Enabled Dalvik Bytecode Verification.\n");
 		return;
 	  }

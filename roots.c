@@ -234,7 +234,7 @@ try_mount (const char *device, const char *mount_point, const char *fs_type,
 
 	    sprintf (mount_cmd, "mount -t %s -o%s %s %s", fs_type, fs_options,
 		     device, mount_point);
-	    ret = system (mount_cmd);
+	    ret = __system(mount_cmd);
 	  }
   if (ret == 0)
     return 0;
@@ -351,7 +351,7 @@ ensure_path_mounted (const char *path)
 	    char mount_cmd[PATH_MAX];
 
 	    sprintf (mount_cmd, "mount %s", path);
-	    return system (mount_cmd);
+	    return __system(mount_cmd);
 	  }
 
   LOGE ("unknown fs_type \"%s\" for %s\n", v->fs_type, v->mount_point);
@@ -562,14 +562,14 @@ format_unknown_device (const char *device, const char *path,
 	  {
 	    sprintf (tmp,
 		     "cd /data ; for f in $(ls -a | grep -v ^media$); do rm -rf $f; done");
-	    system (tmp);
+	    __system(tmp);
 	  }
   else
 	  {
 	    sprintf (tmp, "rm -rf %s/*", path);
-	    system (tmp);
+	    __system(tmp);
 	    sprintf (tmp, "rm -rf %s/.*", path);
-	    system (tmp);
+	    __system(tmp);
 	  }
 
   ensure_path_unmounted (path);

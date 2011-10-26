@@ -30,15 +30,16 @@ set_color (char red, char green, char blue, char bg)
 
 void set_icon (char* icon) {
   ensure_path_mounted("/sdcard");
-  system("rm /sdcard/RZR/icon*");
-  system("rm /cache/icon*");
+  
+  remove("/sdcard/RZR/icon*");
+  remove("/cache/icon*");
   if (strcmp(icon,"rz")==0) {
     ui_set_background(BACKGROUND_ICON_RZ);
-    system("echo > /sdcard/RZR/icon_rz && echo > /cache/icon_rz");
+    __system("echo > /sdcard/RZR/icon_rz && echo > /cache/icon_rz");
   }
   if (strcmp(icon,"rw")==0) { 
     ui_set_background(BACKGROUND_ICON_RW);
-    system("echo > /sdcard/RZR/icon_rw && echo > /cache/icon_rw");
+    __system("echo > /sdcard/RZR/icon_rw && echo > /cache/icon_rw");
   }
   ensure_path_unmounted("/sdcard");
 }
@@ -65,7 +66,7 @@ set_random (int rnd)
     remove("/cache/rgb");
     ensure_path_mounted("/sdcard");
     remove("/sdcard/RZR/rgb");
-    system ("echo > /cache/rnd"); 
+    __system("echo rnd > /cache/rnd"); 
     ensure_path_unmounted("/sdcard");
   }
   write_files ();

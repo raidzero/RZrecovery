@@ -230,7 +230,7 @@ create_fstab ()
 {
   struct stat info;
 
-  system ("touch /etc/mtab");
+  __system("touch /etc/mtab");
   FILE * file = fopen ("/etc/fstab", "w");
   if (file == NULL)
 	  {
@@ -320,21 +320,31 @@ read_files ()
  ensure_path_mounted ("/sdcard");
  sleep(1);
  if (access("/sdcard/RZR", F_OK) != -1) {
-   system("chmod -R 777 /sdcard/RZR"); //some ROMs go messing with my files!
-   system("cp /sdcard/RZR/* /cache");
+   __system("chmod -R 777 /sdcard/RZR"); //some ROMs go messing with my files!
+   __system("cp /sdcard/RZR/* /cache");
    if ( access("/cache/icon_rw",F_OK) == -1 && access("/cache/icon_rz",F_OK == -1) ) {
-     system("echo > /cache/icon_rz");
+     __system("echo > /cache/icon_rz");
    }
  } else {
     mkdir ("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-    system("echo > /cache/icon_rz");
+    __system("echo > /cache/icon_rz");
  }
  sync ();
  ensure_path_unmounted("/sdcard");
- if (access("/sbin/postrecoveryboot.sh",F_OK) != -1 ) {
-   system("sh /sbin/postrecoveryboot.sh");
- }
 }
+
+int clearBootCnt() {
+  if (access("/sbin/postrecoveryboot.sh",F_OK) != -1 ) {
+    if(__system("/sbin/postrecoveryboot.sh")) {
+      printf("\nBoot Count cleared.\n");
+      return 0;
+    } else {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 
 void activateLEDs() 
 {
@@ -1034,6 +1044,7 @@ reboot_android ()
   ensure_path_mounted ("/system");
   remove ("/system/recovery_from_boot.p");
   write_files ();
+  clearBootCnt();
   sync ();
   __reboot (LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2,
 	     LINUX_REBOOT_CMD_RESTART2, NULL);
@@ -1117,10 +1128,46 @@ show_check_menu (char **headers, char **chk_items, int *flags)
 		      continue;
 		    }
 	    chosen_item -= 1;	// make it 0-indexed for bit-flipping the int
-	    *flags ^= (1 << chosen_item);	// flip the bit corresponding to the chosen item
+    *flags ^= (1 << chosen_item);	// flip the bit corresponding to the chosen item
 	    chosen_item += 1;	// don't ruin the loop!
 	  }
 }
+
+#undef _PATH_BSHELL
+#define _PATH_BSHELL "/sbin/sh"
+
+int
+__system(const char *command) {
+  pid_t pid;
+  	sig_t intsave, quitsave;
+	sigset_t mask, omask;
+	int pstat;
+	char *argp[] = {"sh", "-c", NULL, NULL};
+	if (!command)		/* just checking... */
+		return(1);
+	argp[2] = (char *)command;
+	sigemptyset(&mask);
+	sigaddset(&mask, SIGCHLD);
+	sigprocmask(SIG_BLOCK, &mask, &omask);
+	switch (pid = vfork()) {
+		case -1:			/* error */
+		  sigprocmask(SIG_SETMASK, &omask, NULL);
+		  return(1);
+		case 0:				/* child */
+		  sigprocmask(SIG_SETMASK, &omask, NULL);
+		  execve(_PATH_BSHELL, argp, environ);
+	_exit(127);
+  	}
+
+	intsave = (sig_t)  bsd_signal(SIGINT, SIG_IGN);
+	quitsave = (sig_t) bsd_signal(SIGQUIT, SIG_IGN);
+	pid = waitpid(pid, (int *)&pstat, 0);
+	sigprocmask(SIG_SETMASK, &omask, NULL);
+	(void)bsd_signal(SIGINT, intsave);
+	(void)bsd_signal(SIGQUIT, quitsave);
+	return (pid == -1 ? -1 : pstat);
+}
+
 
  int
 runve (char *filename, char **argv, char **envp, int secs) 
