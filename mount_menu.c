@@ -30,41 +30,70 @@ get_mount_menu_options (char **items, int usb, int ms, int md, int msd, int mb, 
 {
   static char *items1[7];
   static char *items2[7];
+  //questionably mountable partitons...
+  Volume* bootV = volume_for_path("/boot"); int bm;
+  Volume* emmcV = volume_for_path("/emmc"); int em;
+
+  //debug prints:
+  /*
+  if (bootV != NULL) ui_print("\n/boot fs_type: %s\n",bootV->fs_type);
+  if (emmcV != NULL) ui_print("\n/emmc fs_type: %s\n",emmcV->fs_type);
+  */
+
+  if (bootV != NULL) {
+    if (strcmp(bootV->fs_type,"mtd") != 0 && strcmp(bootV->fs_type,"emmc") != 0 && strcmp(bootV->fs_type,"bml") != 0) bm = 1;
+  } else {
+   bm = 0;
+  }
+  if (emmcV != NULL ) {
+    if (strcmp(emmcV->fs_type,"mtd") != 0 && strcmp(emmcV->fs_type,"emmc") != 0 && strcmp(emmcV->fs_type,"bml") != 0) em = 1;
+  } else {
+   em = 0;
+  }
+
+  int i = 0;
+  items1[i] = "Enable USB Mass Storage"; i++;
+  items1[i] = "Mount /system"; i++;
+  items1[i] = "Mount /data"; i++; 
+  items1[i] = "Mount /sdcard"; i++;
+  if (bm) {
+  	items1[i] = "Mount /boot"; i++;
+  }
+  if (em) {	
+	items1[i] = "Mount /emmc"; i++;
+  	items1[i] = NULL;
+  } else {
+        items1[i] = NULL;
+  }
   
-  items1[0] = "Enable USB Mass Storage";
-  items1[1] = "Mount /system";
-  items1[2] = "Mount /data";
-  items1[3] = "Mount /sdcard";
-  items1[4] = "Mount /boot";
-  if (me != NULL) {
-  	items1[5] = "Mount /emmc";
-  	items1[6] = NULL;
+  int j = 0;
+  items2[j] = "Disable USB Mass Storage"; j++;
+  items2[j] = "Unmount /system"; j++;
+  items2[j] = "Unmount /data"; j++;
+  items2[j] = "Unmount /sdcard"; j++;
+  if (bm) {
+  	items2[j] = "Unmount /boot"; j++;
+  }
+  if (em) {	
+	items2[j] = "Unmount /emmc"; j++;
+  	items2[j] = NULL; j++;
   } else {
-        items1[5] = NULL;
+  	items2[j] = NULL;
   }
 
-  items2[0] = "Disable USB Mass Storage";
-  items2[1] = "Unmount /system";
-  items2[2] = "Unmount /data";
-  items2[3] = "Unmount /sdcard";
-  items2[4] = "Unmount /boot";
-  if (me != NULL ) { 
-  	items2[5] = "Unmount /emmc";
-  	items2[6] = NULL;
-  } else {
-  	items2[5] = NULL;
+  int k = 0;
+  items[k] = usb ? items2[k] : items1[k]; k++;
+  items[k] = ms ? items2[k] : items1[k]; k++;
+  items[k] = md ? items2[k] : items1[k]; k++;
+  items[k] = msd ? items2[k] : items1[k]; k++;
+  if (bm) {
+  	items[k] = mb ? items2[k] : items1[k]; k++;
   }
-
-  items[0] = usb ? items2[0] : items1[0];
-  items[1] = ms ? items2[1] : items1[1];
-  items[2] = md ? items2[2] : items1[2];
-  items[3] = msd ? items2[3] : items1[3];
-  items[4] = mb ? items2[4] : items1[4];
-  if (me != NULL ) {
-  	items[5] = me ? items2[5] : items1[5];
-  	items[6] = NULL;
+  if (em) {
+  	items[k] = me ? items2[k] : items1[k]; k++;
+  	items[k] = NULL; k++;
   } else {
-  	items[5] = NULL;
+  	items[k] = NULL;
   }	
 }
 
