@@ -28,30 +28,44 @@ is_usb_storage_enabled ()
 static void
 get_mount_menu_options (char **items, int usb, int ms, int md, int msd, int mb, int me)
 {
-  static char *items1[] = { "Enable USB Mass Storage",
-    "Mount /system",
-    "Mount /data",
-    "Mount /sdcard",
-    "Mount /boot",
-    "Mount /emmc",
-    NULL
-  };
-  static char *items2[] = {  "Disable USB Mass Storage",
-    "Unmount /system",
-    "Unmount /data",
-    "Unmount /sdcard",
-    "Unmount /boot",
-    "Unmount /emmc",
-    NULL
-  };
+  static char *items1[7];
+  static char *items2[7];
+  
+  items1[0] = "Enable USB Mass Storage";
+  items1[1] = "Mount /system";
+  items1[2] = "Mount /data";
+  items1[3] = "Mount /sdcard";
+  items1[4] = "Mount /boot";
+  if (me != NULL) {
+  	items1[5] = "Mount /emmc";
+  	items1[6] = NULL;
+  } else {
+        items1[5] = NULL;
+  }
+
+  items2[0] = "Disable USB Mass Storage";
+  items2[1] = "Unmount /system";
+  items2[2] = "Unmount /data";
+  items2[3] = "Unmount /sdcard";
+  items2[4] = "Unmount /boot";
+  if (me != NULL ) { 
+  	items2[5] = "Unmount /emmc";
+  	items2[6] = NULL;
+  } else {
+  	items2[5] = NULL;
+  }
 
   items[0] = usb ? items2[0] : items1[0];
   items[1] = ms ? items2[1] : items1[1];
   items[2] = md ? items2[2] : items1[2];
   items[3] = msd ? items2[3] : items1[3];
   items[4] = mb ? items2[4] : items1[4];
-  items[5] = me ? items2[5] : items1[5];
-  items[6] = NULL;
+  if (me != NULL ) {
+  	items[5] = me ? items2[5] : items1[5];
+  	items[6] = NULL;
+  } else {
+  	items[5] = NULL;
+  }	
 }
 
 #ifndef BOARD_UMS_LUNFILE
