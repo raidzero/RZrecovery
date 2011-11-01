@@ -9,8 +9,10 @@ sysp=`echo $list | grep system | wc -l`
 asp=`echo $list | grep secure | wc -l`
 datap=`echo $list | grep data | wc -l`
 cachp=`echo $list | grep cache | wc -l`
+datadp=`echo $list | grep datadata | wc -l`
 
 data_mounted=`mount | grep "/data" | wc -l`
+datadata_mounted=`mount | grep "/data/data" | wc -l`
 system_mounted=`mount | grep "/system" | wc -l`
 
 if [ "$bootp" == "1" ]; then
@@ -52,6 +54,15 @@ if [ "$datap" == "1" ]; then
 	cd /data	
 	echo "* print Restoring data..."
 	unyaffs-arm-uclibc $1/data.img
+	if [ "$datadp" =="1" ]; then
+		if [ "$datadata_mounted" == "0" ]; then
+			mount /data/data
+		fi
+		rm -rf /data/data/*
+		cd /data/data
+		echo "* print Restoring datadata..."
+		unyaffs-arm-uclibc $1/datadata.img
+	fi
 	echo "* print data partition restored."
 fi
 	

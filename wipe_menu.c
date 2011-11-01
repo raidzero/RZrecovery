@@ -47,10 +47,10 @@ wipe_partition (char *title, char *operation, char *partition)
 	    ui_print ("\n-- Wiping data...\n");
 	    ensure_path_unmounted ("/data");
 	    erase_volume ("/data");
-	    if (volume_present("/datadata")) {
-	      ui_print("\n-- Wiping datadata...\n");
-	      ensure_path_mounted("/datadata");
-	      erase_volume("/datadata");
+	    if (volume_present("/data/data")) {
+	      ui_print("\n-- Wiping data/data...\n");
+	      ensure_path_mounted("/data/data");
+	      erase_volume("/data/data");
 	    }
 	    ui_print ("Data wipe complete.\n");
 	  }
@@ -102,6 +102,11 @@ wipe_partition (char *title, char *operation, char *partition)
 	    ui_print ("\n-- Wiping data...\n");
 	    ensure_path_unmounted ("/data");
 	    erase_volume ("/data");
+	    if (volume_present("/data/data")) {
+	      ui_print("\n-- Wiping data/data...\n");
+	      ensure_path_mounted("/data/data");
+	      erase_volume("/data/data");
+	    }
 	    ui_print ("Data wipe complete.\n");
 	    ui_print ("\n-- Wiping cache...\n");
 	    ui_print ("-- May take a while on gingerbread...\n");

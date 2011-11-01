@@ -243,7 +243,7 @@ create_fstab ()
   write_fstab_root ("/boot", file);
   write_fstab_root ("/cache", file);
   write_fstab_root ("/data", file);
-  if (volume_present("/datadata")) write_fstab_root ("/datadata", file);
+  if (volume_present("/data/data")) write_fstab_root ("/data/data", file);
   write_fstab_root ("/system", file);
   write_fstab_root ("/sdcard", file);
   if (volume_present("/sd-ext")) write_fstab_root ("/sd-ext", file);

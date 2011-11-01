@@ -380,7 +380,7 @@ if [ "$INSTALL_ROM" == 1 ]; then
 fi
 
 if [ "$RESTORE" == 1 ]; then
-    datadata_present= `cat /etc/fstab | grep datadata | wc -l`
+    datadata_present= `cat /etc/fstab | grep "data/data" | wc -l`
     batteryAtLeast 30
     umount /sdcard 2>/dev/null
     mount /sdcard 2>/dev/null
@@ -432,8 +432,8 @@ if [ "$RESTORE" == 1 ]; then
     if [ ! -z "$bootIsMountable" ]; then
     	mount /boot 2>/dev/null
     fi
-    if [ "$datadata" != "0" && -z "$(mount | grep datadata)" ]; then
-	mount /datadata 2>/dev/null
+    if [ "$datadata" != "0" && -z "$(mount | grep "data/data")" ]; then
+	mount /data/data 2>/dev/null
     fi
     if [ -z "$(mount | grep datadata)" && "$datadata_present" != "0" ]; then
 		echo "* print error: unable to mount /data/data, aborting"	
@@ -560,7 +560,7 @@ fi
 
 # 2.
 if [ "$BACKUP" == 1 ]; then
-    datadata_present= `cat /etc/fstab | grep datadata | wc -l`
+    datadata_present= `cat /etc/fstab | grep "data/data" | wc -l`
 	
     TAR_OPTS="c"
     [ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"
@@ -580,7 +580,7 @@ if [ "$BACKUP" == 1 ]; then
 		mount /data 
 		mount /sdcard 2> /dev/null 
 	if [ "$datadata" != "0" ]; then
-		mount /datadata 2>/dev/null
+		mount /data/data 2>/dev/null
 	fi
     if [ ! "$SUBNAME" == "" ]; then
 	SUBNAME=$SUBNAME-

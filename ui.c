@@ -412,7 +412,7 @@ input_thread (void *cookie)
 						  {
 						    fake_key = 1;
 						    ev.type = EV_KEY;
-						    ev.code = KEY_DOWN;
+						    ev.code = KEY_VOLUMEDOWN;
 						    ev.value = 1;
 						    rel_sum = 0;
 						  }
@@ -420,7 +420,7 @@ input_thread (void *cookie)
 						  {
 						    fake_key = 1;
 						    ev.type = EV_KEY;
-						    ev.code = KEY_UP;
+						    ev.code = KEY_VOLUMEUP;
 						    ev.value = 1;
 						    rel_sum = 0;
 						  }
