@@ -41,11 +41,11 @@ root_menu ()
 
   ui_print ("\nMounting system...\n");
   ensure_path_mounted ("/system");
-  ui_print ("Copying su binary to /system/bin...\n");
-  __system("busybox cp /rootfiles/su /system/bin");
+  ui_print ("Copying su binary to /system/xbin...\n");
+  __system("busybox cp /sbin/su /system/xbin");
   ui_print ("Setting permissions on su binary...\n");
-  __system("busybox chown 0:0 /system/bin/su");
-  __system("busybox chmod 6755 /system/bin/su");
+  __system("busybox chown 0:0 /system/xbin/su");
+  __system("busybox chmod 6755 /system/xbin/su");
   ui_print ("Done! Please install superuser APK.\n");
   ensure_path_unmounted ("/system");
   return;

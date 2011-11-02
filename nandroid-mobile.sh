@@ -25,6 +25,8 @@ ASSUMEDEFAULTUSERINPUT=0
 sd_mounted=`mount | grep "/sdcard" | wc -l`
 data_mounted=`mount | grep "/data" | wc -l`
 system_mounted=`mount | grep "/system" | wc -l`
+datadata_present= `cat /etc/fstab | grep "data/data" | wc -l`
+dd_mounted=`mount | grep "/data/data" | wc -l`
 
 	
 echo2log()
@@ -380,7 +382,6 @@ if [ "$INSTALL_ROM" == 1 ]; then
 fi
 
 if [ "$RESTORE" == 1 ]; then
-    datadata_present= `cat /etc/fstab | grep "data/data" | wc -l`
     batteryAtLeast 30
     umount /sdcard 2>/dev/null
     mount /sdcard 2>/dev/null
@@ -432,14 +433,15 @@ if [ "$RESTORE" == 1 ]; then
     if [ ! -z "$bootIsMountable" ]; then
     	mount /boot 2>/dev/null
     fi
-    if [ "$datadata" != "0" && -z "$(mount | grep "data/data")" ]; then
+    if [ "$datadata_present" -eq "1" && -z "$(mount | grep "data/data")" ]; then
+	echo "* print Datadata present. Mounting..."
 	mount /data/data 2>/dev/null
     fi
-    if [ -z "$(mount | grep datadata)" && "$datadata_present" != "0" ]; then
+    if [ -z "$(mount | grep "data/data")" && "$datadata_present" -eq "1" ]; then
 		echo "* print error: unable to mount /data/data, aborting"	
 		exit 23
     fi    
-    if [ -z "$(mount | grep data)" ]; then
+    if [ -z "$(mount | grep data | grep -v "/data/data")" ]; then
 		echo "* print error: unable to mount /data, aborting"	
 		exit 23
     fi
@@ -531,6 +533,10 @@ if [ "$RESTORE" == 1 ]; then
 		fi
 		if [ "$image" -eq "data"] ; then
 			format /$image
+			if ["$datadata_present" -eq "1" ]; then
+			format /data/data
+			mount /data/data
+			fi
 		fi	
 		
 		TAR_OPTS="x"
@@ -560,8 +566,6 @@ fi
 
 # 2.
 if [ "$BACKUP" == 1 ]; then
-    datadata_present= `cat /etc/fstab | grep "data/data" | wc -l`
-	
     TAR_OPTS="c"
     [ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"
     TAR_OPTS="${TAR_OPTS}f"
@@ -579,7 +583,8 @@ if [ "$BACKUP" == 1 ]; then
 		mount /system 
 		mount /data 
 		mount /sdcard 2> /dev/null 
-	if [ "$datadata" != "0" ]; then
+	if [ "$datadata_present" -eq "1" ]; then
+		echo "* print Datadata present. Mounting..."
 		mount /data/data 2>/dev/null
 	fi
     if [ ! "$SUBNAME" == "" ]; then
@@ -616,6 +621,10 @@ if [ "$BACKUP" == 1 ]; then
 	    echo "* print error: cannot create $DESTDIR"
 		umount /system 2>/dev/null
 		umount /data 2>/dev/null
+		if [ "$datadata_present" -eq "1" ]; then
+			echo "* print Datadata present. Unmounting..."
+			umount /data/data
+		fi
 		umount /sdcard 2>/dev/null
 	    exit 32
     else
@@ -754,6 +763,10 @@ if [ "$BACKUP" == 1 ]; then
     echo "* print Unmounting..."
 			umount /system 2>/dev/null
 			umount /data 2>/dev/null
+			if [ "$datadata_present" -eq "1" ]; then
+				echo "* print Datadata present. Unmounting..."
+				umount /data/data
+			fi
 			umount /sdcard 2>/dev/null
 			umount /boot 2>/dev/null
     echo "* print Backup successful."
