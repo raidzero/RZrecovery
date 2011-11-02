@@ -321,6 +321,10 @@ install_package (const char *path)
 	    LOGE ("Can't mount %s\n", path);
 	    return INSTALL_CORRUPT;
 	  }
+  if (!access("/block_update",F_OK)) {
+  	LOGE("update.zip install blocked\n");
+	return INSTALL_CORRUPT;
+  }
 
   ui_print ("Opening update package...\n");
 
