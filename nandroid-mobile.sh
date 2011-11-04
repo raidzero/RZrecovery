@@ -510,9 +510,9 @@ if [ "$RESTORE" == 1 ]; then
             echo "* print "
             continue
         elif [ "$NODATA" == 0 -a "$image" == "data" ]; then
-			image="data"	
-			tarfile="data"
-		fi
+		image="data"	
+		tarfile="data"
+	fi
         if [ "$NOSYSTEM" == 1 -a "$image" == "system" ]; then
             echo "* print "
             echo "* print Not restoring system image!"
@@ -541,20 +541,9 @@ if [ "$RESTORE" == 1 ]; then
 			tarfile="secure"
 		fi
 		echo "* print Erasing /$image..."
-		if [ "$image" -eq "sdcard/.android_secure"] ; then
-			cd /$image
-			rm -rf * 2>/dev/null
-		fi
-		if [ "$image" -eq "system" ] ; then
-			format /$image
-		fi
-		if [ "$image" -eq "cache" ]; then
-			format /$cache
-	 	fi
-		if [ "$image" -eq "data" ] ; then
-			format /$image
-			format /data/data
-		fi
+		cd /$image
+		rm -rf *
+		cd /
 		
 		TAR_OPTS="x"
 		[ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"
@@ -572,8 +561,9 @@ if [ "$RESTORE" == 1 ]; then
 
 		cd /
 		sync
-		umount /$image 2> /dev/null
-
+		if [ "$image" != "cache" ]; then
+		  umount /$image 2> /dev/null
+		fi
     done
     
     exit 0

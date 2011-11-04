@@ -213,9 +213,9 @@ write_fstab_root (char *path, FILE * file)
 int volume_present(char* volume) {
   Volume *vol = volume_for_path(volume);
   if ( vol != NULL ) {
-    return 1;
-  } else { 
     return 0;
+  } else { 
+    return 1;
   }
 }
 
@@ -243,7 +243,10 @@ create_fstab ()
   write_fstab_root ("/boot", file);
   write_fstab_root ("/cache", file);
   write_fstab_root ("/data", file);
-  if (volume_present("/data/data")) write_fstab_root ("/data/data", file);
+  if (volume_present("/data/data")) { 
+    printf("\nData/data present.");
+    write_fstab_root ("/data/data", file);
+  }
   write_fstab_root ("/system", file);
   write_fstab_root ("/sdcard", file);
   if (volume_present("/sd-ext")) write_fstab_root ("/sd-ext", file);
