@@ -10,6 +10,6 @@
 
 #define DEFAULT     0x67 // the sum of BCDAS
 
-void nandroid_backup (char *subname, char partitions);
+void nandroid_backup (char *subname, char partitions, int reboot_after);
 
 void show_nandroid_menu ();

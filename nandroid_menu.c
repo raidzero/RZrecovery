@@ -14,7 +14,7 @@
 
 
 void
-nandroid_backup (char *subname, char partitions)
+nandroid_backup (char *subname, char partitions, int reboot_after)
 {
   ui_print ("Attempting Nandroid backup.\n");
 
@@ -87,12 +87,15 @@ nandroid_backup (char *subname, char partitions)
   else
 	  {
 	    ui_print ("(done)\n");
+	    if (reboot_after) {
+	      reboot_android();
+	    }  
 	  }
   ui_reset_progress ();
 }
 
 void
-nandroid_restore (char *subname, char partitions)
+nandroid_restore (char *subname, char partitions, int reboot_after)
 {
   int boot = partitions & BOOT;
   int data = partitions & DATA;
@@ -163,6 +166,9 @@ nandroid_restore (char *subname, char partitions)
   else
 	  {
 	    ui_print ("(done)\n");
+	    if (reboot_after) {
+	      reboot_android();
+	    }
 	  }
   ui_reset_progress ();
 }
@@ -291,16 +297,16 @@ reverse_array (char **inver_a)
 }
 
 void
-get_nandroid_adv_menu_opts (char **list, char p, char *br)
+get_nandroid_adv_menu_opts (char **list, char p, char *br, int reboot_after)
 {
 
   char **tmp = malloc (8 * sizeof (char *));
   int i;
 
-  for (i = 0; i < 6; i++)
+  for (i = 0; i < 7; i++)
 	  {
 	    tmp[i] =
-	      malloc ((strlen ("(*)  ANDROID-SECURE") + strlen (br) +
+	      malloc ((strlen ("(*)  Reboot afterwards") + strlen (br) +
 		       1) * sizeof (char));
 	  }
 
@@ -309,7 +315,8 @@ get_nandroid_adv_menu_opts (char **list, char p, char *br)
   sprintf (tmp[2], "(%c) %s ANDROID-SECURE", p & ASECURE ? '*' : ' ', br);
   sprintf (tmp[3], "(%c) %s SYSTEM", p & SYSTEM ? '*' : ' ', br);
   sprintf (tmp[4], "(%c) %s CACHE", p & CACHE ? '*' : ' ', br);
-  tmp[5] = NULL;
+  sprintf (tmp[5], "(%c) Reboot afterwards", reboot_after ? '*':' ');
+  tmp[6] = NULL;
 
   char **h = list;
   char **j = tmp;
@@ -336,6 +343,7 @@ show_nandroid_adv_r_menu ()
     NULL,
     NULL,
     NULL,
+    NULL,
     NULL
   };
 
@@ -346,17 +354,18 @@ show_nandroid_adv_r_menu ()
 #define R_ITEM_A	  4
 #define R_ITEM_S    5
 #define R_ITEM_C    6
-
+#define R_ITEM_R    7
 
   char filename[PATH_MAX];
 
   filename[0] = NULL;
   char partitions = (char) DEFAULT;
   int chosen_item = -1;
+  int reboot_after = 0;
 
   while (chosen_item != ITEM_BACK)
 	  {
-	    get_nandroid_adv_menu_opts (items + 2, partitions, "restore");	// put the menu options in items[] starting at index 2
+	    get_nandroid_adv_menu_opts (items + 2, partitions, "restore", reboot_after);	// put the menu options in items[] starting at index 2
 	    chosen_item =
 	      get_menu_selection (headers, items, 0,
 				  chosen_item < 0 ? 0 : chosen_item);
@@ -370,7 +379,7 @@ show_nandroid_adv_r_menu ()
 		      break;
 		    case R_ITEM_PERF:
 		      ui_print ("Restoring...\n");
-		      nandroid_restore (filename, partitions | PROGRESS);
+		      nandroid_restore (filename, partitions | PROGRESS, reboot_after);
 		      break;
 		    case R_ITEM_B:
 		      partitions ^= BOOT;
@@ -386,6 +395,9 @@ show_nandroid_adv_r_menu ()
 		      break;
 		    case R_ITEM_C:
 		      partitions ^= CACHE;
+		      break;
+		    case R_ITEM_R:
+		      reboot_after ^= 1;
 		      break;
 		    }
 	  }
@@ -404,6 +416,7 @@ show_nandroid_adv_b_menu ()
     NULL,
     NULL,
     NULL,
+    NULL,
     NULL
   };
 
@@ -413,17 +426,19 @@ show_nandroid_adv_b_menu ()
 #define B_ITEM_A    3
 #define B_ITEM_S    4
 #define B_ITEM_C    5
+#define B_ITEM_R    6
 
   char filename[PATH_MAX];
 
   filename[0] = NULL;
   int chosen_item = -1;
+  int reboot_after = 0;
 
   char partitions = (char) DEFAULT;
 
   while (chosen_item != ITEM_BACK)
 	  {
-	    get_nandroid_adv_menu_opts (items + 1, partitions, "backup");	// put the menu options in items[] starting at index 1
+	    get_nandroid_adv_menu_opts (items + 1, partitions, "backup", reboot_after);	// put the menu options in items[] starting at index 1
 	    chosen_item =
 	      get_menu_selection (headers, items, 0,
 				  chosen_item < 0 ? 0 : chosen_item);
@@ -431,7 +446,7 @@ show_nandroid_adv_b_menu ()
 	    switch (chosen_item)
 		    {
 		    case B_ITEM_PERF:
-		      nandroid_backup (filename, partitions | PROGRESS);
+		      nandroid_backup (filename, partitions | PROGRESS, reboot_after);
 		      break;
 		    case B_ITEM_B:
 		      partitions ^= BOOT;
@@ -447,6 +462,9 @@ show_nandroid_adv_b_menu ()
 		      break;
 		    case B_ITEM_C:
 		      partitions ^= CACHE;
+		      break;
+		    case B_ITEM_R:
+		      reboot_after ^= 1;
 		      break;
 		    }
 	  }
