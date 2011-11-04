@@ -312,6 +312,7 @@ try_update_binary (const char *path, ZipArchive * zip)
 int
 install_package (const char *path)
 {
+  write_files();
   ui_print ("Finding update package...\n");
   ui_show_indeterminate_progress ();
   LOGI ("Update location: %s\n", path);
@@ -346,4 +347,5 @@ install_package (const char *path)
    */
   ui_print ("Installing update...\n");
   return try_update_binary (path, &zip);
+  read_files();
 }

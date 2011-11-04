@@ -31,8 +31,8 @@ set_color (char red, char green, char blue, char bg)
 void set_icon (char* icon) {
   ensure_path_mounted("/sdcard");
   
-  remove("/sdcard/RZR/icon*");
-  remove("/cache/icon*");
+  __system("rm /sdcard/RZR/icon*");
+  __system("rm /cache/icon*");
   if (strcmp(icon,"rz")==0) {
     ui_set_background(BACKGROUND_ICON_RZ);
     __system("echo > /sdcard/RZR/icon_rz && echo > /cache/icon_rz");
