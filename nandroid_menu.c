@@ -297,7 +297,7 @@ get_nandroid_adv_menu_opts (char **list, char p, char *br)
   char **tmp = malloc (8 * sizeof (char *));
   int i;
 
-  for (i = 0; i < 5; i++)
+  for (i = 0; i < 6; i++)
 	  {
 	    tmp[i] =
 	      malloc ((strlen ("(*)  ANDROID-SECURE") + strlen (br) +
@@ -308,7 +308,8 @@ get_nandroid_adv_menu_opts (char **list, char p, char *br)
   sprintf (tmp[1], "(%c) %s DATA", p & DATA ? '*' : ' ', br);
   sprintf (tmp[2], "(%c) %s ANDROID-SECURE", p & ASECURE ? '*' : ' ', br);
   sprintf (tmp[3], "(%c) %s SYSTEM", p & SYSTEM ? '*' : ' ', br);
-  tmp[4] = NULL;
+  sprintf (tmp[4], "(%c) %s CACHE", p & CACHE ? '*' : ' ', br);
+  tmp[5] = NULL;
 
   char **h = list;
   char **j = tmp;
@@ -334,6 +335,7 @@ show_nandroid_adv_r_menu ()
     NULL,
     NULL,
     NULL,
+    NULL,
     NULL
   };
 
@@ -343,12 +345,13 @@ show_nandroid_adv_r_menu ()
 #define R_ITEM_D    3
 #define R_ITEM_A	  4
 #define R_ITEM_S    5
+#define R_ITEM_C    6
 
 
   char filename[PATH_MAX];
 
   filename[0] = NULL;
-  char partitions = (char) BDAS;
+  char partitions = (char) DEFAULT;
   int chosen_item = -1;
 
   while (chosen_item != ITEM_BACK)
@@ -381,6 +384,9 @@ show_nandroid_adv_r_menu ()
 		    case R_ITEM_S:
 		      partitions ^= SYSTEM;
 		      break;
+		    case R_ITEM_C:
+		      partitions ^= CACHE;
+		      break;
 		    }
 	  }
 }
@@ -397,21 +403,23 @@ show_nandroid_adv_b_menu ()
     NULL,
     NULL,
     NULL,
+    NULL,
     NULL
   };
 
 #define B_ITEM_PERF 0
 #define B_ITEM_B    1
 #define B_ITEM_D    2
-#define B_ITEM_A	  3
+#define B_ITEM_A    3
 #define B_ITEM_S    4
+#define B_ITEM_C    5
 
   char filename[PATH_MAX];
 
   filename[0] = NULL;
   int chosen_item = -1;
 
-  char partitions = (char) BDAS;
+  char partitions = (char) DEFAULT;
 
   while (chosen_item != ITEM_BACK)
 	  {
@@ -436,6 +444,9 @@ show_nandroid_adv_b_menu ()
 		      break;
 		    case B_ITEM_S:
 		      partitions ^= SYSTEM;
+		      break;
+		    case B_ITEM_C:
+		      partitions ^= CACHE;
 		      break;
 		    }
 	  }

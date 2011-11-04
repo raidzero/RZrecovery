@@ -5,7 +5,7 @@ NOBOOT=0
 NODATA=0
 NOSYSTEM=0
 NOSECURE=0
-
+NOCACHE=0
 RESTORE=0
 BACKUP=0
 INSTALL_ROM=0
@@ -25,9 +25,8 @@ ASSUMEDEFAULTUSERINPUT=0
 sd_mounted=`mount | grep "/sdcard" | wc -l`
 data_mounted=`mount | grep "/data" | wc -l`
 system_mounted=`mount | grep "/system" | wc -l`
-datadata_present= `cat /etc/fstab | grep "data/data" | wc -l`
 dd_mounted=`mount | grep "/data/data" | wc -l`
-
+cache_mounted=`mount | grep /cache" | wc -l`
 	
 echo2log()
 {
@@ -102,7 +101,7 @@ esac
 ECHO=echo
 OUTPUT=""
 
-for option in $(getopt --name="nandroid-mobile v2.2.1" -l progress -l install-rom: -l noboot -l nodata -l nosystem -l nosecure -l subname: -l backup -l restore -l defaultinput -- "cbruds:p:eqli:" "$@"); do
+for option in $(getopt --name="nandroid-mobile v2.2.1" -l progress -l install-rom: -l noboot -l nodata -l nocache -l nosystem -l nosecure -l subname: -l backup -l restore -l defaultinput -- "cbruds:p:eqli:" "$@"); do
     case $option in
 	--verbose)
 	    VERBOSE=1
@@ -118,6 +117,10 @@ for option in $(getopt --name="nandroid-mobile v2.2.1" -l progress -l install-ro
             #$ECHO "No data"
             shift
             ;;
+	--nocache)
+	    NOCACHE=1
+	    shift
+	    ;;
         --nosystem)
             NOSYSTEM=1
             #$ECHO "No system"
@@ -430,6 +433,8 @@ if [ "$RESTORE" == 1 ]; then
 
     mount /system 2>/dev/null
     mount /data 2>/dev/null
+    mount /cache 2>/dev/null
+    mount /data/data 2>/dev/null
     if [ ! -z "$bootIsMountable" ]; then
     	mount /boot 2>/dev/null
     fi
@@ -437,10 +442,6 @@ if [ "$RESTORE" == 1 ]; then
 	echo "* print Datadata present. Mounting..."
 	mount /data/data 2>/dev/null
     fi
-    if [ -z "$(mount | grep "data/data")" && "$datadata_present" -eq "1" ]; then
-		echo "* print error: unable to mount /data/data, aborting"	
-		exit 23
-    fi    
     if [ -z "$(mount | grep data | grep -v "/data/data")" ]; then
 		echo "* print error: unable to mount /data, aborting"	
 		exit 23
@@ -449,6 +450,10 @@ if [ "$RESTORE" == 1 ]; then
 		echo "* print error: unable to mount /system, aborting"	
 		exit 24
     fi
+    if [ -z "$(mount | grep cache)" ]; then
+    		echo "*print error: unable to mount /cache, aborting"
+		exit 25
+    fi	
     
     CWD=$PWD
     cd $RESTOREPATH
@@ -460,6 +465,9 @@ if [ "$RESTORE" == 1 ]; then
     fi
     if [ `ls data* 2>/dev/null | wc -l` == 0 ]; then
         NODATA=1
+    fi
+    if [ `ls cache* 2>/dev/null | wc -l` == 0 ]; then
+    	NOCACHE=1
     fi
     if [ `ls system* 2>/dev/null | wc -l` == 0 ]; then
         NOSYSTEM=1
@@ -495,7 +503,7 @@ if [ "$RESTORE" == 1 ]; then
 	umount boot
     fi
 
-    for image in data system secure; do
+    for image in data system secure cache; do
         if [ "$NODATA" == 1 -a "$image" == "data" ]; then
             echo "* print "
             echo "* print Not restoring data image!"
@@ -511,8 +519,17 @@ if [ "$RESTORE" == 1 ]; then
             echo "* print "
             continue
         elif [ "$NOSYSTEM" == 0 ] && [ "$image" == "system" ]; then
-			image="system"	
-			tarfile="system"
+		image="system"	
+		tarfile="system"
+	fi
+	if [ "$NOCACHE" == 1 -a "$image" == "cache" ]; then
+	    echo "*print "
+	    echo "* print Not restoring cache image!"
+	    echo "* print "
+	    continue
+	elif [ "$NOCACHE" == 0 -a "$image" == "cache" ]; then
+	    image="cache"
+	    tarfile="cache"
 	fi
         if [ "$NOSECURE" == 1 ] && [ "$image" == "secure" ]; then
             echo "* print "
@@ -528,16 +545,16 @@ if [ "$RESTORE" == 1 ]; then
 			cd /$image
 			rm -rf * 2>/dev/null
 		fi
-		if [ "$image" -eq "system"] ; then
+		if [ "$image" -eq "system" ] ; then
 			format /$image
 		fi
-		if [ "$image" -eq "data"] ; then
+		if [ "$image" -eq "cache" ]; then
+			format /$cache
+	 	fi
+		if [ "$image" -eq "data" ] ; then
 			format /$image
-			if ["$datadata_present" -eq "1" ]; then
 			format /data/data
-			mount /data/data
-			fi
-		fi	
+		fi
 		
 		TAR_OPTS="x"
 		[ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"
@@ -598,10 +615,13 @@ if [ "$BACKUP" == 1 ]; then
     if [ "$NODATA" == 0 ]; then
 	BACKUPLEGEND=$BACKUPLEGEND"D"
     fi
+    if [ "$NOCACHE" == 0 ]; then
+        BACKUPLEGEND=$BACKUPLEGEND"C"
+    fi
     if [ "$NOSYSTEM" == 0 ]; then
 	BACKUPLEGEND=$BACKUPLEGEND"S"
     fi
-	if [ "$NOSECURE" == 0 ]; then
+    if [ "$NOSECURE" == 0 ]; then
 	BACKUPLEGEND=$BACKUPLEGEND"A"
     fi
     if [ ! "$BACKUPLEGEND" == "" ]; then
@@ -717,7 +737,7 @@ if [ "$BACKUP" == 1 ]; then
     done
 
 # 6
-    for image in system data secure; do
+    for image in system data secure cache; do
 	case $image in
             system)
 		if [ "$NOSYSTEM" == 1 ]; then
@@ -735,6 +755,15 @@ if [ "$BACKUP" == 1 ]; then
 		elif [ "$NODATA" != 1 ]; then
 					dest="data"
 					image="data"
+		fi
+		;;
+	    cache)
+	    	if [ "$NOCACHE" == 1 ]; then
+		    echo "* print Dump of the cache partition suppressed."
+		    continue
+		elif [ "$NOCACHE" != 1 ]; then
+		    dest="cache"
+		    image="cache"
 		fi
 		;;
             secure)
