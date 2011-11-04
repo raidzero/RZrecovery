@@ -29,20 +29,20 @@ void show_battstat ()
 
   bcap = strcat (bcap, "%");
   ui_print ("\nBattery Status: ");
-  ui_print ("%s", bstat);
+  ui_print ("%s\n", bstat);
   char *cmp;
 
   if (!(cmp = strstr (bstat, "Unknown")))
 	  {
 	    ui_print ("Charge Level: ");
-	    ui_print ("%s", bcap);
+	    ui_print ("%s\n", bcap);
 	    if (!access ("/sys/class/power_supply/battery/temp", F_OK)) {
-		ui_print ("\nTemperature: ");
+		ui_print ("Temperature: ");
 		FILE *ft = fopen ("/sys/class/power_supply/battery/temp", "r");
 		char *btemp = calloc (13, sizeof (char));
 		fgets (btemp, 3, ft);
 		btemp = strcat (btemp, " C");
-	    	ui_print ("%s", btemp);
+	    	ui_print ("%s\n", btemp);
 		fclose(ft);
 	    }
 	   }
