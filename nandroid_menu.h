@@ -6,10 +6,8 @@
 #define SYSTEM   0x20
 #define ASECURE  0x40
 
-#define PROGRESS 0x80
-
 #define DEFAULT     0x67 // the sum of BCDAS
 
-void nandroid_backup (char *subname, char partitions, int reboot_after);
+void nandroid (const char* operation, char *subname, char partitions, int reboot_after, int show_progress);
 
 void show_nandroid_menu ();

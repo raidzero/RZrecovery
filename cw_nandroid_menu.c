@@ -30,7 +30,9 @@ restore_cw_nandroid (char *filename)
 
   char *envp[] = { NULL };
 
+  write_files();
   int status = runve ("/sbin/cw_restore.sh", argv, envp, 1);
+  read_files();
 
   sync ();
   return;

@@ -14,15 +14,14 @@
 
 
 void
-nandroid_backup (char *subname, char partitions, int reboot_after)
+nandroid (const char* operation, char *subname, char partitions, int reboot_after, int show_progress)
 {
-  ui_print ("Attempting Nandroid backup.\n");
+  ui_print ("Attempting Nandroid %s.\n", operation);
 
   int boot = partitions & BOOT;
   int data = partitions & DATA;
   int asecure = partitions & ASECURE;
   int system = partitions & SYSTEM;
-  int progress = partitions & PROGRESS;
 
   int args = 4;
 
@@ -34,7 +33,7 @@ nandroid_backup (char *subname, char partitions, int reboot_after)
     args++;
   if (!data)
     args++;
-  if (progress)
+  if (show_progress)
     args++;
   if (!strcmp (subname, ""))
     args += 2;			// if a subname is specified, we need 2 more arguments
@@ -42,7 +41,9 @@ nandroid_backup (char *subname, char partitions, int reboot_after)
   char **argv = malloc (args * sizeof (char *));
 
   argv[0] = "/sbin/nandroid-mobile.sh";
-  argv[1] = "--backup";
+  
+  if (strcmp(operation,"backup") == 0) argv[1] = "--backup";
+  if (strcmp(operation,"restore") == 0) argv[1] = "--restore";
   argv[2] = "--defaultinput";
   argv[args] = NULL;
 
@@ -64,7 +65,7 @@ nandroid_backup (char *subname, char partitions, int reboot_after)
 	  {
 	    argv[i++] = "--nodata";
 	  }
-  if (progress)
+  if (show_progress)
 	  {
 	    argv[i++] = "--progress";
 	  }
@@ -77,7 +78,9 @@ nandroid_backup (char *subname, char partitions, int reboot_after)
 
   char *envp[] = { NULL };
 
-  int status = runve ("/sbin/nandroid-mobile.sh", argv, envp, 60);
+  write_files();
+  int status = runve ("/sbin/nandroid-mobile.sh", argv, envp, 90);
+  read_files();
 
   if (!WIFEXITED (status) || WEXITSTATUS (status) != 0)
 	  {
@@ -90,85 +93,6 @@ nandroid_backup (char *subname, char partitions, int reboot_after)
 	    if (reboot_after) {
 	      reboot_android();
 	    }  
-	  }
-  ui_reset_progress ();
-}
-
-void
-nandroid_restore (char *subname, char partitions, int reboot_after)
-{
-  int boot = partitions & BOOT;
-  int data = partitions & DATA;
-  int asecure = partitions & ASECURE;
-  int system = partitions & SYSTEM;
-  int progress = partitions & PROGRESS;
-
-  int args = 4;
-
-  if (!boot)
-    args++;
-  if (!asecure)
-    args++;
-  if (!system)
-    args++;
-  if (!data)
-    args++;
-  if (progress)
-    args++;
-  if (!strcmp (subname, ""))
-    args += 2;			// if a subname is specified, we need 2 more arguments
-
-  char **argv = malloc (args * sizeof (char *));
-
-  argv[0] = "/sbin/nandroid-mobile.sh";
-  argv[1] = "--restore";
-  argv[2] = "--defaultinput";
-  argv[args] = NULL;
-
-  int i = 3;
-
-  if (!boot)
-	  {
-	    argv[i++] = "--noboot";
-	  }
-  if (!asecure)
-	  {
-	    argv[i++] = "--nosecure";
-	  }
-  if (!system)
-	  {
-	    argv[i++] = "--nosystem";
-	  }
-  if (!data)
-	  {
-	    argv[i++] = "--nodata";
-	  }
-  if (progress)
-	  {
-	    argv[i++] = "--progress";
-	  }
-  if (strcmp (subname, ""))
-	  {
-	    argv[i++] = "--subname";
-	    argv[i++] = subname;
-	  }
-  argv[i++] = NULL;
-
-  char *envp[] = { NULL };
-
-  int status = runve ("/sbin/nandroid-mobile.sh", argv, envp, 80);
-
-  if (!WIFEXITED (status) || WEXITSTATUS (status) != 0)
-	  {
-	    ui_printf_int ("ERROR: Nandroid exited with status %d\n",
-			   WEXITSTATUS (status));
-	  }
-  else
-	  {
-	    ui_print ("(done)\n");
-	    if (reboot_after) {
-	      reboot_android();
-	    }
 	  }
   ui_reset_progress ();
 }
@@ -297,7 +221,7 @@ reverse_array (char **inver_a)
 }
 
 void
-get_nandroid_adv_menu_opts (char **list, char p, char *br, int reboot_after)
+get_nandroid_adv_menu_opts (char **list, char p, char *br, int reboot_after, int show_progress)
 {
 
   char **tmp = malloc (8 * sizeof (char *));
@@ -315,8 +239,10 @@ get_nandroid_adv_menu_opts (char **list, char p, char *br, int reboot_after)
   sprintf (tmp[2], "(%c) %s ANDROID-SECURE", p & ASECURE ? '*' : ' ', br);
   sprintf (tmp[3], "(%c) %s SYSTEM", p & SYSTEM ? '*' : ' ', br);
   sprintf (tmp[4], "(%c) %s CACHE", p & CACHE ? '*' : ' ', br);
-  sprintf (tmp[5], "(%c) Reboot afterwards", reboot_after ? '*':' ');
-  tmp[6] = NULL;
+  sprintf (tmp[5], "(%c) show progress", show_progress ? '*':' ');
+  sprintf (tmp[6], "(%c) reboot afterwards", reboot_after ? '*':' ');
+
+  tmp[7] = NULL;
 
   char **h = list;
   char **j = tmp;
@@ -344,6 +270,7 @@ show_nandroid_adv_r_menu ()
     NULL,
     NULL,
     NULL,
+    NULL,
     NULL
   };
 
@@ -351,21 +278,23 @@ show_nandroid_adv_r_menu ()
 #define R_ITEM_PERF 1
 #define R_ITEM_B    2
 #define R_ITEM_D    3
-#define R_ITEM_A	  4
+#define R_ITEM_A    4
 #define R_ITEM_S    5
 #define R_ITEM_C    6
-#define R_ITEM_R    7
+#define R_ITEM_P    7
+#define R_ITEM_R    8
 
   char filename[PATH_MAX];
 
   filename[0] = NULL;
   char partitions = (char) DEFAULT;
   int chosen_item = -1;
+  int show_progress = 1;
   int reboot_after = 0;
 
   while (chosen_item != ITEM_BACK)
 	  {
-	    get_nandroid_adv_menu_opts (items + 2, partitions, "restore", reboot_after);	// put the menu options in items[] starting at index 2
+	    get_nandroid_adv_menu_opts (items + 2, partitions, "restore", reboot_after, show_progress);	// put the menu options in items[] starting at index 2
 	    chosen_item =
 	      get_menu_selection (headers, items, 0,
 				  chosen_item < 0 ? 0 : chosen_item);
@@ -379,7 +308,7 @@ show_nandroid_adv_r_menu ()
 		      break;
 		    case R_ITEM_PERF:
 		      ui_print ("Restoring...\n");
-		      nandroid_restore (filename, partitions | PROGRESS, reboot_after);
+		      nandroid("restore", filename, partitions, reboot_after, show_progress);
 		      break;
 		    case R_ITEM_B:
 		      partitions ^= BOOT;
@@ -395,6 +324,9 @@ show_nandroid_adv_r_menu ()
 		      break;
 		    case R_ITEM_C:
 		      partitions ^= CACHE;
+		      break;
+		    case R_ITEM_P:
+		      show_progress ^= 1;
 		      break;
 		    case R_ITEM_R:
 		      reboot_after ^= 1;
@@ -417,6 +349,7 @@ show_nandroid_adv_b_menu ()
     NULL,
     NULL,
     NULL,
+    NULL,
     NULL
   };
 
@@ -426,19 +359,21 @@ show_nandroid_adv_b_menu ()
 #define B_ITEM_A    3
 #define B_ITEM_S    4
 #define B_ITEM_C    5
-#define B_ITEM_R    6
+#define B_ITEM_P    6
+#define B_ITEM_R    7
 
   char filename[PATH_MAX];
 
   filename[0] = NULL;
   int chosen_item = -1;
+  int show_progress = 1;
   int reboot_after = 0;
 
   char partitions = (char) DEFAULT;
 
   while (chosen_item != ITEM_BACK)
 	  {
-	    get_nandroid_adv_menu_opts (items + 1, partitions, "backup", reboot_after);	// put the menu options in items[] starting at index 1
+	    get_nandroid_adv_menu_opts (items + 1, partitions, "backup", reboot_after, show_progress);	// put the menu options in items[] starting at index 1
 	    chosen_item =
 	      get_menu_selection (headers, items, 0,
 				  chosen_item < 0 ? 0 : chosen_item);
@@ -446,7 +381,7 @@ show_nandroid_adv_b_menu ()
 	    switch (chosen_item)
 		    {
 		    case B_ITEM_PERF:
-		      nandroid_backup (filename, partitions | PROGRESS, reboot_after);
+		      nandroid("backup", filename, partitions, reboot_after, show_progress);
 		      break;
 		    case B_ITEM_B:
 		      partitions ^= BOOT;
@@ -462,6 +397,9 @@ show_nandroid_adv_b_menu ()
 		      break;
 		    case B_ITEM_C:
 		      partitions ^= CACHE;
+		      break;
+		    case B_ITEM_P:
+		      show_progress ^= 1;
 		      break;
 		    case B_ITEM_R:
 		      reboot_after ^= 1;
