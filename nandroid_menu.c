@@ -364,6 +364,61 @@ show_nandroid_adv_r_menu ()
 }
 
 void
+show_delete_menu() 
+{
+  char *headers[] = { "Choose a backup to delete",
+    "Backup:",
+    "",
+    "",
+    NULL
+  };
+
+  char *items[] = { "Choose backup",
+    "Delete!",
+    NULL
+  };
+
+#define D_ITEM_C  0
+#define D_ITEM_D  1
+  
+  char filename[PATH_MAX];
+  filename[0] = NULL;
+
+  char operation[PATH_MAX];
+  char del_cmd[PATH_MAX];
+  int chosen_item = -1;
+
+  while (chosen_item != ITEM_BACK) 
+  {
+    chosen_item = get_menu_selection(headers, items, 0, 0);
+  
+    switch (chosen_item) 
+    {
+      case D_ITEM_C:
+        nandroid_adv_r_choose_file (filename, "/sdcard/nandroid");
+        headers[2] = filename;
+	sprintf(operation, "Delete %s", filename);
+	sprintf(del_cmd,"rm -rf /sdcard/nandroid/%s", filename);
+        break;
+      case D_ITEM_D:  
+        if (confirm_selection("Are you sure?", operation))
+        { 
+	  if (strcmp(filename,"") != 0) 
+	  {  
+            __system(del_cmd);
+	    ui_print("Backup %s deleted!\n", filename);
+	  } else {
+	    ui_print("You must select a backup first!\n");
+	  }  
+        } else {
+	  return;
+	}
+        return;
+    }
+  }  
+}
+
+void
 show_nandroid_adv_b_menu ()
 {
   char *headers[] = { "Choose partitions to backup",
@@ -447,12 +502,14 @@ show_nandroid_menu ()
   static char *items[] = { "Nandroid Backup",
     "Nandroid Restore",
     "Clockwork Nandroid Restore",
+    "Delete backup",
     NULL
   };
 
 #define ITEM_ADV_BACKUP  0
 #define ITEM_ADV_RESTORE 1
 #define ITEM_CW_RESTORE	 2
+#define ITEM_DELETE	 3
 
   int chosen_item = -1;
 
@@ -472,6 +529,9 @@ show_nandroid_menu ()
 		      break;
 		    case ITEM_CW_RESTORE:
 		      show_choose_cwnand_menu ();
+		      break;
+		    case ITEM_DELETE:
+		      show_delete_menu();
 		      break;
 		    }
 	  }

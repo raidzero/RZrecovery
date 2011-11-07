@@ -1172,7 +1172,32 @@ __system(const char *command) {
 }
 
 
- int
+int confirm_selection(char* question, char* operation)
+{
+  char* headers[] = { question,
+    "THIS CANNOT BE UNDONE!",
+    "",
+    NULL
+  };
+
+  char* items[] = { "No",
+    "No",
+    operation,
+    "No",
+    NULL
+  };
+
+  int chosen_item = get_menu_selection (headers, items, 0, 0);
+
+  if (chosen_item == 2) 
+  {
+    return 1;
+  } else {
+    return 0;
+  };
+}
+
+int
 runve (char *filename, char **argv, char **envp, int secs) 
 {
   int opipe[2];
