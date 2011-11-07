@@ -660,16 +660,23 @@ if [ "$BACKUP" == 1 ]; then
     if [ ! -z `echo $FREEBLOCKS | grep %` ]; then #fs name must be too long
     	FREEBLOCKS=`df -m /sdcard | grep /sdcard | awk '{print$3}'`
     fi
-    DATABLOCKS=`df -m /data | grep /data | awk '{print$3}'`
-    if [ ! -z `echo $DATABLOCKS | grep %` ]; then #fs name must be too long
-        DATABLOCKS=`df -m /data | grep /data | awk '{print$3}'`
+    REQBLOCKS=0
+    if [ $NODATA != 1 ]; then
+      DATABLOCKS=`du -sm /data | awk '{print$1}'`
+      let REQBLOCKS=$REQBLOCKS+$DATABLOCKS
+    fi  
+    if [ $NOSYSTEM != 1 ]; then
+      SYSBLOCKS=`du -sm /system | awk '{print$1}'`
+      let REQBLOCKS=$REQBLOCKS+$SYSBLOCKS
+    fi  
+    if [ $NOSECURE != 1 ]; then
+      SECBLOCKS=`du -sm /sdcard/.android_secure | awk '{print$1}'`
+      let REQBLOCKS=$REQBLOCKS+$SECBLOCKS
     fi
-    SYSBLOCKS=`df -m /system | grep /system | awk '{print$3}'`
-    if [ ! -z `echo $SYSBLOCKS | grep %` ]; then #fs name must be too long
-       SYSBLOCKS=`df -m /system | grep /system | awk '{print$3}'`
+    if [ $NOCACHE != 1 ]; then
+      CACHEBLOCKS=`du -sm /cache | awk '{print$1}'`
+      let REQBLOCKS=$REQBLOCKS+$CACHEBLOCKS
     fi
-    SECBLOCKS=`du -sm /sdcard/.android_secure | awk '{print$1}'`
-    REQBLOCKS=`expr $DATABLOCKS + $SYSBLOCKS + $SECBLOCKS`
     REQBLOCKSSTRING=`echo $REQBLOCKS | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`
     FREEBLOCKSSTRING=`echo $FREEBLOCKS | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`
     echo "* print $REQBLOCKSSTRING MB Required!"
