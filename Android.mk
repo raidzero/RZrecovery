@@ -36,7 +36,7 @@ RECOVERY_API_VERSION := 2
 LOCAL_CFLAGS += -DRECOVERY_API_VERSION=$(RECOVERY_API_VERSION)
 
 TARGET_DEVICE := $(shell echo $$TARGET_PRODUCT | cut -d '_' -f2)
-RECOVERY_VERSION := "2.1.1"
+RECOVERY_VERSION := "2.1.2"
 VERS_STRING := "$(RECOVERY_VERSION)-$(TARGET_DEVICE) finally"
 
 # This binary is in the recovery ramdisk, which is otherwise a copy of root.

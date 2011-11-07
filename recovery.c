@@ -1171,6 +1171,27 @@ __system(const char *command) {
 	return (pid == -1 ? -1 : pstat);
 }
 
+int ask_question(char* question) 
+{
+  char* headers[] = { question,
+    "",
+    NULL
+  };
+
+  char* items[] = { "No",
+    "Yes",
+    NULL
+  };
+
+  int chosen_item = get_menu_selection (headers, items, 0, 0);
+
+  if (chosen_item == 1)
+  {
+    return 1;
+  } else {
+    return 0;
+  }
+}
 
 int confirm_selection(char* question, char* operation)
 {
@@ -1194,7 +1215,7 @@ int confirm_selection(char* question, char* operation)
     return 1;
   } else {
     return 0;
-  };
+  }
 }
 
 int

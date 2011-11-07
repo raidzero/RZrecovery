@@ -111,17 +111,23 @@ nandroid (const char* operation, char *subname, char partitions, int reboot_afte
   read_files();
 
   if (!WIFEXITED (status) || WEXITSTATUS (status) != 0)
-	  {
-	    ui_printf_int ("ERROR: Nandroid exited with status %d\n",
+    if (!WIFEXITED (status) || WEXITSTATUS (status) == 34) 
+    {
+      if (ask_question("Out of space. Delete a backup?"))
+      { 
+        show_delete_menu();
+      } else {
+        ui_printf_int ("ERROR: Nandroid exited with status %d\n",
 			   WEXITSTATUS (status));
-	  }
-  else
-	  {
-	    ui_print ("(done)\n");
-	    if (reboot_after) {
-	      reboot_android();
-	    }  
-	  }
+      }
+    }  
+    else
+    {
+      ui_print ("(done)\n");
+       if (reboot_after) {
+	 reboot_android();
+       }  
+    }
   ui_reset_progress ();
 }
 
