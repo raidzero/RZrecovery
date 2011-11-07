@@ -20,23 +20,47 @@ nandroid (const char* operation, char *subname, char partitions, int reboot_afte
 
   int boot = partitions & BOOT;
   int data = partitions & DATA;
-  int asecure = partitions & ASECURE;
+  int cache = partitions & CACHE;
   int system = partitions & SYSTEM;
+  int asecure = partitions & ASECURE;
 
   int args = 4;
 
-  if (!boot)
+  if (!boot) 
+  {
+    printf("\nBoot ignored.");
     args++;
+  }
   if (!asecure)
+  {
+    printf("\nAndroid_secure ignored.");
     args++;
+  }  
   if (!system)
+  {
+    printf("\nSystem ignored.");
     args++;
+  }
   if (!data)
+  {
+    printf("\nData ignored.");
     args++;
+  }  
+  if (!cache)
+  {
+    printf("\nCache ignored.");
+    args++;
+  }  
   if (show_progress)
+  {
+    printf("\nProgress shown.");
     args++;
+  }  
   if (!strcmp (subname, ""))
+  {
+    printf("\nSubname %s given", subname);
     args += 2;			// if a subname is specified, we need 2 more arguments
+  }  
 
   char **argv = malloc (args * sizeof (char *));
 
@@ -64,6 +88,10 @@ nandroid (const char* operation, char *subname, char partitions, int reboot_afte
   if (!data)
 	  {
 	    argv[i++] = "--nodata";
+	  }
+  if (!cache) 
+  	  {
+	    argv[i++] = "--nocache";
 	  }
   if (show_progress)
 	  {
