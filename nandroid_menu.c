@@ -24,7 +24,7 @@ nandroid (const char* operation, char *subname, char partitions, int reboot_afte
   int system = partitions & SYSTEM;
   int asecure = partitions & ASECURE;
 
-  int args = 4;
+  int args = 6;
 
   if (!boot) 
   {
@@ -58,7 +58,7 @@ nandroid (const char* operation, char *subname, char partitions, int reboot_afte
   }  
   if (!strcmp (subname, ""))
   {
-    printf("\nSubname %s given", subname);
+    printf("\nSubname given: %s", subname);
     args += 2;			// if a subname is specified, we need 2 more arguments
   }  
 
@@ -107,7 +107,7 @@ nandroid (const char* operation, char *subname, char partitions, int reboot_afte
   char *envp[] = { NULL };
 
   write_files();
-  int status = runve ("/sbin/nandroid-mobile.sh", argv, envp, 90);
+  int status = runve ("/sbin/nandroid-mobile.sh", argv, envp, 80);
   read_files();
 
   if (!WIFEXITED (status) || WEXITSTATUS (status) != 0)

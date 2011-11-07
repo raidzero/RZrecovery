@@ -385,6 +385,7 @@ if [ "$INSTALL_ROM" == 1 ]; then
 fi
 
 if [ "$RESTORE" == 1 ]; then
+    R_START=`date +%s`
     batteryAtLeast 30
     umount /sdcard 2>/dev/null
     mount /sdcard 2>/dev/null
@@ -565,14 +566,17 @@ if [ "$RESTORE" == 1 ]; then
 		  umount /$image 2> /dev/null
 		fi
     done
-    
-    exit 0
     echo "* print Thanks for using RZRecovery."
+    R_END=`date +%s`
+    ELAPSED_SECS=$(( $R_END - $R_START))
+    echo "* print Restore operation took $ELAPSED_SECS seconds."
+    exit 0
 fi
 
 
 # 2.
 if [ "$BACKUP" == 1 ]; then
+    B_START=`date +%s`
     TAR_OPTS="c"
     [ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"
     TAR_OPTS="${TAR_OPTS}f"
@@ -789,7 +793,11 @@ if [ "$BACKUP" == 1 ]; then
 			umount /sdcard 2>/dev/null
 			umount /boot 2>/dev/null
     echo "* print Backup successful."
-	echo "* print Thanks for using RZRecovery."
+    echo "* print Thanks for using RZRecovery."
+    B_END=`date +%s`
+    ELAPSED_SECS=$(( $B_END - $B_START ))
+    echo "* print Backup operation took $ELAPSED_SECS seconds."
+
     if [ "$AUTOREBOOT" == 1 ]; then
 	reboot
     fi
