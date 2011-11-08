@@ -127,10 +127,12 @@ try_update_binary (const char *path, ZipArchive * zip)
 			("Amend scripting was deprecated by Google in Android 1.5.\n");
 		      ui_print
 			("Please switch to Edify scripting (updater-script and update-binary) to create working update zip packages.\n");
+		      read_files();
 		      return INSTALL_UPDATE_BINARY_MISSING;
 		    }
 
 	    mzCloseZipArchive (zip);
+	    read_files();
 	    return INSTALL_UPDATE_BINARY_MISSING;
 	  }
 
@@ -306,6 +308,7 @@ try_update_binary (const char *path, ZipArchive * zip)
 	    mzCloseZipArchive (zip);
 	    return ret;
 	  }
+  read_files();
   return INSTALL_SUCCESS;
 }
 

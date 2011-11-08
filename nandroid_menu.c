@@ -11,7 +11,7 @@
 #include "roots.h"
 #include "strings.h"
 #include "nandroid_menu.h"
-
+#include "install_menu.h"
 
 void
 nandroid (const char* operation, char *subname, char partitions, int reboot_after, int show_progress, int compress)
@@ -223,8 +223,7 @@ nandroid_adv_r_choose_file (char *filename, char *nandroid_folder)
 		      goto out;	// again, eww
 		    }
 
-	    //reverse the list
-	    list = reverse_array (list);
+	    sortlist(list, total); //sort it alphabetically
 	    int chosen_item = -1;
 
 	    while (chosen_item < 0)
