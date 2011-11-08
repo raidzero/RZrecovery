@@ -26,10 +26,9 @@ int wipe_partition(char* partition)
 			ui_print ("\n-- Wiping data... ");
 			ensure_path_unmounted ("/data");
 			erase_volume ("/data");
-			if (volume_present("/data/data")) {
-			  ui_print("\n-- Wiping data/data... ");
-			  ensure_path_mounted("/data/data");
-			  erase_volume("/data/data");
+			if (volume_present("/datadata")) {
+			  ensure_path_unmounted("/datadata");
+			  erase_volume("/datadata");
 			}
 			ui_print ("\n-- Wiping cache... ");
 			ensure_path_unmounted ("/cache");
@@ -98,9 +97,9 @@ int wipe_partition(char* partition)
 		ensure_path_unmounted (path_string);
 		if (strcmp(path_string,"/data"))
 		{
-			if (volume_present("/data/data")) {
-			  ensure_path_mounted("/data/data");
-			  erase_volume("/data/data");
+			if (volume_present("/datadata")) {
+			  ensure_path_unmounted("/datadata");
+			  erase_volume("/datadata");
 			}
 		}	
 		if (!erase_volume (path_string))	

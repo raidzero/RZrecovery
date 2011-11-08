@@ -26,7 +26,6 @@ ASSUMEDEFAULTUSERINPUT=0
 sd_mounted=`mount | grep "/sdcard" | wc -l`
 data_mounted=`mount | grep "/data" | wc -l`
 system_mounted=`mount | grep "/system" | wc -l`
-dd_mounted=`mount | grep "/data/data" | wc -l`
 cache_mounted=`mount | grep /cache" | wc -l`
 	
 echo2log()
@@ -59,6 +58,7 @@ if [ "`echo $0 | grep /sbin/nandroid-mobile.sh`" == "" ]; then
 fi
 
 
+DD_DEVICE=`cat /etc/fstab | grep "/datadata" | awk '{print$1}'`
 
 if [ -e /proc/mtd ]; then
 	flashfile="/proc/mtd"
@@ -435,13 +435,9 @@ if [ "$RESTORE" == 1 ]; then
     mount /system 2>/dev/null
     mount /data 2>/dev/null
     mount /cache 2>/dev/null
-    mount /data/data 2>/dev/null
+    mount $DD_DEVICE /data/data 2>/dev/null
     if [ ! -z "$bootIsMountable" ]; then
     	mount /boot 2>/dev/null
-    fi
-    if [ "$datadata_present" -eq "1" && -z "$(mount | grep "data/data")" ]; then
-	echo "* print Datadata present. Mounting..."
-	mount /data/data 2>/dev/null
     fi
     if [ -z "$(mount | grep data | grep -v "/data/data")" ]; then
 		echo "* print error: unable to mount /data, aborting"	
@@ -612,10 +608,7 @@ if [ "$BACKUP" == 1 ]; then
 		mount /system 
 		mount /data 
 		mount /sdcard 2> /dev/null 
-	if [ "$datadata_present" -eq "1" ]; then
-		echo "* print Datadata present. Mounting..."
-		mount /data/data 2>/dev/null
-	fi
+		mount $DD_DEVICE /data/data 2>/dev/null
     if [ ! "$SUBNAME" == "" ]; then
 	SUBNAME=$SUBNAME-
     fi
@@ -816,10 +809,7 @@ if [ "$BACKUP" == 1 ]; then
     echo "* print Unmounting..."
 			umount /system 2>/dev/null
 			umount /data 2>/dev/null
-			if [ "$datadata_present" -eq "1" ]; then
-				echo "* print Datadata present. Unmounting..."
-				umount /data/data
-			fi
+			umount /data/data
 			TOTALSIZE=`du -sm $DESTDIR | awk '{print$1}'`
 			umount /sdcard 2>/dev/null
 			umount /boot 2>/dev/null

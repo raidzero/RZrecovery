@@ -212,11 +212,7 @@ write_fstab_root (char *path, FILE * file)
 
 int volume_present(char* volume) {
   Volume *vol = volume_for_path(volume);
-  if ( vol != NULL ) {
-    return 0;
-  } else { 
-    return 1;
-  }
+  return vol != NULL; 
 }
 
  void
@@ -243,9 +239,9 @@ create_fstab ()
   write_fstab_root ("/boot", file);
   write_fstab_root ("/cache", file);
   write_fstab_root ("/data", file);
-  if (volume_present("/data/data")) { 
-    printf("\nData/data present.");
-    write_fstab_root ("/data/data", file);
+  if (volume_present("/datadata")) { 
+    printf("\nDatadata present.");
+    write_fstab_root ("/datadata", file);
   }
   write_fstab_root ("/system", file);
   write_fstab_root ("/sdcard", file);
@@ -260,6 +256,7 @@ create_fstab ()
   void
 write_files ()
 {
+  ensure_path_mounted("/cache");
   if (ensure_path_mounted ("/sdcard") != 0)
 	  {
 	    LOGE ("Can't mount /sdcard\n");
@@ -332,6 +329,7 @@ read_cpufreq ()
 read_files ()
 {
  ensure_path_mounted ("/sdcard");
+ ensure_path_mounted("/cache");
  sleep(1);
  if (access("/sdcard/RZR", F_OK) != -1) {
    __system("chmod -R 777 /sdcard/RZR"); //some ROMs go messing with my files!
