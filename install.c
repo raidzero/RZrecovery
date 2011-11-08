@@ -320,10 +320,12 @@ install_package (const char *path)
   if (ensure_path_mounted (path) != 0)
 	  {
 	    LOGE ("Can't mount %s\n", path);
+	    read_files();
 	    return INSTALL_CORRUPT;
 	  }
   if (!access("/block_update",F_OK)) {
   	LOGE("update.zip install blocked\n");
+	read_files();
 	return INSTALL_CORRUPT;
   }
 
@@ -340,6 +342,7 @@ install_package (const char *path)
 	  {
 	    LOGE ("Can't open %s\n(%s)\n", path,
 		  err != -1 ? strerror (err) : "bad");
+ 	    read_files();
 	    return INSTALL_CORRUPT;
 	  }
 

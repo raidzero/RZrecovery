@@ -6,126 +6,122 @@
 #include "roots.h"
 #include "recovery_ui.h"
 
-void
-wipe_partition (char *title, char *operation, char *partition)
+int wipe_partition(char* partition) 
 {
-  static char **title_headers = NULL;
+	write_files();
+	char wipe_header[255] = "";
+	char path_string[255] = "";
+	char operation[255] = "";
+	if (!strcmp(partition,"batts")) partition = "Battery statistics"; 
+	sprintf(path_string,"/%s", partition);
+	sprintf(wipe_header,"Wipe %s?", path_string);
+	sprintf(operation,"Yes - wipe %s", path_string);
+    
+	if (strcmp (partition, "all") == 0)
+	{
+	    if (confirm_selection("Wipe EVERYTHING?", "Yes - wipe the entire device")) {
+			ui_print ("\n-- Wiping system... ");
+			ensure_path_unmounted ("/system");
+			erase_volume ("/system");
+			ui_print ("\n-- Wiping data... ");
+			ensure_path_unmounted ("/data");
+			erase_volume ("/data");
+			if (volume_present("/data/data")) {
+			  ui_print("\n-- Wiping data/data... ");
+			  ensure_path_mounted("/data/data");
+			  erase_volume("/data/data");
+			}
+			ui_print ("\n-- Wiping cache... ");
+			ensure_path_unmounted ("/cache");
+			erase_volume ("/cache");
+			ensure_path_mounted ("/cache");		
+			ui_print ("\n-- Wiping .android-secure... ");
+			ensure_path_mounted ("/sdcard");
+			__system ("rm -rf /sdcard/.android-secure/*");
+			ui_print ("\n-- Wiping boot...");
+			cmd_mtd_erase_raw_partition ("boot");
+			ui_print ("\nDone.\n");
+			ui_print ("Device completely wiped.\n\n");
+			ui_print ("All that remains is RZR.\n");
+			read_files ();
+			ui_reset_progress();
+			return 0;
+		} else {
+		    return -1;
+		}
+	}
+	  
+	if (confirm_selection(wipe_header, operation))
+	{	
+		ui_print("-- Wiping %s... ",partition);
+		
+		if (strcmp (partition, "boot") == 0)
+		{
+			cmd_mtd_erase_raw_partition ("boot");
+			ui_print("Done.\n");
+			ui_reset_progress();
+			return 0;
+		}
+		
+		if (strcmp (partition, "Battery statistics") == 0)
+		{
+			ensure_path_mounted("/data");
+			char batt_string[255];
+			__system ("rm /data/system/batterystats.bin");
+			ensure_path_unmounted("/data");
+			ui_print("Done.\n");
+			ui_reset_progress();
+			return 0;
+		 }
 
-  if (title_headers == NULL)
-	  {
-	    char *headers[] = { title,
-	      "THIS CANNOT BE UNDONE!",
-	      "",
-	      NULL
-	    };
-	    title_headers = prepend_title (headers);
-	  }
-
-  char *items[] = { " No",
-    " No",
-    operation,
-    " No",
-    NULL
-  };
-
-  int chosen_item = get_menu_selection (title_headers, items, 1, 0);
-
-  if (chosen_item != 2)
-	  {
-	    return;
-	  }
-
-  if (strcmp (partition, "system") == 0)
-	  {
-	    ui_print ("\n-- Wiping system...\n");
-	    ensure_path_unmounted ("/system");
-	    erase_volume ("/system");
-	    ui_print ("System wipe complete.\n");
-	  }
-  if (strcmp (partition, "data") == 0)
-	  {
-	    ui_print ("\n-- Wiping data...\n");
-	    ensure_path_unmounted ("/data");
-	    erase_volume ("/data");
-	    if (volume_present("/data/data")) {
-	      ui_print("\n-- Wiping data/data...\n");
-	      ensure_path_mounted("/data/data");
-	      erase_volume("/data/data");
-	    }
-	    ui_print ("Data wipe complete.\n");
-	  }
-  if (strcmp (partition, "boot") == 0)
-	  {
-	    ui_print ("\n-- Wiping boot...\n");
-	    cmd_mtd_erase_raw_partition ("boot");
-	    ui_print ("Boot wipe complete.\n");
-	  }
-  if (strcmp (partition, "cache") == 0)
-	  {
-	    ui_print ("\n-- Wiping cache...\n");
-	    ui_print ("-- May take a while on gingerbread...\n");
-	    write_files ();
-	    ensure_path_unmounted ("/cache");
-	    erase_volume ("/cache");
-	    ensure_path_mounted ("/cache");
-	    read_files ();
-	    ui_print ("Cache wipe complete.");
-	  }
-  if (strcmp (partition, "batts") == 0)
-	  {
-	    ui_print ("\n-- Wiping battery statistics...\n");
-	    remove ("/data/system/batterystats.bin");
-	    ui_print ("Battery stat wipe complete.\n");
-	  }
-  if (strcmp (partition, "dalvik-cache") == 0)
-	  {
-	    ui_print ("\n-- Wiping dalvik-cache...\n");
-	    ensure_path_mounted ("/data");
-	    __system("rm -rf /data/dalvik-cache/*");
-	    ensure_path_mounted ("/cache");
-	    __system("rm -rf /cache/dalvik-cache/*");
-	    ui_print ("\n dalvik-cache cleared.\n");
-	  }
-  if (strcmp (partition, "android-secure") == 0)
-	  {
-	    ui_print ("\n-- Wiping .android-secure...\n");
-	    ensure_path_mounted ("/sdcard");
-	    remove ("/sdcard/.android-secure/*");
-	    ui_print ("\n .android-secure cleared.\n");
-	  }
-  if (strcmp (partition, "all") == 0)
-	  {
-	    ui_print ("\n-- Wiping System...\n");
-	    ensure_path_unmounted ("/system");
-	    erase_volume ("/system");
-	    ui_print ("System wipe complete.\n");
-	    ui_print ("\n-- Wiping data...\n");
-	    ensure_path_unmounted ("/data");
-	    erase_volume ("/data");
-	    if (volume_present("/data/data")) {
-	      ui_print("\n-- Wiping data/data...\n");
-	      ensure_path_mounted("/data/data");
-	      erase_volume("/data/data");
-	    }
-	    ui_print ("Data wipe complete.\n");
-	    ui_print ("\n-- Wiping cache...\n");
-	    ui_print ("-- May take a while on gingerbread...\n");
-	    write_files ();
-	    ensure_path_unmounted ("/cache");
-	    erase_volume ("/cache");
-	    ensure_path_mounted ("/cache");
-	    read_files ();
-	    ui_print ("\n-- Wiping .android-secure...\n");
-	    ensure_path_mounted ("/sdcard");
-	    remove ("/sdcard/.android-secure/*");
-	    ui_print ("\n .android-secure cleared.\n");
-	    ui_print ("\n-- Wiping boot...\n");
-	    cmd_mtd_erase_raw_partition ("boot");
-	    ui_print ("Boot wipe complete.\n");
-	    ui_print ("Device completely wiped.\n\n");
-	    ui_print ("All that remains is RZR.\n");
-	  }
+		if (strcmp (partition, "android-secure") == 0)
+		{
+			ensure_path_mounted ("/sdcard");
+			__system ("rm -rf /sdcard/.android-secure/*");
+			ui_print("Done.\n");
+			ui_reset_progress();
+			return 0;
+		}
+		
+		if (strcmp (partition, "dalvik-cache") == 0)
+		{
+			ensure_path_mounted ("/data");
+			ensure_path_mounted("/cache");
+			__system ("rm -rf /cache/dalvik-cache*");
+			__system ("rm -rf /data/dalvik-cache");
+			ui_print("Done.\n");
+			read_files();
+			ui_reset_progress();
+			return 0;
+		}
+		
+		ensure_path_unmounted (path_string);
+		if (strcmp(path_string,"/data"))
+		{
+			if (volume_present("/data/data")) {
+			ensure_path_mounted("/data/data");
+			erase_volume("/data/data");
+			}
+		}	
+		if (!erase_volume (path_string))	
+		{
+			ui_print ("Done.\n", path_string);
+			read_files();
+			ui_reset_progress();
+			return 0;
+		} else {
+			ui_print("Failed.\n", path_string);
+			read_files();
+			ui_reset_progress();
+			return -1;
+		}	
+	} else {
+		read_files();
+		ui_reset_progress();
+		return -1;
+	}
 }
+
 
 void
 show_wipe_menu ()
@@ -170,45 +166,35 @@ show_wipe_menu ()
 	    switch (chosen_item)
 		    {
 		    case WIPE_ALL:
-		      wipe_partition ("Are you sure?",
-				      "Yes - wipe EVERYTHING", "all");
+		      wipe_partition("all");
 		      break;
 
 		    case WIPE_SYSTEM:
-		      wipe_partition ("Are you sure?", "Yes - wipe SYSTEM",
-				      "system");
+		      wipe_partition("system");
 		      break;
 
 		    case WIPE_DATA:
-		      wipe_partition ("Are you sure?", "Yes - wipe DATA",
-				      "data");
+		      wipe_partition("data");
 		      break;
 
 		    case WIPE_AS:
-		      wipe_partition ("Are you sure?",
-				      "Yes - wipe ANDROID-SECURE",
-				      "android-secure");
+		      wipe_partition("android-secure");
 		      break;
 
 		    case WIPE_BOOT:
-		      wipe_partition ("Are you sure?", "Yes - wipe BOOT",
-				      "boot");
+		      wipe_partition("boot");
 		      break;
 
 		    case WIPE_CACHE:
-		      wipe_partition ("Are you sure?", "Yes - wipe CACHE",
-				      "cache");
+		      wipe_partition("cache");
 		      break;
 
 		    case WIPE_BATT:
-		      wipe_partition ("Are you sure?",
-				      "Yes - wipe BATTERY STATS", "batts");
+		      wipe_partition("batts");
 		      break;
 
 		    case WIPE_DK:
-		      wipe_partition ("Are you sure?",
-				      "Yes - wipe DALVIK-CACHE",
-				      "dalvik-cache");
+		      wipe_partition("dalvik-cache");
 		      break;
 		    }
 	  }

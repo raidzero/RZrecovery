@@ -282,6 +282,17 @@ write_files ()
 		      copyFile("/cache/rnd","/sdcard/RZR/rnd");
 		      printf ("\nRave file saved to sdcard.\n");
 		    }
+	    if (access("/cache/icon_rw", F_OK) != -1)
+	    {
+	    	copyFile("/cache/icon_rw","/sdcard/RZR/icon_rw");
+		printf("RW Icon saved to sdcard");
+	    }
+	    if (access("/cache/icon_rz", F_OK) != -1)
+	    {
+	        copyFile("/cache/icon_rz","/sdcard/RZR/icon_rz");
+	        printf("RZ Icon saved to sdcard");
+	    }
+
 	    sync ();
 	  }
 }
@@ -328,6 +339,10 @@ read_files ()
    if ( access("/cache/icon_rw",F_OK) == -1 && access("/cache/icon_rz",F_OK == -1) ) {
      __system("echo > /cache/icon_rz");
    }
+   if ( access("/cache/icon_rz",F_OK) == -1 && access("/cache/icon_rw",F_OK == -1) ) {
+     __system("echo > /cache/icon_rw");
+   }
+
  } else {
     mkdir ("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     __system("echo > /cache/icon_rz");
@@ -546,7 +561,6 @@ finish_recovery (const char *send_intent)
 erase_volume (const char *volume)
 {
   ui_show_indeterminate_progress ();
-  ui_print ("Formatting %s...\n", volume);
    if (strcmp (volume, "/cache") == 0)
 	  {
 	    
@@ -793,7 +807,7 @@ prompt_and_wait ()
 	    ui_reset_progress ();
 	     int chosen_item =
 	      get_menu_selection (headers, MENU_ITEMS, 1,
-				  chosen_item < 0 ? 1 : chosen_item);
+				  chosen_item < 0 ? 0 : chosen_item);
 	    
 	      // device-specific code may take some action here.  It may
 	      // return one of the core actions handled in the switch
