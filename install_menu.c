@@ -460,7 +460,7 @@ install_string, NULL
 		      return;
 		    case ITEM_BACKUP:
 		      ui_print ("Backing up before installing...\n");
-		      nandroid("backup", "preinstall", DEFAULT, 0, 1);
+		      nandroid("backup", "preinstall", DEFAULT, 0, 1, 0);
 		      break;
 		    case ITEM_WIPE:
 		      wipe_partition ("Are you sure?", "Yes - wipe DATA",

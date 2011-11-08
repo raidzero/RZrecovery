@@ -99,8 +99,8 @@ int wipe_partition(char* partition)
 		if (strcmp(path_string,"/data"))
 		{
 			if (volume_present("/data/data")) {
-			ensure_path_mounted("/data/data");
-			erase_volume("/data/data");
+			  ensure_path_mounted("/data/data");
+			  erase_volume("/data/data");
 			}
 		}	
 		if (!erase_volume (path_string))	

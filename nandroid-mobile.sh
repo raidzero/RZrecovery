@@ -8,9 +8,10 @@ NOSECURE=0
 NOCACHE=0
 RESTORE=0
 BACKUP=0
+COMPRESS=0
 INSTALL_ROM=0
 
-BACKUPPATH="/sdcard/nandroid/"
+BACKUPPATH="/sdcard/nandroid"
 
 
 # Boot, Data, System, Android-secure
@@ -101,7 +102,7 @@ esac
 ECHO=echo
 OUTPUT=""
 
-for option in $(getopt --name="nandroid-mobile v2.2.1" -l progress -l install-rom: -l noboot -l nodata -l nocache -l nosystem -l nosecure -l subname: -l backup -l restore -l defaultinput -- "cbruds:p:eqli:" "$@"); do
+for option in $(getopt --name="nandroid-mobile v2.2.1" -l progress -l install-rom: -l noboot -l nodata -l nocache -l nosystem -l nosecure -l subname: -l backup -l compress -l restore -l defaultinput -- "cbruds:p:eqli:" "$@"); do
     case $option in
 	--verbose)
 	    VERBOSE=1
@@ -141,6 +142,10 @@ for option in $(getopt --name="nandroid-mobile v2.2.1" -l progress -l install-ro
             #$ECHO "backup"
             shift
             ;;
+	--compress)
+	    COMPRESS=1
+	    shift
+	    ;;
 			
         --restore)
             RESTORE=1
@@ -230,22 +235,6 @@ else
             fi
 
         fi
-    fi
-fi
-
-if [ "$BACKUP" == 1 ]; then
-    if [ "$VERBOSE" == "1" ]; then
-        tar="busybox tar cvf"
-    else
-	tar="busybox tar cf"
-    fi
-fi
-
-if [ "$RESTORE" == 1 ]; then
-    if [ "$VERBOSE" == "1" ]; then
-		untar="busybox tar xvf"
-    else
-        untar="busybox tar xf"
     fi
 fi
 
@@ -403,7 +392,14 @@ if [ "$RESTORE" == 1 ]; then
 		echo "* print Error: no backups found"
 		exit 21
     else
-        LATEST=1
+        RECENT=`ls -lt /sdcard/nandroid | head -n 1`
+	BACKUPNAME=`basename $RESTOREPATH`
+	CURRENT=`echo $RECENT | grep $BACKUPNAME | wc -l`
+	if [ $CURRENT -gt 0 ]; then
+	  LATEST=1
+	else 
+	  LATEST=0
+	fi
 	ls -trd $BACKUPPATH/*$SUBNAME* 2>/dev/null | grep -v $RESTOREPATH $OUTPUT
 
         if [ "$ASSUMEDEFAULTUSERINPUT" == 0 ]; then
@@ -411,7 +407,9 @@ if [ "$RESTORE" == 1 ]; then
         else
             SUBSTRING=""
         fi
-        echo "* print "
+	COMPRESSED=`ls -l $RESTOREPATH | grep ".gz" | wc -l`
+	
+	echo "* print "
 
         if [ ! "$SUBSTRING" == "" ]; then
             RESTOREPATH=`ls -trd $BACKUPPATH/*$SUBNAME* 2>/dev/null | grep $SUBSTRING | tail -1`
@@ -424,11 +422,13 @@ if [ "$RESTORE" == 1 ]; then
         fi
     fi
     
-    RESTOREPATHSTRING=`echo $RESTOREPATH | sed 's/\/\//\//g'`
-    echo "* print Restore path: $RESTOREPATHSTRING"
+    echo "* print Restoring $BACKUPNAME."
 
     if [ $LATEST == 1 ]; then
     	echo "* print is the latest."
+    fi
+    if [ $COMPRESSED -gt 0 ]; then
+      echo "* print Backup is compressed. Please be patient."
     fi
     echo "* print "
 
@@ -496,7 +496,7 @@ if [ "$RESTORE" == 1 ]; then
         TAR_OPTS="x"
 	[ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"
 	TAR_OPTS="${TAR_OPTS}f"
-       	PTOTAL=$(tar tf $RESTOREPATH/boot.tar | wc -l)
+	PTOTAL=$(tar tf $RESTOREPATH/boot.tar | wc -l)
         [ "$PROGRESS" == "1" ] && $ECHO "* print Unpacking boot..."
         tar $TAR_OPTS $RESTOREPATH/boot.tar -C /boot | pipeline $PTOTAL
 	cd /
@@ -540,36 +540,47 @@ if [ "$RESTORE" == 1 ]; then
         elif [ "$NOSECURE" == 0 ] && [ "$image" == "secure" ]; then
 			image="sdcard/.android_secure"	
 			tarfile="secure"
-		fi
-		echo "* print Erasing /$image..."
-		cd /$image
-		rm -rf *
-		cd /
-		
-		TAR_OPTS="x"
-		[ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"
-		TAR_OPTS="${TAR_OPTS}f"
+	fi
+	echo "* print Erasing /$image..."
+	cd /$image
+	rm -rf *
+	cd /
+	
+	TAR_OPTS="x"
+	[ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"
+          COMPRESSED=`ls -l $RESTOREPATH | grep $image | grep "\.gz" | wc -l`
+	if [ $COMPRESSED != 0 ]; then
+	  TAR_OPTS="${TAR_OPTS}z"
+	fi
+	TAR_OPTS="${TAR_OPTS}f"
+	if [ "$COMPRESSED" == "1" ]; then
+	  PTOTAL=$(tar tzf $RESTOREPATH/$tarfile.tar.gz | wc -l)
+	else
+	  PTOTAL=$(tar tf $RESTOREPATH/$tarfile.tar | wc -l)
+	fi  
+	[ "$PROGRESS" == "1" ] && $ECHO "* print Unpacking $image..."
 
-		PTOTAL=$(tar tf $RESTOREPATH/$image.tar | wc -l)
-		[ "$PROGRESS" == "1" ] && $ECHO "* print Unpacking $image..."
+	if [ "$COMPRESSED" == "1" ]; then
+	  tar $TAR_OPTS $RESTOREPATH/$tarfile.tar.gz -C /$image | pipeline $PTOTAL
+	else 
+	  tar $TAR_OPTS $RESTOREPATH/$tarfile.tar -C /$image | pipeline $PTOTAL
+	fi
+	if [ "$image" == "data" ]; then
+	  if [ -e /data/misc/ril/pppd-notifier.fifo ]; then
+	    rm /data/misc/ril/pppd-notifier.fifo
+	  fi
+	fi
 
-		tar $TAR_OPTS $RESTOREPATH/$tarfile.tar -C /$image | pipeline $PTOTAL
-		if [ "$image" == "data" ]; then
-			if [ -e /data/misc/ril/pppd-notifier.fifo ]; then
-				rm /data/misc/ril/pppd-notifier.fifo
-			fi
-		fi
-
-		cd /
-		sync
-		if [ "$image" != "cache" ]; then
-		  umount /$image 2> /dev/null
-		fi
+	cd /
+	sync
+	if [ "$image" != "cache" ]; then
+	  umount /$image 2> /dev/null
+	fi
     done
-    echo "* print Thanks for using RZRecovery."
     R_END=`date +%s`
     ELAPSED_SECS=$(( $R_END - $R_START))
     echo "* print Restore operation took $ELAPSED_SECS seconds."
+    echo "* print Thanks for using RZRecovery."
     exit 0
 fi
 
@@ -579,6 +590,13 @@ if [ "$BACKUP" == 1 ]; then
     B_START=`date +%s`
     TAR_OPTS="c"
     [ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"
+    [ "$COMPRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}z"
+
+    if [ "$COMPRESS" == "1" ]; then
+      echo "* print Compression activated. Please be patient."
+      echo "* print It will take much longer to perform the operation."
+    fi
+
     TAR_OPTS="${TAR_OPTS}f"
 
 
@@ -685,6 +703,7 @@ if [ "$BACKUP" == 1 ]; then
 	echo "* print Error: not enough free space available on sdcard, aborting."
 	umount /system 2>/dev/null
 	umount /data 2>/dev/null
+	rm -rf $DESTDIR
 	umount /sdcard 2>/dev/null
 	exit 34
     fi
@@ -707,6 +726,7 @@ if [ "$BACKUP" == 1 ]; then
 		cd /boot
 		PTOTAL=$(find . | wc -l)
 	 	[ "$PROGRESS" == "1" ] tar $TAR_OPTS $DESTDIR/boot.tar . 2>/dev/null | pipeline $PTOTAL
+
 		cd /
 		sync
 	else
@@ -785,8 +805,11 @@ if [ "$BACKUP" == 1 ]; then
 	PTOTAL=$(find . | wc -l)
 	[ "$PROGRESS" == "1" ]
 
-	tar $TAR_OPTS $DESTDIR/$dest.tar . 2>/dev/null | pipeline $PTOTAL
-	
+	if [ "$COMPRESS" != "1" ]; then
+	  tar $TAR_OPTS $DESTDIR/$dest.tar . 2>/dev/null | pipeline $PTOTAL
+	else
+	  tar $TAR_OPTS $DESTDIR/$dest.tar.gz . 2>/dev/null | pipeline $PTOTAL
+	fi
 	sync
     done
 
@@ -797,14 +820,15 @@ if [ "$BACKUP" == 1 ]; then
 				echo "* print Datadata present. Unmounting..."
 				umount /data/data
 			fi
+			TOTALSIZE=`du -sm $DESTDIR | awk '{print$1}'`
 			umount /sdcard 2>/dev/null
 			umount /boot 2>/dev/null
     echo "* print Backup successful."
-    echo "* print Thanks for using RZRecovery."
     B_END=`date +%s`
     ELAPSED_SECS=$(( $B_END - $B_START ))
     echo "* print Backup operation took $ELAPSED_SECS seconds."
-
+    echo "* print Total size of backup: $TOTALSIZE MB."
+    echo "* print Thanks for using RZRecovery."
     if [ "$AUTOREBOOT" == 1 ]; then
 	reboot
     fi
