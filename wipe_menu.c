@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "mtdutils/mtdutils.h"
+#include "mmcutils/mmcutils.h"
 #include "recovery.h"
 #include "roots.h"
 #include "recovery_ui.h"
@@ -22,8 +23,9 @@ int confirm_ext_wipe(char* partition)
   }
   else
   {
-  
-    char question[PATH_MAX];
+    char question[256];
+    sprintf(question,"Wipe %s?", partition);
+
     char* headers[] = { question,
       "THIS CANNOT BE UNDONE!",
       "",
@@ -35,7 +37,7 @@ int confirm_ext_wipe(char* partition)
       "Yes, wipe & format ext2",
       "Yes, wipe & format ext3",
       "Yes, wipe & format ext4",
-      "No"
+      "No",
       NULL
     };
 
@@ -43,17 +45,42 @@ int confirm_ext_wipe(char* partition)
 
     if (chosen_item == 2) 
     {
-      //ext2
+      if (!format_ext2_device(v->device)) 
+      {
+        ui_print("ext2 format of %s failed!\n", partition);
+	return -1;
+      } 
+      else 
+      {
+        ui_print("ext2 format of %s success!\n", partition);
+      }
     }
     if (chosen_item == 3)
     {
-      //ext3
+      if (!format_ext3_device(v->device))
+      {
+	ui_print("ext3 format of %s failed!\n", partition);
+	return -1;
+      }
+      else
+      {
+        ui_print("ext3 format of %s success!\n", partition);
+      }
     }
     if (chosen_item == 4)
     {
-      //ext4
+      if (!make_ext4fs(v->device, NULL, NULL, 0, 0, 0))
+      {
+        ui_print("ext4 format of %s failed!\n", partition);
+	return -1;
+      }
+      else
+      {
+        ui_print("ext4 format of %s success!\n", partition);
+      }
     }
   }  
+  return 0;
 }
   
 
