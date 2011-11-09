@@ -12,6 +12,9 @@ int confirm_ext_wipe(char* partition)
 {
   Volume* v = volume_for_path(partition);
   int valid = 0;
+  char path_string[256];
+  sprintf(path_string, "/%s", partition);
+
   //check if it is already ext
   if (strcmp(v->fs_type,"ext2") == 0 || strcmp(v->fs_type,"ext3") == 0 || strcmp(v->fs_type,"ext4") == 0) 
   {
@@ -24,7 +27,7 @@ int confirm_ext_wipe(char* partition)
   else
   {
     char question[256];
-    sprintf(question,"Wipe %s?", partition);
+    sprintf(question,"Choose a filesystem for %s", partition);
 
     char* headers[] = { question,
       "THIS CANNOT BE UNDONE!",
@@ -32,51 +35,53 @@ int confirm_ext_wipe(char* partition)
       NULL
     };
 
-    char* items[] = { "No",
-      "No",
-      "Yes, wipe & format ext2",
-      "Yes, wipe & format ext3",
-      "Yes, wipe & format ext4",
-      "No",
+    char* items[] = { "Cancel format",
+      "Format ext2",
+      "Format ext3",
+      "Format ext4",
       NULL
     };
 
     int chosen_item = get_menu_selection (headers, items, 0, 0);
 
-    if (chosen_item == 2) 
+    if (chosen_item == 1) 
     {
+      ui_print("\nFormatting %s ext2... ", partition);
       if (!format_ext2_device(v->device)) 
       {
-        ui_print("ext2 format of %s failed!\n", partition);
+        ui_print("failed!\n", partition);
 	return -1;
       } 
       else 
       {
-        ui_print("ext2 format of %s success!\n", partition);
+        ui_print("done!\n", partition);
+      }
+    }
+    if (chosen_item == 2)
+    {
+      ui_print("\nFormatting %s ext3... ", partition);
+      if (!format_ext3_device(v->device))
+      {
+	ui_print("failed!\n", partition);
+	return -1;
+      }
+      else
+      {
+        ui_print("done!\n", partition);
       }
     }
     if (chosen_item == 3)
     {
-      if (!format_ext3_device(v->device))
+      ui_print("\nFormatting %s ext4... ", partition);
+      //make_ext4fs(const char *filename, const char *directory, char *mountpoint, int android, int gzip, int sparse)
+      if (!make_ext4fs(v->device, NULL, path_string, 1, 0, 0))
       {
-	ui_print("ext3 format of %s failed!\n", partition);
+        ui_print("failed!\n", partition);
 	return -1;
       }
       else
       {
-        ui_print("ext3 format of %s success!\n", partition);
-      }
-    }
-    if (chosen_item == 4)
-    {
-      if (!make_ext4fs(v->device, NULL, NULL, 0, 0, 0))
-      {
-        ui_print("ext4 format of %s failed!\n", partition);
-	return -1;
-      }
-      else
-      {
-        ui_print("ext4 format of %s success!\n", partition);
+        ui_print("done!\n", partition);
       }
     }
   }  
@@ -197,7 +202,7 @@ int wipe_partition(char* partition)
 		ensure_path_unmounted (path_string);
 		if (ext_volume)
 		{
-		  if (!confirm_ext_wipe(path_string)) 
+		  if (confirm_ext_wipe(path_string)) 
 		  {
 		    ui_reset_progress();
 		    return 0;
