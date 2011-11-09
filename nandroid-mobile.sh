@@ -435,6 +435,7 @@ if [ "$RESTORE" == 1 ]; then
     mount /system 2>/dev/null
     mount /data 2>/dev/null
     mount /cache 2>/dev/null
+    mkdir /data/data
     mount $DD_DEVICE /data/data 2>/dev/null
     if [ ! -z "$bootIsMountable" ]; then
     	mount /boot 2>/dev/null
@@ -608,6 +609,7 @@ if [ "$BACKUP" == 1 ]; then
 		mount /system 
 		mount /data 
 		mount /sdcard 2> /dev/null 
+		mkdir /data/data
 		mount $DD_DEVICE /data/data 2>/dev/null
     if [ ! "$SUBNAME" == "" ]; then
 	SUBNAME=$SUBNAME-
