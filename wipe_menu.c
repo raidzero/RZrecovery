@@ -91,8 +91,18 @@ int wipe_partition(char* partition)
 	char wipe_header[255] = "";
 	char path_string[255] = "";
 	char operation[255] = "";
-	if (!strcmp(partition,"batts")) partition = "Battery statistics"; 
+	int ext_volume = 0;
 	sprintf(path_string,"/%s", partition);
+	Volume* v = volume_for_path(path_string);
+	if ( v != NULL ) 
+	{
+	  if (strcmp(v->fs_type,"ext2") == 0 || strcmp(v->fs_type,"ext3") == 0 || strcmp(v->fs_type,"ext4") == 0)
+	  {
+	    ext_volume = 1;
+	  }
+	}  
+
+	if (!strcmp(partition,"batts")) partition = "Battery statistics"; 
 	sprintf(wipe_header,"Wipe %s?", path_string);
 	sprintf(operation,"Yes - wipe %s", path_string);
     
@@ -133,7 +143,7 @@ int wipe_partition(char* partition)
 	  
 	if (confirm_selection(wipe_header, operation))
 	{	
-		ui_print("-- Wiping %s... ",partition);
+		if (!ext_volume) ui_print("-- Wiping %s... ",partition);
 		
 		if (strcmp (partition, "boot") == 0)
 		{
@@ -185,6 +195,14 @@ int wipe_partition(char* partition)
 		  }
 		}	
 		ensure_path_unmounted (path_string);
+		if (ext_volume)
+		{
+		  if (!confirm_ext_wipe(path_string)) 
+		  {
+		    ui_reset_progress();
+		    return 0;
+		  }
+		}
 		if (!erase_volume (path_string))	
 		{
 			ui_print ("Done.\n", path_string);
