@@ -63,6 +63,10 @@ nandroid (const char* operation, char *subname, char partitions, int reboot_afte
     printf("\nCompression activated.");
     args++;
   } 
+  if (reboot_after)
+  {
+    printf("\nReboot triggered.");
+  }
   if (!strcmp (subname, ""))
   {
     printf("\nSubname given: %s", subname);
@@ -122,15 +126,17 @@ nandroid (const char* operation, char *subname, char partitions, int reboot_afte
   read_files();
 
   if (!WIFEXITED (status) || WEXITSTATUS (status) != 0)
-    if (!WIFEXITED (status) || WEXITSTATUS (status) == 34) 
     {
-      if (ask_question("Out of space. Delete a backup?"))
-      { 
-        ui_reset_progress();
-	show_delete_menu();
-      } else {
-        ui_printf_int ("ERROR: Nandroid exited with status %d\n",
+      if (!WIFEXITED (status) || WEXITSTATUS (status) == 34) 
+      {
+        if (ask_question("Out of space. Delete a backup?"))
+        {  
+          ui_reset_progress();
+	  show_delete_menu();
+        } else {
+          ui_printf_int ("ERROR: Nandroid exited with status %d\n",
 			   WEXITSTATUS (status));
+        }
       }
     }  
     else

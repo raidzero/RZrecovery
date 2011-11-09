@@ -646,10 +646,7 @@ if [ "$BACKUP" == 1 ]; then
 	    echo "* print error: cannot create $DESTDIR"
 		umount /system 2>/dev/null
 		umount /data 2>/dev/null
-		if [ "$datadata_present" -eq "1" ]; then
-			echo "* print Datadata present. Unmounting..."
-			umount /data/data
-		fi
+		umount /data/data
 		umount /sdcard 2>/dev/null
 	    exit 32
     else
@@ -819,8 +816,5 @@ if [ "$BACKUP" == 1 ]; then
     echo "* print Backup operation took $ELAPSED_SECS seconds."
     echo "* print Total size of backup: $TOTALSIZE MB."
     echo "* print Thanks for using RZRecovery."
-    if [ "$AUTOREBOOT" == 1 ]; then
-	reboot
-    fi
-    exit
+    exit 0
 fi

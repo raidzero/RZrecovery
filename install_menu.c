@@ -38,7 +38,8 @@ sortlist (char **list, int total)
 
 		      list[curMax] = list[total - i - 1];
 		      list[total - i - 1] = temp;
-	  } }
+			} 
+	  }
   return list;
 }
 
