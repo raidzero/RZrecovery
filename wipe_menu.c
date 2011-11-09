@@ -6,6 +6,58 @@
 #include "roots.h"
 #include "recovery_ui.h"
 
+
+int confirm_ext_wipe(char* partition) 
+{
+  Volume* v = volume_for_path(partition);
+  int valid = 0;
+  //check if it is already ext
+  if (strcmp(v->fs_type,"ext2") == 0 || strcmp(v->fs_type,"ext3") == 0 || strcmp(v->fs_type,"ext4") == 0) 
+  {
+    valid = 1;  
+  }  
+  if (!valid) 
+  {
+    return -1;
+  }
+  else
+  {
+  
+    char question[PATH_MAX];
+    char* headers[] = { question,
+      "THIS CANNOT BE UNDONE!",
+      "",
+      NULL
+    };
+
+    char* items[] = { "No",
+      "No",
+      "Yes, wipe & format ext2",
+      "Yes, wipe & format ext3",
+      "Yes, wipe & format ext4",
+      "No"
+      NULL
+    };
+
+    int chosen_item = get_menu_selection (headers, items, 0, 0);
+
+    if (chosen_item == 2) 
+    {
+      //ext2
+    }
+    if (chosen_item == 3)
+    {
+      //ext3
+    }
+    if (chosen_item == 4)
+    {
+      //ext4
+    }
+  }  
+}
+  
+
+
 int wipe_partition(char* partition) 
 {
 	write_files();
