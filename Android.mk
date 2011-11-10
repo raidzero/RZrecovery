@@ -24,6 +24,8 @@ LOCAL_SRC_FILES := \
     nandroid_menu.c \
     cw_nandroid_menu.c \
     overclock_menu.c \
+    mkbootimg.c \
+    unpackbootimg.c \
     mounts.c
 
 LOCAL_MODULE := recovery
@@ -58,7 +60,7 @@ LOCAL_C_INCLUDES += system/extras/ext4_utils
 include $(BUILD_EXECUTABLE)
 
 #symlinks
-RECOVERY_LINKS := flash_image dump_image erase_image format
+RECOVERY_LINKS := flash_image dump_image erase_image format mkbootimg unpack_bootimg
 RECOVERY_SYMLINKS := $(addprefix $(TARGET_RECOVERY_ROOT_OUT)/sbin/,$(RECOVERY_LINKS))
 $(RECOVERY_SYMLINKS): RECOVERY_BINARY := $(LOCAL_MODULE)
 $(RECOVERY_SYMLINKS): $(LOCAL_INSTALLED_MODULE)

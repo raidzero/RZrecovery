@@ -41,6 +41,9 @@
 #include "encryptedfs_provisioning.h"
 #include "recovery_ui.h"  
 #include "flashutils/flashutils.h"
+#include "mkbootimg.h"
+#include "unpackbootimg.h"
+
 #include "mounts.h"
 static const struct option OPTIONS[] = { 
     {"send_intent", required_argument, NULL, 's'}, 
@@ -862,6 +865,10 @@ main (int argc, char **argv)
 	      return erase_image_main (argc, argv);
 	    if (strstr (argv[0], "format") != NULL)
 	      return erase_volume_cmd (argc, argv);
+	    if (strstr (argv[0], "mkbootimg") != NULL)
+	      return mkbootimg_main(argc, argv);
+	    if (strstr (argv[0], "unpack_bootimg") != NULL)
+	      return unpack_bootimg_main(argc, argv);
 	    //we dont need to keep executing stuff past this point if an embedded function was called 
 	    return 0;
 	  }
