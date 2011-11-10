@@ -869,6 +869,8 @@ main (int argc, char **argv)
 	      return mkbootimg_main(argc, argv);
 	    if (strstr (argv[0], "unpack_bootimg") != NULL)
 	      return unpack_bootimg_main(argc, argv);
+	    if (strstr (argv[0], "mkbootfs") != NULL)
+	      return mkbootfs_main(argc, argv);
 	    //we dont need to keep executing stuff past this point if an embedded function was called 
 	    return 0;
 	  }

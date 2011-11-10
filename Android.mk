@@ -26,6 +26,7 @@ LOCAL_SRC_FILES := \
     overclock_menu.c \
     mkbootimg.c \
     unpackbootimg.c \
+    mkbootfs.c \
     mounts.c
 
 LOCAL_MODULE := recovery
@@ -60,7 +61,7 @@ LOCAL_C_INCLUDES += system/extras/ext4_utils
 include $(BUILD_EXECUTABLE)
 
 #symlinks
-RECOVERY_LINKS := flash_image dump_image erase_image format mkbootimg unpack_bootimg
+RECOVERY_LINKS := flash_image dump_image erase_image format mkbootimg unpack_bootimg mkbootfs
 RECOVERY_SYMLINKS := $(addprefix $(TARGET_RECOVERY_ROOT_OUT)/sbin/,$(RECOVERY_LINKS))
 $(RECOVERY_SYMLINKS): RECOVERY_BINARY := $(LOCAL_MODULE)
 $(RECOVERY_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
@@ -113,6 +114,13 @@ LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
 LOCAL_SRC_FILES := e2fsck
 include $(BUILD_PREBUILT)
 
+include $(CLEAR_VARS)
+LOCAL_MODULE := edit_fs_mount.sh
+LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+LOCAL_SRC_FILES := edit_fs_mount.sh
+include $(BUILD_PREBUILT)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := busybox

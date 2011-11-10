@@ -16,6 +16,7 @@ int confirm_ext_wipe(char* partition)
   int default_fs = 0;
   int failed = 0;
   char path_string[256];
+  char cmd_line[256];
   sprintf(path_string, "/%s", partition);
 
   //check if it is already ext
@@ -52,12 +53,16 @@ int confirm_ext_wipe(char* partition)
       ui_show_indeterminate_progress();
       ui_print("\nFormatting %s ext2... ", partition);
       if (!format_ext2_device(v->device)) failed = 1;
+      sprintf(cmd_line, "sh /sbin/edit_fs_mount.sh %s ext2", path_string);
+      __system(cmd_line);
     }
     if (chosen_item == 2)
     {
       ui_show_indeterminate_progress();
       ui_print("\nFormatting %s ext3... ", partition);
       if (!format_ext3_device(v->device)) failed = 1;
+      sprintf(cmd_line, "sh /sbin/edit_fs_mount.sh %s ext3", path_string);
+      __system(cmd_line);
     }
     if (chosen_item == 3)
     {
@@ -65,6 +70,8 @@ int confirm_ext_wipe(char* partition)
       ui_print("\nFormatting %s ext4... ", partition);
       //make_ext4fs(const char *filename, const char *directory, char *mountpoint, int android, int gzip, int sparse)
       if (make_ext4fs(v->device, NULL, path_string, 1, 0, 0) != 0) failed = 1;
+      sprintf(cmd_line, "sh /sbin/edit_fs_mount.sh %s ext4", path_string);
+      __system(cmd_line);
     }
   }  
   if (default_fs) return DEFAULT_FS;
