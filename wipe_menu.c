@@ -64,7 +64,7 @@ int confirm_ext_wipe(char* partition)
       ui_show_indeterminate_progress();
       ui_print("\nFormatting %s ext4... ", partition);
       //make_ext4fs(const char *filename, const char *directory, char *mountpoint, int android, int gzip, int sparse)
-      if (!make_ext4fs(v->device, NULL, path_string, 1, 0, 0)) failed = 1;
+      if (make_ext4fs(v->device, NULL, path_string, 1, 0, 0) != 0) failed = 1;
     }
   }  
   if (default_fs) return DEFAULT_FS;
