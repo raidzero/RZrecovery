@@ -564,15 +564,13 @@ show_nandroid_menu ()
   };
   static char *items[] = { "Nandroid Backup",
     "Nandroid Restore",
-    "Clockwork Nandroid Restore",
     "Delete backup",
     NULL
   };
 
 #define ITEM_ADV_BACKUP  0
 #define ITEM_ADV_RESTORE 1
-#define ITEM_CW_RESTORE	 2
-#define ITEM_DELETE	 3
+#define ITEM_DELETE	 2
 
   int chosen_item = -1;
 
@@ -589,9 +587,6 @@ show_nandroid_menu ()
 		      break;
 		    case ITEM_ADV_RESTORE:
 		      show_nandroid_adv_r_menu ();
-		      break;
-		    case ITEM_CW_RESTORE:
-		      show_choose_cwnand_menu ();
 		      break;
 		    case ITEM_DELETE:
 		      show_delete_menu();

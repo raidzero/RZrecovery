@@ -1,5 +1,4 @@
 #!/sbin/sh
-set -o verbose
 source /ui_commands.sh
 SUBNAME=""
 NOBOOT=0
@@ -584,90 +583,39 @@ fi
 # 2.
 if [ "$BACKUP" == 1 ]; then
     B_START=`date +%s`
-    TAR_OPTS="c"
-    [ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"
-
-    if [ "$COMPRESS" == "1" ]; then
-      Z_LEVEL="-5"
-      menu -h "Compression level?" -h "" -h "" -h "" \
-      -i "-1 - fastest, low compression" \
-      -i "-2-" \
-      -i "-3-" \
-      -i "-4-" \
-      -i "-5 - medium" \
-      -i "-6-" \
-      -i "-7-" \
-      -i "-8-" \
-      -i "-9 - slowest, high compression" \
-      -i "-Deactivate compression-"
-      read Z_LEVEL
-
-      if [ "$Z_LEVEL" == "" ]; then
-       echo "* print Compression deactivated."
-       COMPRESS=0
-      fi
-      if [ "$Z_LEVEL" == "0" ]; then
-       Z_LEVEL="-1"
-      fi
-      if [ "$Z_LEVEL" == "1" ]; then
-       Z_LEVEL="-2"
-      fi
-      if [ "$Z_LEVEL" == "2" ]; then
-       Z_LEVEL="-3"
-      fi
-      if [ "$Z_LEVEL" == "3" ]; then
-       Z_LEVEL="-4"
-      fi
-      if [ "$Z_LEVEL" == "4" ]; then
-       Z_LEVEL="-5"
-      fi
-      if [ "$Z_LEVEL" == "5" ]; then
-       Z_LEVEL="-6"
-      fi
-      if [ "$Z_LEVEL" == "6" ]; then
-       Z_LEVEL="-7"
-      fi
-      if [ "$Z_LEVEL" == "7" ]; then
-       Z_LEVEL="-8"
-      fi
-      if [ "$Z_LEVEL" == "8" ]; then
-       Z_LEVEL="-9"
-      fi 
-      if [ "$Z_LEVEL" == "9" ]; then
-       echo "* print Compression deactivated"
-       COMPRESS=0
-      fi
-    fi
-
-
     
+    TAR_OPTS="c"
     if [ "$COMPRESS" == "1" ]; then
-      echo "* print Compression activated. Go make a sandwich."
-      echo "* print This will take forever,"
-      echo "* print but your SD Card will thank you :)"
-      echo "* print "
+     TAR_OPTS="${TAR_OPTS}z"
+     echo "* print Compression activated. Go make a sandwich."
+     echo "* print This will take forever, but your"
+     echo "* print SD Card will thank you :)"
+     echo "* print "
+    fi 
+    if [ "$PROGRESS" == "1" ]; then 
+      TAR_OPTS="${TAR_OPTS}v"
+      echo "* print verbosity enabled"
     fi
-
+    
     TAR_OPTS="${TAR_OPTS}f"
-
-
+    
     echo "* print Mounting..."
 	
-		if [ ! -z "$bootIsMountable" ]; then 
-			umount /boot 2>/dev/null
-			mount /boot
-		fi	
-		umount /system 2>/dev/null
-		umount /data 2>/dev/null
-		umount /sdcard 2>/dev/null
-		mount /system 
-		mount /data 
-		mount /sdcard 2> /dev/null 
-		mkdir /data/data
-		mount $DD_DEVICE /data/data 2>/dev/null
-    if [ ! "$SUBNAME" == "" ]; then
-	SUBNAME=$SUBNAME-
-    fi
+    if [ ! -z "$bootIsMountable" ]; then 
+      umount /boot 2>/dev/null
+      mount /boot
+   fi	
+   umount /system 2>/dev/null 
+   umount /data 2>/dev/null
+   umount /sdcard 2>/dev/null
+   mount /system 
+   mount /data 
+   mount /sdcard 2> /dev/null 
+   mkdir /data/data
+   mount $DD_DEVICE /data/data 2>/dev/null
+   if [ ! "$SUBNAME" == "" ]; then
+     SUBNAME=$SUBNAME-
+   fi
 
 # Identify the backup with what partitions have been backed up
     if [ "$NOBOOT" == 0 ]; then
@@ -844,18 +792,14 @@ if [ "$BACKUP" == 1 ]; then
 		;;
 	esac
 
-	echo "* print Dumping $image..."
+	echo -n "* print Dumping $image... "
 
 	cd /$image
 
 	PTOTAL=$(find . | wc -l)
-	[ "$PROGRESS" == "1" ]
-	tar $TAR_OPTS $DESTDIR/$dest.tar . 2>/dev/null | pipeline $PTOTAL
-	if [ "$COMPRESS" == 1 ]; then
-	  echo "* print Compressing $dest..."
-	  echo "* show_indeterminate_progress"
-	  gzip $Z_LEVEL $DESTDIR/$dest.tar
-	fi
+	[ "$COMPRESS" == 0 ] && tar $TAR_OPTS $DESTDIR/$dest.tar . 2>/dev/null | pipeline $PTOTAL
+	[ "$COMPRESS" == 1 ] && tar $TAR_OPTS $DESTDIR/$dest.tar.gz . | pipeline $PTOTAL
+	echo "* print Done!"
 	sync
     done
 
