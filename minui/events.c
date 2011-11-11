@@ -38,7 +38,7 @@
 #define SYN_MT_REPORT 2
 
 // The amount of time in ms to delay before duplicating a held down key.
-#define KEYHOLD_DELAY 175
+#define KEYHOLD_DELAY 185
 
 enum {
     DOWN_NOT,
@@ -291,12 +291,12 @@ static int vk_modify(struct ev *e, struct input_event *ev)
             else {
                 int code = -1;
                 if (change > -10 && change < 0) {
-                    code = KEY_VOLUMEDOWN;
+                    code = KEY_DOWN;
 		    printf("\nFake Down\n");
                     count++;
                 }
                 else if (change > 0 && change < 10) {
-                    code = KEY_VOLUMEUP;
+                    code = KEY_UP;
 		    printf("\nFake Up\n");
                     count++;
                 }

@@ -7,90 +7,6 @@
 #include "roots.h"
 #include "recovery_ui.h"
 
-#define DEFAULT_FS 139
-
-int confirm_ext_wipe(char* partition) 
-{
-  Volume* v = volume_for_path(partition);
-  int valid = 0;
-  int default_fs = 0;
-  int failed = 0;
-  char path_string[256];
-  char cmd_line[256];
-  sprintf(path_string, "/%s", partition);
-
-  //check if it is already ext
-  if (strcmp(v->fs_type,"ext2") == 0 || strcmp(v->fs_type,"ext3") == 0 || strcmp(v->fs_type,"ext4") == 0) 
-  {
-    valid = 1;  
-  }  
-  if (!valid) return -1;
-  else
-  {
-    char question[256];
-    sprintf(question,"Choose a filesystem for %s", partition);
-
-    char* headers[] = { question,
-      "Choose default unless you know",
-      "what you're doing :)",
-      "",
-      NULL
-    };
-
-    char* items[] = { "Default filesystem",
-      "Format ext2",
-      "Format ext3",
-      "Format ext4",
-      NULL
-    };
-
-    int chosen_item = get_menu_selection (headers, items, 0, 0);
-
-    if (chosen_item == 0) default_fs = 1;
-    
-    if (chosen_item == 1) 
-    {
-      ui_show_indeterminate_progress();
-      ui_print("\nFormatting %s ext2... ", partition);
-      if (!format_ext2_device(v->device)) failed = 1;
-      sprintf(cmd_line, "sh /sbin/edit_fs_mount.sh %s ext2", path_string);
-      __system(cmd_line);
-    }
-    if (chosen_item == 2)
-    {
-      ui_show_indeterminate_progress();
-      ui_print("\nFormatting %s ext3... ", partition);
-      if (!format_ext3_device(v->device)) failed = 1;
-      sprintf(cmd_line, "sh /sbin/edit_fs_mount.sh %s ext3", path_string);
-      __system(cmd_line);
-    }
-    if (chosen_item == 3)
-    {
-      ui_show_indeterminate_progress();
-      ui_print("\nFormatting %s ext4... ", partition);
-      //make_ext4fs(const char *filename, const char *directory, char *mountpoint, int android, int gzip, int sparse)
-      if (make_ext4fs(v->device, NULL, path_string, 1, 0, 0) != 0) failed = 1;
-      sprintf(cmd_line, "sh /sbin/edit_fs_mount.sh %s ext4", path_string);
-      __system(cmd_line);
-    }
-  }  
-  if (default_fs) return DEFAULT_FS;
-  if (failed) 
-  {
-    ui_print("Failed!\n");
-    ui_reset_progress();
-    return -1;
-  }
-  else
-  {
-    ui_print("Done!\n");
-    ui_reset_progress();
-    return 0;
-  }
-}
-  
-
-
 int wipe_partition(char* partition) 
 {
 	write_files();
@@ -99,14 +15,6 @@ int wipe_partition(char* partition)
 	char operation[255] = "";
 	int ext_volume = 0;
 	sprintf(path_string,"/%s", partition);
-	Volume* v = volume_for_path(path_string);
-	if ( v != NULL ) 
-	{
-	  if (strcmp(v->fs_type,"ext2") == 0 || strcmp(v->fs_type,"ext3") == 0 || strcmp(v->fs_type,"ext4") == 0)
-	  {
-	    ext_volume = 1;
-	  }
-	}  
 
 	if (!strcmp(partition,"batts")) partition = "Battery statistics"; 
 	sprintf(wipe_header,"Wipe %s?", path_string);
@@ -149,7 +57,7 @@ int wipe_partition(char* partition)
 	  
 	if (confirm_selection(wipe_header, operation))
 	{	
-		if (!ext_volume) ui_print("-- Wiping %s... ",partition);
+		ui_print("-- Wiping %s... ",partition);
 		
 		if (strcmp (partition, "boot") == 0)
 		{
@@ -201,20 +109,6 @@ int wipe_partition(char* partition)
 		  }
 		}	
 		ensure_path_unmounted (path_string);
-		if (ext_volume)
-		{
-		  if (confirm_ext_wipe(path_string) == DEFAULT_FS) 
-		  { 
-		    ui_print("-- Wiping %s... ", path_string);
-		    goto next;
-		  }
-		  if (confirm_ext_wipe(path_string) == 0) 
-		  {
-		    //success
-		    return 0;
-		  } 
-		}
-		next:
 		if (!erase_volume (path_string))	
 		{
 			ui_print ("Done.\n", path_string);

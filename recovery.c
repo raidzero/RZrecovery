@@ -805,10 +805,10 @@ prompt_and_wait ()
    for (;;)
 	  {
 	    finish_recovery (NULL);
-	    ui_reset_progress ();
+	    //ui_reset_progress ();
 	     int chosen_item =
 	      get_menu_selection (headers, MENU_ITEMS, 1,
-				  chosen_item < 0 ? 0 : chosen_item);
+				  chosen_item < 0 ? 1 : chosen_item);
 	    
 	      // device-specific code may take some action here.  It may
 	      // return one of the core actions handled in the switch
