@@ -13,10 +13,16 @@ int wipe_partition(char* partition)
 	char wipe_header[255] = "";
 	char path_string[255] = "";
 	char operation[255] = "";
-	int ext_volume = 0;
-	sprintf(path_string,"/%s", partition);
 
-	if (!strcmp(partition,"batts")) partition = "Battery statistics"; 
+	if (strcmp(partition,"battery statistics") != 0 && strcmp(partition,"dalvik-cache") !=0 )
+	{
+	  sprintf(path_string,"/%s", partition);
+	}
+	else
+	{
+	  sprintf(path_string,"%s", partition);
+	}
+	
 	sprintf(wipe_header,"Wipe %s?", path_string);
 	sprintf(operation,"Yes - wipe %s", path_string);
     
@@ -43,7 +49,7 @@ int wipe_partition(char* partition)
 			ensure_path_mounted ("/sdcard");
 			__system ("rm -rf /sdcard/.android-secure/*");
 			ui_print ("\n-- Wiping boot...");
-			cmd_mtd_erase_raw_partition ("boot");
+			erase_volume("/boot");
 			ui_print ("\nDone.\n");
 			ui_print ("Device completely wiped.\n\n");
 			ui_print ("All that remains is RZR.\n");
@@ -59,18 +65,9 @@ int wipe_partition(char* partition)
 	{	
 		ui_print("-- Wiping %s... ",partition);
 		
-		if (strcmp (partition, "boot") == 0)
-		{
-			cmd_mtd_erase_raw_partition ("boot");
-			ui_print("Done.\n");
-			ui_reset_progress();
-			return 0;
-		}
-		
-		if (strcmp (partition, "Battery statistics") == 0)
+		if (strcmp (partition, "battery statistics") == 0)
 		{
 			ensure_path_mounted("/data");
-			char batt_string[255];
 			__system ("rm /data/system/batterystats.bin");
 			ensure_path_unmounted("/data");
 			ui_print("Done.\n");
@@ -91,25 +88,27 @@ int wipe_partition(char* partition)
 		{
 			ensure_path_mounted ("/data");
 			ensure_path_mounted("/cache");
-			__system ("rm -rf /cache/dalvik-cache*");
-			__system ("rm -rf /data/dalvik-cache");
+			__system ("rm -rf /cache/dalvik-cache/*");
+			__system ("rm -rf /data/dalvik-cache/*");
 			ui_print("Done.\n");
 			read_files();
 			ui_reset_progress();
 			return 0;
 		}
 		
-		if (strcmp(path_string,"/data"))
+		if (strcmp(path_string,"/data") == 0)
 		{
 		  if (volume_present("/datadata")) 
 		  {
 		    ui_print("\n-- Wiping datadata");
 		    ensure_path_unmounted("/datadata");
 		    erase_volume("/datadata");
+		    ui_reset_progress();
 		  }
-		}	
+		}
+
 		ensure_path_unmounted (path_string);
-		if (!erase_volume (path_string))	
+		if (erase_volume (path_string) == 0)	
 		{
 			ui_print ("Done.\n", path_string);
 			read_files();
@@ -196,7 +195,7 @@ show_wipe_menu ()
 		      break;
 
 		    case WIPE_BATT:
-		      wipe_partition("batts");
+		      wipe_partition("battery statistics");
 		      break;
 
 		    case WIPE_DK:
