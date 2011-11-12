@@ -215,20 +215,18 @@ draw_screen_locked (void)
       		fread (&cGv, 1, 1, fp);
      		fread (&cBv, 1, 1, fp);
       		fread (&txt, 1, 1, fp);
-		fread (&bg, 1, 1, fp);
       		fclose (fp);
   	} else {
       		cRv = 54;
       		cGv = 74;
       		cBv = 255;
       		txt = 255;
-		bg = 0;
   	}
   }
   
   draw_background_locked (gCurrentIcon);
   draw_progress_locked ();
-  gr_color (bg, bg, bg, 175);	// background color
+  gr_color (0, 0, 0, 175);	// background color
   gr_fill (0, 0, gr_fb_width (), gr_fb_height ());	//fill the background with this color
   int i = 0;
   int j = 0;
@@ -425,7 +423,7 @@ input_thread (void *cookie)
 						    rel_sum = 0;
 						  }
 					}
-			      } else if (ev.type == EV_ABS && (ev.code == KEY_UP || ev.code == KEY_DOWN)) {
+			      } else if (ev.type == EV_ABS && (ev.code == KEY_VOLUMEUP || ev.code == KEY_VOLUMEDOWN)) {
 			        fake_key = 1;
 				ev.type = EV_KEY;
 			      } else {

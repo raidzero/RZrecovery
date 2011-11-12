@@ -55,12 +55,10 @@ device_handle_key (int key_code)
 {
   switch (key_code)
 	  {
-	  case KEY_DOWN:
 	  case KEY_CAPSLOCK:
 	  case KEY_VOLUMEDOWN:	//114
 	    return HIGHLIGHT_DOWN;
 
-	  case KEY_UP:
 	  case KEY_LEFTSHIFT:
 	  case KEY_VOLUMEUP:	//115
 	    return HIGHLIGHT_UP;

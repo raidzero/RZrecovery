@@ -291,12 +291,12 @@ static int vk_modify(struct ev *e, struct input_event *ev)
             else {
                 int code = -1;
                 if (change > -10 && change < 0) {
-                    code = KEY_DOWN;
+                    code = KEY_VOLUMEDOWN;
 		    printf("\nFake Down\n");
                     count++;
                 }
                 else if (change > 0 && change < 10) {
-                    code = KEY_UP;
+                    code = KEY_VOLUMEUP;
 		    printf("\nFake Up\n");
                     count++;
                 }

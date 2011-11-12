@@ -792,14 +792,13 @@ if [ "$BACKUP" == 1 ]; then
 		;;
 	esac
 
-	echo -n "* print Dumping $image... "
+	echo "* print Dumping $image... "
 
 	cd /$image
 
 	PTOTAL=$(find . | wc -l)
 	[ "$COMPRESS" == 0 ] && tar $TAR_OPTS $DESTDIR/$dest.tar . 2>/dev/null | pipeline $PTOTAL
 	[ "$COMPRESS" == 1 ] && tar $TAR_OPTS $DESTDIR/$dest.tar.gz . | pipeline $PTOTAL
-	echo "* print Done!"
 	sync
     done
 

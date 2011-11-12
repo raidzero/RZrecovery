@@ -9,7 +9,7 @@
 #include "recovery_ui.h"
 
 void
-set_color (char red, char green, char blue, char bg)
+set_color (char red, char green, char blue)
 {
   char txt;
 
@@ -20,7 +20,6 @@ set_color (char red, char green, char blue, char bg)
   fwrite (&green, 1, 1, fp);
   fwrite (&blue, 1, 1, fp);
   fwrite (&txt, 1, 1, fp);
-  fwrite (&bg, 1, 1, fp);
   fclose (fp);
   if (access ("/cache/rnd", F_OK) != -1) remove("/cache/rnd");
   ensure_path_mounted ("/sdcard");
@@ -59,10 +58,10 @@ set_random (int rnd)
   char cG = rand () % 255;
   char cB = rand () % 255;
 
-  set_color (cR, cG, cB, 0);
+  set_color (cR, cG, cB);
   if (rnd == 1)
   {
-    set_color(cR, cG, cB, 0);
+    set_color(cR, cG, cB);
     remove("/cache/rgb");
     ensure_path_mounted("/sdcard");
     remove("/sdcard/RZR/rgb");
@@ -93,8 +92,7 @@ show_colors_menu ()
     "Gold",
     "White",
     "Grey",
-    "RootzWiki (grey)",
-    "RootzWiki (black)",
+    "RootzWiki",
     "Rave mode",
     NULL
   };
@@ -112,9 +110,8 @@ show_colors_menu ()
 #define GOLD			10
 #define WHITE			11
 #define GREY			12
-#define ROOTZG			13
-#define ROOTZB			14
-#define RAVE			15
+#define ROOTZ			13
+#define RAVE			14
 
   int chosen_item = -1;
 
@@ -132,59 +129,55 @@ show_colors_menu ()
 		      break;
 		    case BLUE:
 		      set_icon("rz");
-		      set_color (54, 74, 255, 0);
+		      set_color (54, 74, 255);
 		      break;
 		    case CYAN:
 		      set_icon("rz");
-		      set_color (0, 255, 255, 0);
+		      set_color (0, 255, 255);
 		      break;
 		    case GREEN:
 		      set_icon("rz");
-		      set_color (30, 247, 115, 0);
+		      set_color (30, 247, 115);
 		      break;
 		    case ORANGE:
 		      set_icon("rz");
-		      set_color (255, 115, 0, 0);
+		      set_color (255, 115, 0);
 		      break;
 		    case PINK:
 		      set_icon("rz");
-		      set_color (255, 0, 255, 0);
+		      set_color (255, 0, 255);
 		      break;
 		    case PURPLE:
 		      set_icon("rz");
-		      set_color (175, 0, 255, 0);
+		      set_color (175, 0, 255);
 		      break;
 		    case RED:
 		      set_icon("rz");
-		      set_color (255, 0, 0, 0);
+		      set_color (255, 0, 0);
 		      break;
 		    case SMOKED:
 		      set_icon("rz");
-		      set_color (200, 200, 200, 0);
+		      set_color (200, 200, 200);
 		      break;
 		    case YELLOW:
 		      set_icon("rz");
-		      set_color (255, 255, 0, 0);
+		      set_color (255, 255, 0);
 		      break;
 		    case GOLD:
 		      set_icon("rz");
-		      set_color (255, 204, 102, 0);
+		      set_color (255, 204, 102);
 		      break;
 		    case WHITE:
 		      set_icon("rz");
-		      set_color (255, 255, 255, 0);
+		      set_color (255, 255, 255);
 		      break;
 		    case GREY:
 		      set_icon("rz");
-		      set_color (100, 100, 100, 0);
+		      set_color (100, 100, 100);
 		      break;
-		    case ROOTZG:
+		    case ROOTZ:
 		      set_icon("rw");
-		      set_color(139, 181, 79, 20);
-		      break;
-		    case ROOTZB:
-		      set_icon("rw");
-		      set_color (139, 181, 79, 0);
+		      set_color (139, 181, 79);
 		      break;
 		    case RAVE:
 		      set_icon("rz");
