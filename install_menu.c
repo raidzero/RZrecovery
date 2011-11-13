@@ -439,14 +439,15 @@ preinstall_menu (char *filename)
     { "Preinstall Menu", "Please make your selections.", " ", NULL
   };
    char *items[] =
-    { "Abort Install", "Backup Before Install", "Wipe /data",
+    { "Abort Install", "Backup Before Install", "Wipe /data", "Wipe /cache", 
 install_string, NULL
   };
   
 #define ITEM_NO 		0
 #define ITEM_BACKUP 	1
-#define ITEM_WIPE 		2
-#define ITEM_INSTALL 	3
+#define ITEM_DWIPE 		2
+#define ITEM_CWIPE	3
+#define ITEM_INSTALL 	4
   int chosen_item = -1;
 
   while (chosen_item != ITEM_BACK)
@@ -463,9 +464,12 @@ install_string, NULL
 		      ui_print ("Backing up before installing...\n");
 		      nandroid("backup", "preinstall", DEFAULT, 0, 1, 0);
 		      break;
-		    case ITEM_WIPE:
+		    case ITEM_DWIPE:
 		      wipe_partition ("Are you sure?", "Yes - wipe DATA",
 				       "data");
+		      break;
+		    case ITEM_CWIPE:
+		      wipe_partition("Are you sure?", "Yes - wipe CACHE", "cache");
 		      break;
 		    case ITEM_INSTALL:
 		      install_update_package (filename);

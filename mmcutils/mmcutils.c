@@ -390,16 +390,24 @@ format_ext3_device (const char *device)
 #endif
   // Run mke2fs
   if (run_exec_process (mke2fs))
+  {
+  printf("\nError in run of mke2fs!");
     return -1;
+  }
 
   // Run tune2fs
   if (run_exec_process (tune2fs))
+  {
+    printf("\nError in tune2fs!");
     return -1;
-
+  }
   // Run e2fsck
   char *const e2fsck[] = { E2FSCK_BIN, "-fy", device, NULL };
   if (run_exec_process (e2fsck))
+  { 
+    printf("\nError in run of e2fsck!");
     return -1;
+  }
 
   return 0;
 }
@@ -410,20 +418,26 @@ format_ext2_device (const char *device)
   // Run mke2fs
   char *const mke2fs[] = { MKE2FS_BIN, device, NULL };
   if (run_exec_process (mke2fs))
-    printf("\nError in run of mse2fs!");
+  { 
+    printf("\nError in run of mke2fs!");
     return -1;
+  }
 
   // Run tune2fs
   char *const tune2fs[] = { TUNE2FS_BIN, "-C", "1", device, NULL };
   if (run_exec_process (tune2fs))
+  {
     printf("\nError in tune2fs!");
     return -1;
+  }
 
   // Run e2fsck
   char *const e2fsck[] = { E2FSCK_BIN, "-fy", device, NULL };
   if (run_exec_process (e2fsck))
+  {
     printf("\nError in run of e2fsck!");
     return -1;
+  }
 
   return 0;
 }
