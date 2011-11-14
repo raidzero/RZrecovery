@@ -465,11 +465,10 @@ install_string, NULL
 		      nandroid("backup", "preinstall", DEFAULT, 0, 1, 0);
 		      break;
 		    case ITEM_DWIPE:
-		      wipe_partition ("Are you sure?", "Yes - wipe DATA",
-				       "data");
+		      wipe_partition("data");
 		      break;
 		    case ITEM_CWIPE:
-		      wipe_partition("Are you sure?", "Yes - wipe CACHE", "cache");
+		      wipe_partition("cache");
 		      break;
 		    case ITEM_INSTALL:
 		      install_update_package (filename);
