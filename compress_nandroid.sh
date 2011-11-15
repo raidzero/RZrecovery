@@ -18,7 +18,7 @@ if [ $number -ge 1 ]; then
   C_END=`date +%s`
   ELAPSED=$(( $C_END - $C_START ))
   echo "* print Backup $BACKUP has been compressed!"
-  echo "* print Compress operation took $ELAPSES seconds."
+  echo "* print Compress operation took $ELAPSED seconds."
   exit 0
 else 
   echo "*print Backup is already compressed or is incomplete!"
