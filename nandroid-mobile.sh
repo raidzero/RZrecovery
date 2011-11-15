@@ -499,7 +499,7 @@ if [ "$RESTORE" == 1 ]; then
 	umount boot
     fi
 
-    for image in data system secure cache; do
+    for image in system data cache secure; do
         if [ "$NODATA" == 1 -a "$image" == "data" ]; then
             echo "* print "
             echo "* print Not restoring data image!"
@@ -752,7 +752,7 @@ if [ "$BACKUP" == 1 ]; then
     done
 
 # 6
-    for image in system data secure cache; do
+    for image in system data cache secure; do
 	case $image in
             system)
 		if [ "$NOSYSTEM" == 1 ]; then
