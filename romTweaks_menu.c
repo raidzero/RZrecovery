@@ -63,15 +63,24 @@ static char *headers[] = { "Dalvik Bytecode Tweaks",
 			NULL
 			};
 
+	  char **argv = malloc (2 * sizeof (char *));
+	  argv[0] = "/sbin/RZR-noverify.sh";
+	  argv[2] = NULL;
+
+	  char* envp[] = { NULL };
+
 	  int chosen_item = get_menu_selection(headers, items, 0, 0);
 
 	  if (chosen_item == 0) {
-		__system("/sbin/RZR-noverify.sh disable");
+	        argv[1] = "disable";
+		runve("/sbin/RZR-noverify.sh", argv, envp, 50);
 		ui_print("Disabled Dalvik Bytecode Verification.\n");
 		return;
 	  }
+
 	  if (chosen_item == 1) {
-		__system("/sbin/RZR-noverify.sh enable");
+		argv[1] = "enable";
+		runve("/sbin/RZR-noverify.sh", argv, envp, 50);
 		ui_print("Enabled Dalvik Bytecode Verification.\n");
 		return;
 	  }

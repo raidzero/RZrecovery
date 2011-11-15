@@ -5,6 +5,7 @@ CHOICE=$1
 
 mount system
 if [ "$CHOICE" == "disable" ]; then
+	echo "* print Disabling dalvik-bytecode verification..."
 	sed -i '/dalvik\.vm\.dexopt\-flags/d' /system/build.prop
 	sed -i '/dalvik\.vm\.verify\-bytecode/d' /system/build.prop
 	sed -i '/dalvik\.vm\.dexopt\-flags\=v\=n,o\=v/d' /system/build.prop
@@ -20,6 +21,7 @@ if [ "$CHOICE" == "disable" ]; then
 fi
 
 if [ "$CHOICE" == "enable" ]; then
+	echo "* print Enabling dalvik bytecode verification..."
 	sed -i '/dalvik\.vm\.dexopt\-flags/d' /system/build.prop
 	sed -i '/dalvik\.vm\.verify\-bytecode/d' /system/build.prop
 	sed -i '/dalvik\.vm\.dexopt\-flags\=v\=n,o\=v/d' /system/build.prop
@@ -39,5 +41,3 @@ rm -rf /cache/dalvik-cache/*
 rm -rf /data/dalvik-cache/*
 umount data
 umount system
-
-echo "* print Done!" 
