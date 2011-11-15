@@ -475,6 +475,66 @@ show_delete_menu()
   }  
 }
 
+
+void
+show_compress_menu() 
+{
+  char *headers[] = { "Choose a backup to compress",
+    "Backup:",
+    "",
+    "",
+    NULL
+  };
+
+  char *items[] = { "Choose backup",
+    "Compress!",
+    NULL
+  };
+
+#define C_ITEM_C  0
+#define C_ITEM_D  1
+  
+  char filename[PATH_MAX];
+  filename[0] = NULL;
+
+  char operation[PATH_MAX];
+  char cmp_cmd[PATH_MAX];
+  int chosen_item = -1;
+
+  while (chosen_item != ITEM_BACK) 
+  {
+    chosen_item = get_menu_selection(headers, items, 0, 0);
+  
+    switch (chosen_item) 
+    {
+      case C_ITEM_C:
+        nandroid_adv_r_choose_file (filename, "/sdcard/nandroid");
+        headers[2] = filename;
+	
+	sprintf(operation, "Compress %s", filename);
+	char pathname[256];
+	sprintf(pathname, "/sdcard/nandroid/%s", filename);
+	char **argv = malloc (2 * sizeof (char *));
+
+	argv[0] = "/sbin/compress_nandroid.sh";
+	argv[1] = pathname;
+	argv[2] = NULL;
+	
+	char *envp[] = { NULL };
+        break;
+      case C_ITEM_D:  
+	if (strcmp(filename,"") != 0) 
+	{  
+          runve("/sbin/compress_nandroid.sh", argv, envp, 200);
+	  ui_reset_progress();
+	} else {
+	  ui_print("You must select a backup first!\n");
+	}  
+        return;
+    }
+  }  
+}
+
 void
 show_nandroid_adv_b_menu ()
 {
@@ -564,13 +624,15 @@ show_nandroid_menu ()
   };
   static char *items[] = { "Nandroid Backup",
     "Nandroid Restore",
+    "Compress existing backup",
     "Delete backup",
     NULL
   };
 
 #define ITEM_ADV_BACKUP  0
 #define ITEM_ADV_RESTORE 1
-#define ITEM_DELETE	 2
+#define ITEM_COMPRESS    2
+#define ITEM_DELETE	 3
 
   int chosen_item = -1;
 
@@ -587,6 +649,9 @@ show_nandroid_menu ()
 		      break;
 		    case ITEM_ADV_RESTORE:
 		      show_nandroid_adv_r_menu ();
+		      break;
+		    case ITEM_COMPRESS:
+		      show_compress_menu();
 		      break;
 		    case ITEM_DELETE:
 		      show_delete_menu();
