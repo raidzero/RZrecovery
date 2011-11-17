@@ -7,22 +7,35 @@
 #include "roots.h"
 #include "recovery_ui.h"
 
+#ifndef BOARD_UMS_LUNFILE
+#define BOARD_UMS_LUNFILE	"/sys/devices/platform/usb_mass_storage/lun0/file"
+#endif
+
 static int
 is_usb_storage_enabled ()
 {
-  FILE *fp = fopen ("/sys/devices/platform/usb_mass_storage/lun0/file", "r");
-  char *buf = malloc (11 * sizeof (char));
+  if (access(BOARD_UMS_LUNFILE,F_OK) != -1) 
+  {
+    printf("LUN file present.\n");
+    FILE *fp = fopen (BOARD_UMS_LUNFILE, "r");
+    char *buf = malloc (11 * sizeof (char));
 
-  fgets (buf, 11, fp);
-  fclose (fp);
-  if (strcmp (buf, "/dev/block") == 0)
+    fgets (buf, 11, fp);
+    fclose (fp);
+    if (strcmp (buf, "/dev/block") == 0)
 	  {
 	    return (1);
 	  }
-  else
+    else
 	  {
 	    return (0);
 	  }
+  }
+  else
+  {
+    printf("USB Mass storage will not work.\n");
+    return (3);
+  }
 }
 
 static void
@@ -30,15 +43,16 @@ get_mount_menu_options (char **items, int usb, int ms, int md, int msd, int mb, 
 {
   static char *items1[7];
   static char *items2[7];
+  int noUsb = 0;
+  if (usb == 3) noUsb = 1;
+  
   //questionably mountable partitons...
   Volume* bootV = volume_for_path("/boot"); int bm;
   Volume* emmcV = volume_for_path("/emmc"); int em;
 
   //debug prints:
-  /*
-  if (bootV != NULL) ui_print("\n/boot fs_type: %s\n",bootV->fs_type);
-  if (emmcV != NULL) ui_print("\n/emmc fs_type: %s\n",emmcV->fs_type);
-  */
+  if (bootV != NULL) printf("\n/boot fs_type: %s\n",bootV->fs_type);
+  if (emmcV != NULL) printf("\n/emmc fs_type: %s\n",emmcV->fs_type);
 
   if (bootV != NULL) {
     if (strcmp(bootV->fs_type,"mtd") != 0 && strcmp(bootV->fs_type,"emmc") != 0 && strcmp(bootV->fs_type,"bml") != 0) bm = 1;
@@ -52,7 +66,9 @@ get_mount_menu_options (char **items, int usb, int ms, int md, int msd, int mb, 
   }
 
   int i = 0;
-  items1[i] = "Enable USB Mass Storage"; i++;
+  if (!noUsb) {
+    items1[i] = "Enable USB Mass Storage"; i++;
+  }
   items1[i] = "Mount /system"; i++;
   items1[i] = "Mount /data"; i++; 
   items1[i] = "Mount /sdcard"; i++;
@@ -67,7 +83,9 @@ get_mount_menu_options (char **items, int usb, int ms, int md, int msd, int mb, 
   }
   
   int j = 0;
-  items2[j] = "Disable USB Mass Storage"; j++;
+  if (!noUsb) {
+    items2[j] = "Disable USB Mass Storage"; j++;
+  }
   items2[j] = "Unmount /system"; j++;
   items2[j] = "Unmount /data"; j++;
   items2[j] = "Unmount /sdcard"; j++;
@@ -97,9 +115,6 @@ get_mount_menu_options (char **items, int usb, int ms, int md, int msd, int mb, 
   }	
 }
 
-#ifndef BOARD_UMS_LUNFILE
-#define BOARD_UMS_LUNFILE	"/sys/devices/platform/usb_mass_storage/lun0/file"
-#endif
 
 static void
 enable_usb_mass_storage ()
@@ -139,14 +154,19 @@ show_mount_menu ()
     NULL
   };
 
-
+  printf("About to check mount status...\n");
   int usb = is_usb_storage_enabled ();
+  printf("USB mounted: %i\n", usb);
   int ms = is_path_mounted ("/system");
+  printf("system mounted: %i\n", ms);
   int md = is_path_mounted ("/data");
+  printf("data mounted: %i\n", md);
   int msd = is_path_mounted ("/sdcard");
+  printf("sdcard mounted: %i\n", msd);
   int mb = is_path_mounted ("/boot");
+  printf("boot mounted: %i\n", mb);
   int me = is_path_mounted ("/emmc");
-
+  printf("emmc mounted: %i\n", me);
   char **items = malloc (7 * sizeof (char *));
 
   get_mount_menu_options (items, usb, ms, md, msd, mb, me);
