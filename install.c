@@ -128,11 +128,13 @@ try_update_binary (const char *path, ZipArchive * zip)
 		      ui_print
 			("Please switch to Edify scripting (updater-script and update-binary) to create working update zip packages.\n");
 		      read_files();
+		      ui_reset_progress();
 		      return INSTALL_UPDATE_BINARY_MISSING;
 		    }
 
 	    mzCloseZipArchive (zip);
 	    read_files();
+	    ui_reset_progress();
 	    return INSTALL_UPDATE_BINARY_MISSING;
 	  }
 
@@ -145,6 +147,7 @@ try_update_binary (const char *path, ZipArchive * zip)
 	  {
 	    mzCloseZipArchive (zip);
 	    LOGE ("Can't make %s\n", binary);
+	    ui_reset_progress();
 	    return 1;
 	  }
   bool ok = mzExtractZipEntryToFile (zip, binary_entry, fd);
@@ -155,6 +158,7 @@ try_update_binary (const char *path, ZipArchive * zip)
 	  {
 	    LOGE ("Can't copy %s\n", ASSUMED_UPDATE_BINARY_NAME);
 	    mzCloseZipArchive (zip);
+	    ui_reset_progress();
 	    return 1;
 	  }
 
@@ -214,6 +218,7 @@ try_update_binary (const char *path, ZipArchive * zip)
 	    execv (binary, args);
 	    fprintf (stdout, "E:Can't run %s (%s)\n", binary,
 		     strerror (errno));
+	    ui_reset_progress();
 	    _exit (-1);
 	  }
   close (pipefd[1]);
@@ -298,6 +303,7 @@ try_update_binary (const char *path, ZipArchive * zip)
 	  {
 	    LOGE ("Error in %s\n(Status %d)\n", path, WEXITSTATUS (status));
 	    mzCloseZipArchive (zip);
+	    ui_reset_progress();
 	    return INSTALL_ERROR;
 	  }
 
@@ -306,9 +312,11 @@ try_update_binary (const char *path, ZipArchive * zip)
 	    int ret =
 	      handle_firmware_update (firmware_type, firmware_filename, zip);
 	    mzCloseZipArchive (zip);
+	    ui_reset_progress();
 	    return ret;
 	  }
   read_files();
+  ui_reset_progress();
   return INSTALL_SUCCESS;
 }
 
