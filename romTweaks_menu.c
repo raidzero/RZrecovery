@@ -86,6 +86,39 @@ static char *headers[] = { "Dalvik Bytecode Tweaks",
 	  }
 }
 
+void show_fixPermissions_menu() 
+{
+  static char *headers[] = { "Fix Permissions",
+    "This will run clockwork's fix_permissions.",
+    "It can take a long time. Do it?",
+    " ",
+    NULL
+  };
+
+  char *items[] = { "Yes",
+    "No",
+    NULL
+  };
+
+  char **argv = malloc(2 * sizeof (char*));
+  argv[0] = "/sbin/fix_permissions.sh";
+  argv[1] = NULL;
+
+  char **envp[] = { NULL };
+
+  int chosen_item = get_menu_selection(headers, items, 0, 0);
+
+  if (chosen_item == 0) 
+  { 
+    runve("/sbin/fix_permissions.sh", NULL, NULL, 50);
+    ui_reset_progress();
+  }
+  if (chosen_item == 1) 
+  {
+    return;
+  }
+}
+
 void
 show_romTweaks_menu ()
 {
@@ -98,12 +131,14 @@ show_romTweaks_menu ()
   char* items[] = { "Disable OTA Update Downloads in ROM",
     		"Activate Root Access in ROM",
 		"Dalvik Bytecode Tweaks",
+		"Fix Permissions",
     		NULL
   	};
 
 #define OTA			0	
 #define ROOT_MENU	    	1		
 #define DALVIK			2
+#define PERMS			3
 
   int chosen_item = -1;
 
@@ -124,6 +159,9 @@ show_romTweaks_menu ()
 		      break;
 		    case DALVIK:
 		      dalvik_menu ();
+		      break;
+		    case PERMS:
+		      show_fixPermissions_menu();
 		      break;
 		    }
 	  }

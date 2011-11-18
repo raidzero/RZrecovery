@@ -30,7 +30,7 @@
 #include "recovery_ui.h"
   
 #define MAX_COLS 96
-#define MAX_ROWS 32
+#define MAX_ROWS 43
   
 #define MENU_MAX_COLS 64
 #define MENU_MAX_ROWS 750
@@ -137,15 +137,22 @@ draw_progress_locked ()
 {
   if (gProgressBarType == PROGRESSBAR_TYPE_NONE)
     return;
-  int iconHeight = gr_get_height (gBackgroundIcon[BACKGROUND_ICON_RZ]);
-
+  int iconHeight;
+  if (access("/cache/icon_rz", F_OK) != -1)
+  {
+    iconHeight = gr_get_height (gBackgroundIcon[BACKGROUND_ICON_RZ]);
+  }
+  else
+  {
+    iconHeight = gr_get_height (gBackgroundIcon[BACKGROUND_ICON_RW]);
+  }  
   int width = gr_get_width (gProgressBarEmpty);
   int height = gr_get_height (gProgressBarEmpty);
   int dx = (gr_fb_width () - width) / 2;
-  int dy = (3 * gr_fb_height () + iconHeight - 2 * height) / 4;
-
-   
-    // Erase behind the progress bar (in case this was a progress-only update)
+  //int dy = (3 * gr_fb_height () + iconHeight - 2 * height) / 4;
+  int dy = (gr_fb_height() - height - 5); /*I dont want the progress bar to be relative to the 
+  background icon - just put 25 px above the bottom of the screen*/
+  // Erase behind the progress bar (in case this was a progress-only update)
     gr_color (0, 0, 0, 255);
   gr_fill (dx, dy, width, height);
    if (gProgressBarType == PROGRESSBAR_TYPE_NORMAL)
