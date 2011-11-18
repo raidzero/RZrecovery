@@ -54,7 +54,7 @@ static const struct option OPTIONS[] = {
   {NULL, 0, NULL, 0}, 
 };
 
- static const char *COMMAND_FILE = "/cache/recovery/command";
+static const char *COMMAND_FILE = "/cache/recovery/command";
 static const char *INTENT_FILE = "/cache/recovery/intent";
 static const char *LOG_FILE = "/cache/recovery/log";
 static const char *LAST_LOG_FILE = "/cache/recovery/last_log";
@@ -353,10 +353,9 @@ read_files ()
  ensure_path_unmounted("/sdcard");
 }
 
-int clearBootCnt() {
+int postrecoveryboot() {
   if (access("/sbin/postrecoveryboot.sh",F_OK) != -1 ) {
     if(__system("/sbin/postrecoveryboot.sh")) {
-      printf("\nBoot Count cleared.\n");
       return 0;
     } else {
       return 1;
@@ -883,6 +882,7 @@ main (int argc, char **argv)
   freopen (TEMPORARY_LOG_FILE, "a", stderr);
   setbuf (stderr, NULL);
   printf ("Starting recovery on %s", ctime (&start));
+  postrecoveryboot();
   load_volume_table ();
   process_volumes ();
   ensure_path_mounted("/sdcard");
@@ -1069,7 +1069,6 @@ reboot_android ()
   ensure_path_mounted ("/system");
   remove ("/system/recovery_from_boot.p");
   write_files ();
-  clearBootCnt();
   sync ();
   __reboot (LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2,
 	     LINUX_REBOOT_CMD_RESTART2, NULL);
