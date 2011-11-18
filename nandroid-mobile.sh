@@ -1,5 +1,6 @@
 #!/sbin/sh
 source /ui_commands.sh
+export PATH=/sbin:$PATH
 SUBNAME=""
 NOBOOT=0
 NODATA=0
