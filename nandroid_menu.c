@@ -16,7 +16,7 @@
 void
 nandroid (const char* operation, char *subname, char partitions, int reboot_after, int show_progress, int compress)
 {
-  ui_print ("Attempting Nandroid %s.\n", operation);
+  ui_print ("Starting Nandroid %s.\n", operation);
 
   int boot = partitions & BOOT;
   int data = partitions & DATA;
@@ -411,7 +411,6 @@ show_nandroid_adv_r_menu ()
 		      headers[2] = filename;
 		      break;
 		    case R_ITEM_PERF:
-		      ui_print ("Restoring...\n");
 		      nandroid("restore", filename, partitions, reboot_after, show_progress, compress);
 		      break;
 		    case R_ITEM_B:
@@ -553,8 +552,10 @@ show_compress_menu()
 		if (strcmp(filename,"") != 0) 
 		{  
 			int status = runve("/sbin/compress_nandroid.sh", argv, envp, 200);
-			if (status == 100) return;
-
+			if (status == 100) 
+			{
+			  return;
+			}
 			if (status == 0)
 			{
 				if (reboot_after) reboot_android();

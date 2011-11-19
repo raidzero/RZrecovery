@@ -4,6 +4,10 @@ ui_print() {
     echo "* print $*"
 }
 
+ui_print_n() {
+    echo "* printn $*"
+}
+
 headers() {
     echo "* headers $#"
     while [ $# -gt 0 ]; do 

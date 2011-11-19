@@ -200,18 +200,17 @@ for option in $(getopt --name="nandroid-mobile v2.2.1" -l progress -l install-ro
     esac
 done
 
-echo "* print "
-echo "* print nandroid-mobile v2.2.1 (RZ Hack)"
-echo "* print "
-##
+#echo "* print "
+#echo "* print nandroid-mobile v2.2.1 (RZ Hack)"
+#echo "* print "
 
 [ "$PROGRESS" == "1" ] && echo "* show_indeterminate_progress"
 
 pipeline() {
     if [ "$PROGRESS" == "1" ]; then
-	echo "* show_indeterminate_progress"
+	[ "$PROGRESS" == "1" ] && echo "* show_indeterminate_progress"
 	awk "NR==1 {print \"* ptotal $1\"} {print \"* pcur \" NR}"
-	echo "* reset_progress"
+	[ "$PROGRESS" == "1" ] && echo "* reset_progress"
     else
 	cat
     fi
@@ -220,31 +219,17 @@ pipeline() {
 # Make sure it exists
 touch /cache/recovery/log
 
-if [ ! "$SUBNAME" == "" ]; then
-   if [ "$RESTORE" == 1 ]; then
-       echo "* print "
-   fi
-else
-    if [ "$BACKUP" == 1 ]; then
-        if [ "$ASSUMEDEFAULTUSERINPUT" == 0 ]; then
-            read SUBNAME
-        fi
-        echo "* print "
-    else
-        if [ "$RESTORE" == 1 -o "$DELETE" == 1 ]; then
-            if [ "$ASSUMEDEFAULTUSERINPUT" == 0 ]; then
-                read SUBNAME
-            fi
-
-        fi
+if [ "$BACKUP" == 1 -o "$RESTORE" == 1 ]; then
+    if [ "$ASSUMEDEFAULTUSERINPUT" == 0 ]; then
+        read SUBNAME
     fi
-fi
+fi	
 
 if [ "$INSTALL_ROM" == 1 ]; then
 	
     batteryAtLeast 20
 
-    $ECHO "* show_indeterminate_progress"
+    [ "$PROGRESS" == "1" ] && echo "* show_indeterminate_progress"
 
     echo "* print Installing ROM from $ROM_FILE..."
     mount /sdcard
@@ -434,7 +419,7 @@ if [ "$RESTORE" == 1 ]; then
     mount /system 2>/dev/null
     mount /data 2>/dev/null
     mount /cache 2>/dev/null
-    mkdir /data/data
+    [ ! -e /data/data ] && mkdir /data/data
     mount $DD_DEVICE /data/data 2>/dev/null
     if [ ! -z "$bootIsMountable" ]; then
     	mount /boot 2>/dev/null
@@ -455,7 +440,7 @@ if [ "$RESTORE" == 1 ]; then
     CWD=$PWD
     cd $RESTOREPATH
 
-    echo "* print Processing backup images..."
+    echo "* print Processing backup images:"
 
     if [ `ls boot* 2>/dev/null | wc -l` == 0 ]; then
         NOBOOT=1
@@ -482,19 +467,18 @@ if [ "$RESTORE" == 1 ]; then
             	continue
         	fi
         	echo "* print Flashing $image..."
-			echo "* show_indeterminate_progress"
+			[ "$PROGRESS" == "1" ] && echo "* show_indeterminate_progress"
 			flash_image $image $image.img $OUTPUT
 			echo " done."
     	done
     else 
 	echo "* print Erasing /boot..."
-	cd /boot
-	rm -rf * 2> /dev/null
+	rm -rf /boot/* 2> /dev/null
         TAR_OPTS="x"
 	[ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"
 	TAR_OPTS="${TAR_OPTS}f"
-	PTOTAL=$(tar tf $RESTOREPATH/boot.tar | wc -l)
-        [ "$PROGRESS" == "1" ] && $ECHO "* print Unpacking boot..."
+	[ "$PROGRESS" == "1" ] && PTOTAL=$(tar tf $RESTOREPATH/boot.tar | wc -l)
+        $ECHO "* print Unpacking boot..."
         tar $TAR_OPTS $RESTOREPATH/boot.tar -C /boot | pipeline $PTOTAL
 	cd /
 	sync
@@ -539,10 +523,8 @@ if [ "$RESTORE" == 1 ]; then
 			tarfile="secure"
 	fi
 	echo "* print Erasing /$image..."
-	cd /$image
-	echo "* show_indeterminate_progress"
-	rm -rf *
-	cd /
+	[ "$PROGRESS" == "1" ] && echo "* show_indeterminate_progress"
+	rm -rf /$image/*
 	
 	TAR_OPTS="x"
 	[ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"
@@ -556,14 +538,14 @@ if [ "$RESTORE" == 1 ]; then
 	else
 	  PTOTAL=$(tar tf $RESTOREPATH/$tarfile.tar | wc -l)
 	fi  
-	[ "$PROGRESS" == "1" ] && $ECHO "* print Unpacking $image..."
+	echo "* print Unpacking $image..."
 
 	if [ "$COMPRESSED" == "1" ]; then
 	  tar $TAR_OPTS $RESTOREPATH/$tarfile.tar.gz -C /$image | pipeline $PTOTAL
 	else 
 	  tar $TAR_OPTS $RESTOREPATH/$tarfile.tar -C /$image | pipeline $PTOTAL
 	fi
-	echo "* show_indeterminate_progress"
+	[ "$PROGRESS" == "1" ] && echo "* show_indeterminate_progress"
 	if [ "$image" == "data" ]; then
 	  if [ -e /data/misc/ril/pppd-notifier.fifo ]; then
 	    rm /data/misc/ril/pppd-notifier.fifo
@@ -596,10 +578,7 @@ if [ "$BACKUP" == 1 ]; then
      echo "* print SD Card will thank you :)"
      echo "* print "
     fi 
-    if [ "$PROGRESS" == "1" ]; then 
-      TAR_OPTS="${TAR_OPTS}v"
-    fi
-    
+    [ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"
     TAR_OPTS="${TAR_OPTS}f"
     
     echo "* print Mounting..."
@@ -721,8 +700,8 @@ if [ "$BACKUP" == 1 ]; then
 	
 	if [ ! -z "$bootIsMountable" ]; then
 		cd /boot
-		PTOTAL=$(find . | wc -l)
-	 	[ "$PROGRESS" == "1" ] tar $TAR_OPTS $DESTDIR/boot.tar . 2>/dev/null | pipeline $PTOTAL
+		[ "$PROGRESS" == "1" ] PTOTAL=$(find . | wc -l)
+	 	tar $TAR_OPTS $DESTDIR/boot.tar . 2>/dev/null | pipeline $PTOTAL
 
 		cd /
 		sync
@@ -799,7 +778,7 @@ if [ "$BACKUP" == 1 ]; then
 
 	cd /$image
 
-	PTOTAL=$(find . | wc -l)
+	[ "$PROGRESS" == "1" ] && PTOTAL=$(find . | wc -l)
 	[ "$COMPRESS" == 0 ] && tar $TAR_OPTS $DESTDIR/$dest.tar . 2>/dev/null | pipeline $PTOTAL
 	[ "$COMPRESS" == 1 ] && tar $TAR_OPTS $DESTDIR/$dest.tar.gz . | pipeline $PTOTAL
 	sync
@@ -815,7 +794,7 @@ if [ "$BACKUP" == 1 ]; then
     echo "* print Backup successful."
     B_END=`date +%s`
     ELAPSED_SECS=$(( $B_END - $B_START ))
-    echo "* reset_progress"
+    [ "$PROGRESS" == "1" ] && echo "* reset_progress"
     echo "* print Backup operation took $ELAPSED_SECS seconds."
     echo "* print Total size of backup: $TOTALSIZE MB."
     echo "* print Thanks for using RZRecovery."

@@ -1311,6 +1311,10 @@ runve (char *filename, char **argv, char **envp, int secs)
 			      {
 				ui_print ("%s", strtok (NULL, ""));
 			      }
+		      else if (strcmp (tok, "printn") == 0)
+		     	      {
+			        ui_print_n("%s", strtok (NULL, ""));
+			      }
 		      else if (strcmp (tok, "items") == 0)
 			      {
 				num_items = atoi (strtok (NULL, " \n"));

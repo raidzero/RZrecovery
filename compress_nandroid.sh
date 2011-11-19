@@ -8,7 +8,7 @@ echo "Start compressing $BACKUP"
 tars=`find . -maxdepth 1 -name "*.tar" | xargs | sed 's/\.\///g'`
 
 if [ -z "$tars" ]; then 
-  echo "* print Backup is already compressed or is incomplete!"
+  echo "* print Backup is already compressed or incomplete."
   exit 100
 fi
 

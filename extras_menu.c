@@ -55,7 +55,7 @@ flashlight ()
 {
   if (access ("/sys/class/leds/spotlight/brightness", F_OK))
 	  {
-	    ui_print ("\nFlashlight not found.\n");
+	    ui_print_n ("\nFlashlight not found.\n");
 	    return;
 	  }
   char brightness[3];
