@@ -304,6 +304,25 @@ get_nandroid_adv_r_menu_opts (char **list, char p, char *br, int reboot_after, i
 }
 
 void
+get_nandroid_cmp_menu_opts (char **cmp_opts, int reboot_after)
+{
+
+  char **tmp = malloc (2 * sizeof (char *));
+  int i;
+
+  tmp[0] = malloc (strlen ("(*)  Reboot afterwards") * sizeof (char));
+
+  sprintf (tmp[0], "(%c) reboot afterwards", reboot_after ? '*':' ');
+  tmp[1] = NULL;
+
+  char **h = cmp_opts;
+  char **j = tmp;
+
+  for (; *j; j++, h++)
+    *h = *j;
+}
+
+void
 get_nandroid_adv_b_menu_opts (char **list, char p, char *br, int reboot_after, int show_progress, int compress)
 {
 
@@ -447,7 +466,7 @@ show_delete_menu()
 
   while (chosen_item != ITEM_BACK) 
   {
-    chosen_item = get_menu_selection(headers, items, 0, 0);
+    chosen_item = get_menu_selection(headers, items, 0, chosen_item < 0 ? 0 : chosen_item);
   
     switch (chosen_item) 
     {
@@ -460,7 +479,7 @@ show_delete_menu()
       case D_ITEM_D:  
         if (confirm_selection("Are you sure?", operation))
         { 
-	  if (strcmp(filename,"") != 0) 
+	if (strcmp(filename,"") != 0) 
 	  {  
             ui_print("Deleting %s...\n", filename);
 	    ui_show_indeterminate_progress();
@@ -489,13 +508,17 @@ show_compress_menu()
     NULL
   };
 
-  char *items[] = { "Choose backup",
+  char *cmp_opts[] = { "Choose backup",
     "Compress!",
+	NULL,
     NULL
   };
 
 #define C_ITEM_C  0
 #define C_ITEM_D  1
+#define C_ITEM_R  2
+   
+  int reboot_after = 0;
   
   char filename[PATH_MAX];
   filename[0] = NULL;
@@ -506,7 +529,8 @@ show_compress_menu()
 
   while (chosen_item != ITEM_BACK) 
   {
-    chosen_item = get_menu_selection(headers, items, 0, 0);
+    get_nandroid_cmp_menu_opts (cmp_opts + 2, reboot_after);	// put the menu options in cmp_opts[] starting at index 2
+    chosen_item = get_menu_selection(headers, cmp_opts, 0, chosen_item < 0 ? 0 : chosen_item);
   
     switch (chosen_item) 
     {
@@ -514,26 +538,35 @@ show_compress_menu()
         nandroid_adv_r_choose_file (filename, "/sdcard/nandroid");
         headers[2] = filename;
 	
-	sprintf(operation, "Compress %s", filename);
-	char pathname[256];
-	sprintf(pathname, "/sdcard/nandroid/%s", filename);
-	char **argv = malloc (2 * sizeof (char *));
+		sprintf(operation, "Compress %s", filename);
+		char pathname[256];
+		sprintf(pathname, "/sdcard/nandroid/%s", filename);
+		char **argv = malloc (2 * sizeof (char *));
 
-	argv[0] = "/sbin/compress_nandroid.sh";
-	argv[1] = pathname;
-	argv[2] = NULL;
+		argv[0] = "/sbin/compress_nandroid.sh";
+		argv[1] = pathname;
+		argv[2] = NULL;
 	
-	char *envp[] = { NULL };
-        break;
+		char *envp[] = { NULL };
+		break;
       case C_ITEM_D:  
-	if (strcmp(filename,"") != 0) 
-	{  
-          runve("/sbin/compress_nandroid.sh", argv, envp, 200);
-	  ui_reset_progress();
-	} else {
-	  ui_print("You must select a backup first!\n");
-	}  
+		if (strcmp(filename,"") != 0) 
+		{  
+			int status = runve("/sbin/compress_nandroid.sh", argv, envp, 200);
+			if (status == 100) return;
+
+			if (status == 0)
+			{
+				if (reboot_after) reboot_android();
+			}
+			ui_reset_progress();			
+		} else {
+			ui_print("You must select a backup first!\n");
+		}  
         return;
+	  case C_ITEM_R:
+		reboot_after ^= 1;
+		break;
     }
   }  
 }
