@@ -260,7 +260,6 @@ if [ "$INSTALL_ROM" == 1 ]; then
 
     if echo "$ROM_FILE" | grep ".*gz" >/dev/null;
     then
-		$ECHO "* print Decompressing ROM..."
 		echo "* print Decompressing $ROM_FILE..."
 		busybox gzip -d "$ROM_FILE"
 		ROM_FILE=$(echo "$ROM_FILE" | sed -e 's/.tar.gz$/.tar/' -e 's/.tgz/.tar/')
@@ -424,7 +423,7 @@ if [ "$RESTORE" == 1 ]; then
     echo "* print Restoring $BACKUPNAME."
 
     if [ $LATEST == 1 ]; then
-    	echo "* print is the latest."
+    	echo "* print (This backup is the latest.)"
     fi
     if [ $COMPRESSED -gt 0 ]; then
       echo "* print Backup is compressed. Please be patient."
@@ -481,7 +480,8 @@ if [ "$RESTORE" == 1 ]; then
             	echo "* print "
             	continue
         	fi
-        	echo -n "* print Flashing $image..."
+        	echo "* print Flashing $image..."
+			echo "* show_indeterminate_progress"
 			flash_image $image $image.img $OUTPUT
 			echo " done."
     	done
@@ -539,6 +539,7 @@ if [ "$RESTORE" == 1 ]; then
 	fi
 	echo "* print Erasing /$image..."
 	cd /$image
+	echo "* show_indeterminate_progress"
 	rm -rf *
 	cd /
 	
@@ -561,6 +562,7 @@ if [ "$RESTORE" == 1 ]; then
 	else 
 	  tar $TAR_OPTS $RESTOREPATH/$tarfile.tar -C /$image | pipeline $PTOTAL
 	fi
+	echo "* show_indeterminate_progress"
 	if [ "$image" == "data" ]; then
 	  if [ -e /data/misc/ril/pppd-notifier.fifo ]; then
 	    rm /data/misc/ril/pppd-notifier.fifo
@@ -595,7 +597,6 @@ if [ "$BACKUP" == 1 ]; then
     fi 
     if [ "$PROGRESS" == "1" ]; then 
       TAR_OPTS="${TAR_OPTS}v"
-      echo "* print verbosity enabled"
     fi
     
     TAR_OPTS="${TAR_OPTS}f"
@@ -813,6 +814,7 @@ if [ "$BACKUP" == 1 ]; then
     echo "* print Backup successful."
     B_END=`date +%s`
     ELAPSED_SECS=$(( $B_END - $B_START ))
+    echo "* reset_progress"
     echo "* print Backup operation took $ELAPSED_SECS seconds."
     echo "* print Total size of backup: $TOTALSIZE MB."
     echo "* print Thanks for using RZRecovery."

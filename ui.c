@@ -150,8 +150,8 @@ draw_progress_locked ()
   int height = gr_get_height (gProgressBarEmpty);
   int dx = (gr_fb_width () - width) / 2;
   //int dy = (3 * gr_fb_height () + iconHeight - 2 * height) / 4;
-  int dy = (gr_fb_height() - height - 5); /*I dont want the progress bar to be relative to the 
-  background icon - just put 25 px above the bottom of the screen*/
+  int dy = (gr_fb_height() - height - 3); /*I dont want the progress bar to be relative to the 
+  background icon - just put 22px above the bottom of the screen*/
   // Erase behind the progress bar (in case this was a progress-only update)
     gr_color (0, 0, 0, 255);
   gr_fill (dx, dy, width, height);

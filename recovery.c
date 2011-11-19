@@ -1421,6 +1421,14 @@ runve (char *filename, char **argv, char **envp, int secs)
 			      {
 				ui_show_indeterminate_progress ();
 			      }
+	              else if (strcmp (tok, "reset_progress") == 0)
+		              {
+			        ui_reset_progress();
+			      }
+		      else if (strcmp (tok, "reset_offset") == 0)
+		              {
+			        tmplog_offset = 0;
+		              }
 		      else
 			      {
 				ui_print ("unrecognized command ");

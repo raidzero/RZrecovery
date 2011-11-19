@@ -462,14 +462,17 @@ show_delete_menu()
         { 
 	  if (strcmp(filename,"") != 0) 
 	  {  
-            __system(del_cmd);
-	    ui_print("Backup %s deleted!\n", filename);
+            ui_print("Deleting %s...\n", filename);
+	    ui_show_indeterminate_progress();
+	    __system(del_cmd);
+	    ui_print("Done!\n", filename);
 	  } else {
 	    ui_print("You must select a backup first!\n");
 	  }  
         } else {
 	  return;
 	}
+	ui_reset_progress();
         return;
     }
   }  
