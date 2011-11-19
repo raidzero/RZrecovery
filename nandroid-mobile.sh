@@ -211,6 +211,7 @@ pipeline() {
     if [ "$PROGRESS" == "1" ]; then
 	echo "* show_indeterminate_progress"
 	awk "NR==1 {print \"* ptotal $1\"} {print \"* pcur \" NR}"
+	echo "* reset_progress"
     else
 	cat
     fi
