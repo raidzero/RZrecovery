@@ -17,6 +17,12 @@
   
 #include "nandroid_menu.h"
 
+char* strip_string(char* string)
+{
+  string[strlen(string) - 4] = '\0';
+  return string;
+}
+  
  void
 choose_plugin_menu (char *sdpath)
 {
@@ -54,15 +60,24 @@ choose_plugin_menu (char *sdpath)
 	    j = 0;		//file iterator
 	    while ((de = readdir (dir)) != NULL)
 		    {		      
+			//create a struct to hold the real file name and displayed name (no extension)
+			typedef struct {
+				char* realName;
+				char* displayName;
+			} f;
+			
 			//create files list
 			if ((de->d_type == DT_REG && (strcmp (de->d_name + strlen (de->d_name) - 4, ".tar") == 0
 			|| strcmp (de->d_name + strlen (de->d_name) - 4, ".tgz") == 0)))
 			{
-				list[j] = (char *) malloc (strlen (sdpath) + strlen (de->d_name) + 1);
+				//put the real anme and displayed name into a struct
+				f fa = { .realName=de->d_name, .displayName=strip_string(de->d_name) };
+								
+				list[j] = (char *) malloc (strlen (sdpath) + strlen (fa.displayName) + 1);
 				strcpy (list[j], sdpath);
-				strcat (list[j], de->d_name);
-				list[j] = (char *) malloc (strlen (de->d_name) + 1);
-				strcpy (list[j], de->d_name);
+				strcat (list[j], fa.displayName);
+				list[j] = (char *) malloc (strlen (fa.displayName) + 1);
+				strcpy (list[j], fa.displayName);
 				j++;
 			}
 	    }    
@@ -85,7 +100,7 @@ choose_plugin_menu (char *sdpath)
 					    0 ? 0 : chosen_item);
 		      if (chosen_item >= 0 && chosen_item != ITEM_BACK)
 			  {
-				 char install_string[PATH_MAX];	//create real path from selection
+				char install_string[PATH_MAX];	//create real path from selection
 
 				strcpy (install_string, sdpath);
 				strcat (install_string, list[chosen_item]);

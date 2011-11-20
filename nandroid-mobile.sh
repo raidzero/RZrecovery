@@ -239,8 +239,17 @@ if [ "$INSTALL_ROM" == 1 ]; then
     fi
     
     if [ ! -f $ROM_FILE ]; then
-	[ "$PLUGIN" == "0" ] && echo "* print error: specified ROM file does not exist"
-	exit 14
+        OLD_FILE=$ROM_FILE
+        ROM_FILE=`echo $OLD_FILE | sed 's#$#.tar#'`
+	echo $ROM_FILE
+	if [ ! -f $ROM_FILE ]; then
+		ROM_FILE=`echo $OLD_FILE | sed 's#$#.tgz#'`
+		echo $ROM_FILE
+		if [ ! -f $ROM_FILE ]; then
+			[ "$PLUGIN" == "0" ] && echo "* print error: specified ROM file does not exist"
+			exit 14
+		fi
+	fi
     fi
 
     if echo "$ROM_FILE" | grep ".*gz" >/dev/null;
