@@ -70,7 +70,10 @@ choose_plugin_menu (char *sdpath)
 			if ((de->d_type == DT_REG && (strcmp (de->d_name + strlen (de->d_name) - 4, ".tar") == 0
 			|| strcmp (de->d_name + strlen (de->d_name) - 4, ".tgz") == 0)))
 			{
-				//put the real anme and displayed name into a struct
+				/*put the real name and displayed name into a struct
+				TODO: recall the realname from the struct for the install instead of 
+				handing it in the shell script
+				*/
 				f fa = { .realName=de->d_name, .displayName=strip_string(de->d_name) };
 								
 				list[j] = (char *) malloc (strlen (sdpath) + strlen (fa.displayName) + 1);

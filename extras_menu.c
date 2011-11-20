@@ -86,14 +86,14 @@ int plugins_present(const char* sdpath)
 {
   DIR * dir;
   struct dirent *de;
-  int present = 0;
+  int present;
   int total = 0;
 
   ensure_path_mounted ("/sdcard");
-  dir = opendir (sdpath);
-  printf("Dir opened.\n");
   if (access(sdpath, F_OK) != -1)
   {
+    dir = opendir (sdpath);
+    printf("Dir opened.\n");
     while ((de = readdir (dir)) != NULL)
 	{
 		if (strcmp(de->d_name + strlen (de->d_name) - 4, ".tar") == 0 || strcmp(de->d_name + strlen (de->d_name) - 4, ".tgz") == 0)
@@ -101,24 +101,26 @@ int plugins_present(const char* sdpath)
 			total++;
 		}
 	}
+	if (closedir(dir) > 0)
+	{
+	  printf("Failed to close plugin directory.\n");
+	}
 	if (total > 0) 
 	{
-	  present = 1;
 	  printf("Plugins found.\n");
+	  return 1;
 	}
 	else
 	{
 	  printf("No plugins found.\n");
+	  return 0;
 	}
   }
   else
   {
 	printf("Plugins directory not present.\n");
+	return 0;
   }
-  ensure_path_unmounted("/sdcard");
-  free(dir);
-  
-  return present;
 }
   
 void
@@ -128,31 +130,24 @@ show_extras_menu ()
     "",
     NULL
   };
-   
-  int plugins_found = plugins_present("/sdcard/RZR/plugins");
-  char* items[5];
+  
+  char* items[6];
   items[0] = "Custom Colors";
   items[1] = "Show Battery Status";
   items[2] = "Recovery Overclocking";
   items[3] = "ROM Tweaks";
-  if (plugins_found==1)
+  if (plugins_present("/sdcard/RZR/plugins")) 
   {
     items[4] = "Plugins";
 	items[5] = NULL;
   }
-  else
-  {
-    items[4] = NULL;
-  }
+  else items[4] = NULL;	
 
 #define COLORS			0
 #define BATT 			1	
 #define OVERCLOCK	   	2
 #define ROMTWEAKS		3
-if (plugins_found==1)
-{
-  #define PLUGINS			4
-}
+#define PLUGINS			4
 
   int chosen_item = -1;
 
