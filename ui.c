@@ -459,10 +459,6 @@ input_thread (void *cookie)
 		      pthread_cond_signal (&key_queue_cond);
 		    }
 	    pthread_mutex_unlock (&key_queue_mutex);
-	     
-	      /*if (ev.value > 0 && device_reboot_now(key_pressed, ev.code)) {
-	         reboot(RB_AUTOBOOT);
-	         } */ 
 	  }
   return NULL;
 }
