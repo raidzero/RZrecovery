@@ -286,14 +286,23 @@ write_files ()
 	    if (access("/cache/icon_rw", F_OK) != -1)
 	    {
 	    	copyFile("/cache/icon_rw","/sdcard/RZR/icon_rw");
-		printf("RW Icon saved to sdcard");
+		printf("RW Icon saved to sdcard.\n");
 	    }
 	    if (access("/cache/icon_rz", F_OK) != -1)
 	    {
 	        copyFile("/cache/icon_rz","/sdcard/RZR/icon_rz");
-	        printf("RZ Icon saved to sdcard");
+	        printf("RZ Icon saved to sdcard.\n");
 	    }
-
+	    if (access("/cache/recovery/log", F_OK) != -1)
+	    {
+	        copyFile("/cache/recovery/log","/sdcard/RZR/log");
+	        printf("Recovery log saved to sdcard.\n");
+	    }		
+	    if (access("/cache/recovery/last_log", F_OK) != -1)
+	    {
+	        copyFile("/cache/recovery/last_log","/sdcard/RZR/last_log");
+	        printf("Last recovery log saved to sdcard.\n");
+	    }
 	    sync ();
 	  }
 }
@@ -338,6 +347,9 @@ read_files ()
  if (access("/sdcard/RZR", F_OK) != -1) {
    __system("chmod -R 777 /sdcard/RZR"); //some ROMs go messing with my files!
    __system("cp /sdcard/RZR/* /cache");
+   __system("mkdir /cache/recovery");
+   __system("mv /cache/log /cache/recovery/log");
+   __system("mv /cache/last_log /cache/recovery/last_log");
    if ( access("/cache/icon_rw",F_OK) == -1 && access("/cache/icon_rz",F_OK == -1) ) {
      __system("echo > /cache/icon_rz");
    }
@@ -569,7 +581,7 @@ erase_volume (const char *volume)
 	      // Reset the pointer so we copy from the beginning of the temp
 	      // log.
 	      tmplog_offset = 0;
-	  }
+	   }   
    return format_volume (volume);
 }
 
