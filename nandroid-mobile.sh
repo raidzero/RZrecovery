@@ -11,7 +11,7 @@ RESTORE=0
 BACKUP=0
 COMPRESS=0
 INSTALL_ROM=0
-
+PLUGIN=0
 BACKUPPATH="/sdcard/nandroid"
 
 
@@ -103,7 +103,7 @@ esac
 ECHO=echo
 OUTPUT=""
 
-for option in $(getopt --name="nandroid-mobile v2.2.1" -l progress -l install-rom: -l noboot -l nodata -l nocache -l nosystem -l nosecure -l subname: -l backup -l compress -l restore -l defaultinput -- "cbruds:p:eqli:" "$@"); do
+for option in $(getopt --name="nandroid-mobile v2.2.1" -l progress -l install-rom: -l plugin -l noboot -l nodata -l nocache -l nosystem -l nosecure -l subname: -l backup -l compress -l restore -l defaultinput -- "cbruds:p:eqli:" "$@"); do
     case $option in
 	--verbose)
 	    VERBOSE=1
@@ -190,6 +190,9 @@ for option in $(getopt --name="nandroid-mobile v2.2.1" -l progress -l install-ro
 	    INSTALL_ROM=1
 	    ROM_FILE=$2
 	    ;;
+	--plugin)
+	    PLUGIN=1
+	    ;;
 	--progress)
 	    PROGRESS=1
 	    ;;
@@ -199,10 +202,6 @@ for option in $(getopt --name="nandroid-mobile v2.2.1" -l progress -l install-ro
             ;;
     esac
 done
-
-#echo "* print "
-#echo "* print nandroid-mobile v2.2.1 (RZ Hack)"
-#echo "* print "
 
 [ "$PROGRESS" == "1" ] && echo "* show_indeterminate_progress"
 
@@ -231,25 +230,25 @@ if [ "$INSTALL_ROM" == 1 ]; then
 
     [ "$PROGRESS" == "1" ] && echo "* show_indeterminate_progress"
 
-    echo "* print Installing ROM from $ROM_FILE..."
+    [ "$PLUGIN" == "0" ] && echo "* print Installing ROM from $ROM_FILE..."
     mount /sdcard
 
     if [ -z "$(mount | grep sdcard)" ]; then
-	echo "* print error: unable to mount /sdcard, aborting"
+	[ "$PLUGIN" == "0" ] && echo "* print error: unable to mount /sdcard, aborting"
 	exit 13
     fi
     
     if [ ! -f $ROM_FILE ]; then
-	echo "* print error: specified ROM file does not exist"
+	[ "$PLUGIN" == "0" ] && echo "* print error: specified ROM file does not exist"
 	exit 14
     fi
 
     if echo "$ROM_FILE" | grep ".*gz" >/dev/null;
     then
-		echo "* print Decompressing $ROM_FILE..."
+		[ "$PLUGIN" == "0" ] && echo "* print Decompressing $ROM_FILE..."
 		busybox gzip -d "$ROM_FILE"
 		ROM_FILE=$(echo "$ROM_FILE" | sed -e 's/.tar.gz$/.tar/' -e 's/.tgz/.tar/')
-		echo "* print Decompressed to $ROM_FILE"
+		[ "$PLUGIN" == "0" ] && echo "* print Decompressed to $ROM_FILE"
     fi
 
     cd /tmp
@@ -257,10 +256,10 @@ if [ "$INSTALL_ROM" == 1 ]; then
     [ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"
     TAR_OPTS="${TAR_OPTS}f"
     
-    [ "$PROGRESS" == "1" ] && $ECHO "* print Unpacking $ROM_FILE..."
+    [ "$PLUGIN" == "0" ] && [ "$PROGRESS" == "1" ] && $ECHO "* print Unpacking $ROM_FILE..."
     PTOTAL=$(($(tar tf "$ROM_FILE" | wc -l)-2))
-	echo "* print $PTOTAL files in archive!"
-	echo "* print "
+	[ "$PLUGIN" == "0" ] && echo "* print $PTOTAL files in archive!"
+	[ "$PLUGIN" == "0" ] && echo "* print "
     
     tar $TAR_OPTS "$ROM_FILE" --exclude ./system.tar --exclude ./data.tar | pipeline $PTOTAL
 
@@ -274,7 +273,7 @@ if [ "$INSTALL_ROM" == 1 ]; then
 
     GETVAL=sed\ -r\ 's/.*=(.*)/\1/'
 
-    if [ -d metadata ]; then
+    [ "$PLUGIN" == "0" ] && if [ -d metadata ]; then
 	HGREV=$(cat /recovery.version | awk '{print $2}')
 	MIN_REV=$(cat metadata/* | grep "min_rev=" | head -n1 | $GETVAL)
 	
@@ -295,7 +294,7 @@ if [ "$INSTALL_ROM" == 1 ]; then
     fi
 
     if [ -d pre.d ]; then
-		echo "* print Executing pre-install scripts..."
+		[ "$PLUGIN" == "0" ] && echo "* print Executing pre-install scripts..."
 		for sh in pre.d/[0-9]*.sh; do
 			if [ -r "$sh" ]; then
 			. "$sh"
@@ -306,27 +305,27 @@ if [ "$INSTALL_ROM" == 1 ]; then
     for image in system data; do
 	if [ "$image" == "data" -a "$NODATA" == "1" ];
 	then
-	    echo "* print Not flashing /data"
+	    [ "$PLUGIN" == "0" ] && echo "* print Not flashing /data"
 	    continue
 	fi
 
 	if [ "$image" == "system" -a "$NOSYSTEM" == "1" ];
 	then
-	    echo "* print Not flashing /system"
+	    [ "$PLUGIN" == "0" ] && echo "* print Not flashing /system"
 	    continue
 	fi
 	
-	echo "* print Flashing /$image from $image.tar"	
+	[ "$PLUGIN" == "0" ] && echo "* print Flashing /$image from $image.tar"	
 	mount /$image 2>/dev/null
 
 	
 	if [ "$(mount | grep $image)" == "" ]; then
-	    echo "* print error: unable to mount /$image"
+	    [ "$PLUGIN" == "0" ] && echo "* print error: unable to mount /$image"
 	    exit 16
 	fi
 
 	if cat metadata/* | grep "^clobber_${image}=" | grep "true" > /dev/null; then
-	    echo "* print wiping /${image}..."
+	    [ "$PLUGIN" == "0" ] && echo "* print wiping /${image}..."
 	    rm -r /$image/* 2>/dev/null  
 	fi
 
@@ -335,7 +334,7 @@ if [ "$INSTALL_ROM" == 1 ]; then
 	TAR_OPTS="x"
 	[ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"
 	PTOTAL=$(tar xOf "$ROM_FILE" ./${image}.tar | tar t | wc -l)
-	[ "$PROGRESS" == "1" ] && $ECHO "* print Extracting ${image}.tar"
+	[ "$PLUGIN" == "0" ] && [ "$PROGRESS" == "1" ] && $ECHO "* print Extracting ${image}.tar"
 
 	tar xOf "$ROM_FILE" ./${image}.tar | tar $TAR_OPTS | pipeline $PTOTAL
     done
@@ -343,7 +342,7 @@ if [ "$INSTALL_ROM" == 1 ]; then
     cd /tmp
 
     if [ -d post.d ]; then
-	echo "* print Executing post-install scripts..."
+	[ "$PLUGIN" == "0" ] && echo "* print Executing post-install scripts..."
 	for sh in post.d/[0-9]*.sh; do
 	    if [ -r "$sh" ]; then
 		. "$sh"
@@ -351,7 +350,7 @@ if [ "$INSTALL_ROM" == 1 ]; then
 	done
     fi
 
-    echo "* print Installed ROM from $ROM_FILE"
+    [ "$PLUGIN" == "0" ] && echo "* print Installed ROM from $ROM_FILE"
     umount /system 2>/dev/null
     umount /data 2>/dev/null
     exit 0

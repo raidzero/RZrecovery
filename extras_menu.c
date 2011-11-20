@@ -1,10 +1,12 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <dirent.h>
 
 #include "recovery.h"
 #include "roots.h"
 #include "recovery_ui.h"
+#include "plugins_menu.h"
 
 void show_battstat ()
 {
@@ -80,6 +82,45 @@ flashlight ()
   fclose (flw);
 }
 
+int plugins_present(const char* sdpath)
+{
+  DIR * dir;
+  struct dirent *de;
+  int present = 0;
+  int total = 0;
+
+  ensure_path_mounted ("/sdcard");
+  dir = opendir (sdpath);
+  printf("Dir opened.\n");
+  if (access(sdpath, F_OK) != -1)
+  {
+    while ((de = readdir (dir)) != NULL)
+	{
+		if (strcmp(de->d_name + strlen (de->d_name) - 4, ".tar") == 0 || strcmp(de->d_name + strlen (de->d_name) - 4, ".tgz") == 0)
+		{
+			total++;
+		}
+	}
+	if (total > 0) 
+	{
+	  present = 1;
+	  printf("Plugins found.\n");
+	}
+	else
+	{
+	  printf("No plugins found.\n");
+	}
+  }
+  else
+  {
+	printf("Plugins directory not present.\n");
+  }
+  ensure_path_unmounted("/sdcard");
+  free(dir);
+  
+  return present;
+}
+  
 void
 show_extras_menu ()
 {
@@ -87,19 +128,31 @@ show_extras_menu ()
     "",
     NULL
   };
-
-
-  char* items[] = { "Custom Colors",
-    		"Show Battery Status",
-    		"Recovery Overclocking",
-    		"ROM Tweaks",
-		NULL
-  	};
+   
+  int plugins_found = plugins_present("/sdcard/RZR/plugins");
+  char* items[5];
+  items[0] = "Custom Colors";
+  items[1] = "Show Battery Status";
+  items[2] = "Recovery Overclocking";
+  items[3] = "ROM Tweaks";
+  if (plugins_found==1)
+  {
+    items[4] = "Plugins";
+	items[5] = NULL;
+  }
+  else
+  {
+    items[4] = NULL;
+  }
 
 #define COLORS			0
 #define BATT 			1	
 #define OVERCLOCK	   	2
 #define ROMTWEAKS		3
+if (plugins_found==1)
+{
+  #define PLUGINS			4
+}
 
   int chosen_item = -1;
 
@@ -124,6 +177,9 @@ show_extras_menu ()
 		    case ROMTWEAKS:
 		      show_romTweaks_menu();
 		      break;
+			case PLUGINS:
+			  choose_plugin_menu("/sdcard/RZR/plugins/");
+			  break;
 		    }
 	  }
 }
