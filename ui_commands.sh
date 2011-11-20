@@ -50,8 +50,12 @@ show_check_menu() {
     echo "* show_check_menu"
 }
 
-show_indeterminate_progress() {
+ui_show_indeterminate_progress() {
     echo "* show_indeterminate_progress"
+}
+
+ui_reset_progress() {
+    echo "* reset_progress"
 }
 
 menu() {

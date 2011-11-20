@@ -43,6 +43,7 @@
 #include "flashutils/flashutils.h"
 #include "mkbootimg.h"
 #include "unpackbootimg.h"
+#include "make_ext4fs.h"
 
 #include "mounts.h"
 static const struct option OPTIONS[] = { 
@@ -223,9 +224,36 @@ process_volumes ()
 {
   create_fstab ();
   printf ("process_volumes done.\n");
-}  void
+} 
 
-create_fstab () 
+int mkfs_ext4_main (int argc, char** argv)
+{
+  if (argc != 2) 
+  {
+    printf("Usage: mkfs.ext4 MOUNTPOINT\n");
+    return -1;
+  }
+
+  Volume * v = volume_for_path(argv[1]);
+  if (v != NULL) 
+  {
+    printf("About to run internal make_ext4fs...\n");
+    if (!make_ext4fs (v->device, NULL, NULL, 0, 0, 0))
+    {
+      printf("Success.\n");
+      return 0;
+    }
+    else
+    {
+      printf("Invalid volume %s.\n",argv[1]);
+      return -1;
+    }
+  }
+  return 0;
+}
+
+
+void create_fstab () 
 {
   struct stat info;
 
@@ -883,6 +911,8 @@ main (int argc, char **argv)
 	      return unpack_bootimg_main(argc, argv);
 	    if (strstr (argv[0], "mkbootfs") != NULL)
 	      return mkbootfs_main(argc, argv);
+	    if (strstr (argv[0], "mkfs.ext4") != NULL)
+	      return mkfs_ext4_main(argc, argv);
 	    //we dont need to keep executing stuff past this point if an embedded function was called 
 	    return 0;
 	  }

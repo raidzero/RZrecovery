@@ -365,8 +365,8 @@ show_nandroid_adv_r_menu ()
     NULL
   };
 
-  char *items[] = { "Choose backup",
-    "Perform restore",
+  char *items[] = { "Perform restore",
+    "Choose backup",
     NULL,
     NULL,
     NULL,
@@ -377,8 +377,8 @@ show_nandroid_adv_r_menu ()
     NULL
   };
 
-#define ITEM_CHSE 0
-#define R_ITEM_PERF 1
+#define R_ITEM_PERF 0
+#define R_ITEM_CHSE 1
 #define R_ITEM_B    2
 #define R_ITEM_D    3
 #define R_ITEM_A    4
@@ -405,13 +405,13 @@ show_nandroid_adv_r_menu ()
 
 	    switch (chosen_item)
 		    {
-		    case ITEM_CHSE:
+		    case R_ITEM_PERF:
+		      nandroid("restore", filename, partitions, reboot_after, show_progress, compress);
+		      break;
+		    case R_ITEM_CHSE:
 		      nandroid_adv_r_choose_file (filename,
 						  "/sdcard/nandroid");
 		      headers[2] = filename;
-		      break;
-		    case R_ITEM_PERF:
-		      nandroid("restore", filename, partitions, reboot_after, show_progress, compress);
 		      break;
 		    case R_ITEM_B:
 		      partitions ^= BOOT;
