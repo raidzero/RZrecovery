@@ -372,12 +372,14 @@ NULL
 	  {
 	    ui_printf_int ("ERROR: install exited with status %d\n",
 			    WEXITSTATUS (status));
+	    __system("cd /tmp; for files in `find . | grep -v \"recovery\.log\"`; do rm -rf $files; done");
 	    return WEXITSTATUS (status);
 	  }
   else
 	  {
 	    ui_print ("(done)\n");
 	  }
+  __system("cd /tmp; for files in `find . | grep -v \"recovery\.log\"`; do rm -rf $files; done");	  
   ui_reset_progress ();
   return 0;
 }
