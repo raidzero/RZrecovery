@@ -214,7 +214,7 @@ write_fstab_root (char *path, FILE * file)
     }  
 }
 
-int volume_present(char* volume) {
+int volume_present(const char* volume) {
   Volume *vol = volume_for_path(volume);
   return vol != NULL; 
 }
@@ -234,7 +234,7 @@ int mkfs_ext4_main (int argc, char** argv)
     return -1;
   }
 
-  char **volume = argv[1];
+  const char *volume = argv[1];
   Volume *v = volume_for_path(volume);
   printf("About to run internal make_ext4fs on %s.\n", argv[1]);
   
@@ -623,7 +623,7 @@ erase_volume_main (int argc, char **argv)
 	    return -1;
 	  }
 
-  char **vol = argv[1];
+  const char *vol = argv[1];
 
   if (strcmp (vol, "/cache") == 0)
 	  {
@@ -650,7 +650,7 @@ erase_volume_main (int argc, char **argv)
 
 int volume_info_main(int argc, char** argv)
 {
- char** vol = argv[1];
+ const char* vol = argv[1];
  Volume* path_volume = volume_for_path(vol); 
 
  if (path_volume != NULL) 
@@ -947,6 +947,10 @@ main (int argc, char **argv)
 	      return mkfs_ext4_main(argc, argv);
 	    if (strstr (argv[0], "volume_info") != NULL)
 	      return volume_info_main(argc, argv);
+	    if (strstr (argv[0], "reboot_android") != NULL)
+	      return reboot_android();
+	    if (strstr (argv[0], "reboot_recovery") != NULL)
+	      return reboot_recovery();
 	    //we dont need to keep executing stuff past this point if an embedded function was called 
 	    return 0;
 	  }
