@@ -235,14 +235,15 @@ int mkfs_ext4_main (int argc, char** argv)
   }
 
   char **volume = argv[1];
-  Volume * v = volume_for_path(volume);
+  Volume *v = volume_for_path(volume);
+  printf("About to run internal make_ext4fs on %s.\n", argv[1]);
+  
   if (v == NULL) 
   {
     printf("Invalid volume %s\n",argv[1]); 
     return -1;
   }
-  printf("About to run internal make_ext4fs on %s.\n", argv[1]);
-  printf("Device: %s\n",v->device);
+
   int status = make_ext4fs (v->device, NULL, NULL, 0, 0, 0);
 
   if (status != 0)
@@ -632,7 +633,7 @@ erase_volume_main (int argc, char **argv)
 	      // log.
 	      tmplog_offset = 0;
 	  }
-  Volume * v = volume_for_path(vol);
+  Volume *v = volume_for_path(vol);
   if (v != NULL) 
   {
     printf("Executing internal format_volume on %s.\n", vol);
@@ -646,6 +647,24 @@ erase_volume_main (int argc, char **argv)
   fprintf(stderr, "Volume %s does not exist!\n", vol);
   return -1;
 }
+
+int volume_info_main(int argc, char** argv)
+{
+ char** vol = argv[1];
+ Volume* path_volume = volume_for_path(vol); 
+
+ if (path_volume != NULL) 
+ { 
+   printf("Volume information: \n Mount point: %s\n Filesystem: %s\nDevice: %s\n", path_volume->mount_point, path_volume->fs_type, path_volume->device);
+ }
+ else
+ {
+   load_volume_table();
+ }
+ return 0;
+}
+
+
 
  char *
 copy_sideloaded_package (const char *original_path)
@@ -926,6 +945,8 @@ main (int argc, char **argv)
 	      return mkbootfs_main(argc, argv);
 	    if (strstr (argv[0], "mkfs.ext4") != NULL)
 	      return mkfs_ext4_main(argc, argv);
+	    if (strstr (argv[0], "volume_info") != NULL)
+	      return volume_info_main(argc, argv);
 	    //we dont need to keep executing stuff past this point if an embedded function was called 
 	    return 0;
 	  }
