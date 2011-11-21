@@ -230,26 +230,26 @@ int mkfs_ext4_main (int argc, char** argv)
 {
   if (argc != 2) 
   {
-    printf("Usage: mkfs.ext4 MOUNTPOINT\n");
+    printf("Usage: mkfs.ext4 mountpoint\n");
     return -1;
   }
 
-  Volume * v = volume_for_path(argv[1]);
-  if (v != NULL) 
+  char *volume = argv[1];
+  Volume * v = volume_for_path(volume);
+  if (v == NULL) 
   {
-    printf("About to run internal make_ext4fs...\n");
-    if (!make_ext4fs (v->device, NULL, NULL, 0, 0, 0))
-    {
-      printf("Success.\n");
-      return 0;
-    }
-    else
-    {
-      printf("Invalid volume %s.\n",argv[1]);
-      return -1;
-    }
+    printf("Invalid volume %s\n",argv[1]); 
+    return -1;
   }
-  return 0;
+  printf("About to run internal make_ext4fs on %s.\n", argv[1]);
+  printf("Device: %s\n",v->device);
+  int status = make_ext4fs (v->device, NULL, NULL, 0, 0, 0);
+
+  if (status != 0)
+  {
+    fprintf(stderr, "failed with error: %d\n", status);
+  }
+  return status;
 }
 
 
@@ -614,16 +614,17 @@ erase_volume (const char *volume)
 }
 
  int 
-erase_volume_cmd (int argc, char **argv)
+erase_volume_main (int argc, char **argv)
 {
   if (argc != 2)
 	  {
 	    printf ("\nUsage: %s volume\n", argv[0]);
-	    return 0;
+	    return -1;
 	  }
-  char **volume = argv[1];
 
-  if (strcmp (volume, "/cache") == 0)
+  char *vol = argv[1];
+
+  if (strcmp (vol, "/cache") == 0)
 	  {
 	    
 	      // Any part of the log we'd copied to cache is now gone.
@@ -631,7 +632,19 @@ erase_volume_cmd (int argc, char **argv)
 	      // log.
 	      tmplog_offset = 0;
 	  }
-  return format_volume (volume);
+  Volume * v = volume_for_path(vol);
+  if (v != NULL) 
+  {
+    printf("Executing internal format_volume on %s.\n", vol);
+    int status = erase_volume (vol);
+    if (status != 0)
+    {
+      fprintf(stderr, "failed with error: %d\n", status);
+    }
+    return status;
+  }  
+  fprintf(stderr, "Volume %s does not exist!\n", vol);
+  return -1;
 }
 
  char *
@@ -904,7 +917,7 @@ main (int argc, char **argv)
 	    if (strstr (argv[0], "erase_image") != NULL)
 	      return erase_image_main (argc, argv);
 	    if (strstr (argv[0], "format") != NULL)
-	      return erase_volume_cmd (argc, argv);
+	      return erase_volume_main (argc, argv);
 	    if (strstr (argv[0], "mkbootimg") != NULL)
 	      return mkbootimg_main(argc, argv);
 	    if (strstr (argv[0], "unpack_bootimg") != NULL)
