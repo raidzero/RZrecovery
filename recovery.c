@@ -234,7 +234,7 @@ int mkfs_ext4_main (int argc, char** argv)
     return -1;
   }
 
-  char *volume = argv[1];
+  char **volume = argv[1];
   Volume * v = volume_for_path(volume);
   if (v == NULL) 
   {
@@ -622,7 +622,7 @@ erase_volume_main (int argc, char **argv)
 	    return -1;
 	  }
 
-  char *vol = argv[1];
+  char **vol = argv[1];
 
   if (strcmp (vol, "/cache") == 0)
 	  {
