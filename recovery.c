@@ -41,9 +41,9 @@
 #include "encryptedfs_provisioning.h"
 #include "recovery_ui.h"  
 #include "flashutils/flashutils.h"
-#include "mkbootimg.h"
-#include "unpackbootimg.h"
-#include "make_ext4fs.h"
+//#include "mkbootimg.h"
+//#include "unpackbootimg.h"
+//#include "make_ext4fs.h"
 
 #include "mounts.h"
 static const struct option OPTIONS[] = { 
