@@ -503,6 +503,7 @@ preinstall_apk (char *filename)
 preinstall_menu (char *filename)
 {
    char *basename = strrchr (filename, '/') + 1;
+  char *current_basename = strrchr (filename, '/') + 1;
   char install_string[PATH_MAX];
   
   if (position > 0 )
@@ -515,10 +516,11 @@ preinstall_menu (char *filename)
 	{
 	  install_list_base = strrchr (install_list[z], '/') + 1;
 	  ui_print("%i: %s\n", z+1, install_list_base);
-	}  
+	} 
+	ui_print("%i: %s\n", position+1, current_basename);
   }
   strcpy (install_string, "Install ");
-  strcat (install_string, basename);
+  strcat (install_string, current_basename);
 
    char *headers[] =
     { "Preinstall Menu", "Please make your selections.", " ", NULL
