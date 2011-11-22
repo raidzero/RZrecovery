@@ -1294,8 +1294,10 @@ int ask_question(char* question)
   }
 }
 
-int confirm_selection(char* question, char* operation)
+int confirm_selection(char* question, char* operation, int autoaccept)
 {
+  if (autoaccept) return 1;
+  
   char* headers[] = { question,
     "THIS CANNOT BE UNDONE!",
     "",

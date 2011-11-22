@@ -34,4 +34,4 @@ void get_check_menu_opts (char **items, char **chk_items, int *flags);
 int runve (char *filename, char **argv, char **envp, int secs);
 
 int ask_question(char* question);
-int confirm_selection(char* question, char* operation);
+int confirm_selection(char* question, char* operation, int autoaccept);

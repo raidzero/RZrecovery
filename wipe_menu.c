@@ -7,7 +7,7 @@
 #include "roots.h"
 #include "recovery_ui.h"
 
-int wipe_partition(char* partition) 
+int wipe_partition(char* partition, int autoaccept) 
 {
 	write_files();
 	char wipe_header[255] = "";
@@ -28,7 +28,7 @@ int wipe_partition(char* partition)
     
 	if (strcmp (partition, "all") == 0)
 	{
-	    if (confirm_selection("Wipe EVERYTHING?", "Yes - wipe the entire device")) {
+	    if (confirm_selection("Wipe EVERYTHING?", "Yes - wipe the entire device", autoaccept)) {
 			ui_print ("\n-- Wiping system... ");
 			ensure_path_unmounted ("/system");
 			erase_volume ("/system");
@@ -61,7 +61,7 @@ int wipe_partition(char* partition)
 		}
 	}
 	  
-	if (confirm_selection(wipe_header, operation))
+	if (confirm_selection(wipe_header, operation, autoaccept))
 	{	
 		ui_print("-- Wiping %s... ",partition);
 		
@@ -171,35 +171,35 @@ show_wipe_menu ()
 	    switch (chosen_item)
 		    {
 		    case WIPE_ALL:
-		      wipe_partition("all");
+		      wipe_partition("all", 0);
 		      break;
 
 		    case WIPE_SYSTEM:
-		      wipe_partition("system");
+		      wipe_partition("system", 0);
 		      break;
 
 		    case WIPE_DATA:
-		      wipe_partition("data");
+		      wipe_partition("data", 0);
 		      break;
 
 		    case WIPE_AS:
-		      wipe_partition("android-secure");
+		      wipe_partition("android-secure", 0);
 		      break;
 
 		    case WIPE_BOOT:
-		      wipe_partition("boot");
+		      wipe_partition("boot", 0);
 		      break;
 
 		    case WIPE_CACHE:
-		      wipe_partition("cache");
+		      wipe_partition("cache", 0);
 		      break;
 
 		    case WIPE_BATT:
-		      wipe_partition("battery statistics");
+		      wipe_partition("battery statistics", 0);
 		      break;
 
 		    case WIPE_DK:
-		      wipe_partition("dalvik-cache");
+		      wipe_partition("dalvik-cache", 0);
 		      break;
 		    }
 	  }

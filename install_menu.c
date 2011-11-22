@@ -20,12 +20,28 @@
 char** install_list;
 int position = 0;
 int reboot_afterwards = 0;
+int backup = 0;
+int dwipe = 0;
+int cwipe = 0;
 
 void set_reboot_afterwards()
 {
  reboot_afterwards ^= 1;
- if (reboot_afterwards == 0) printf("Will not reboot afterwards.\n");
- if (reboot_afterwards == 1) printf("Will reboot afterwards.\n");
+}
+
+void set_backup()
+{
+ backup ^= 1;
+}
+
+void set_dwipe()
+{
+ dwipe ^= 1;
+}
+ 
+void set_cwipe()
+{
+ cwipe ^= 1;
 }
  
 void init_list()
@@ -362,6 +378,9 @@ install_update_package (char *filename)
   char *apk_extension = (filename + strlen (filename) - 3);
   printf("Position: %i\n", position);
   
+  if (backup) nandroid("backup", "preinstall", DEFAULT, 0, 1, 0); backup = 0;; //reset it after the first run
+  if (dwipe) wipe_partition("/cache", 1); dwipe = 0;
+  if (cwipe) wipe_partition("/cache", 1); cwipe = 0;
   if (strcmp (extension, "zip") == 0)
 	  {
 	    ui_print ("\nZIP detected.\n");
@@ -507,13 +526,18 @@ void
 get_preinstall_menu_opts (char **preinstall_opts)
 {
 
-  char **tmp = malloc (2 * sizeof (char *));
+  char **tmp = malloc (5 * sizeof (char *));
   int i;
-
-  tmp[0] = malloc (strlen ("(*)  Reboot afterwards") * sizeof (char));
-
-  sprintf (tmp[0], "(%c) Reboot afterwards", reboot_afterwards ? '*':' ');
-  tmp[1] = NULL;
+  for (i=0; i<4; i++)
+  {
+    tmp[i] = malloc (strlen ("(*)  Backup before install") * sizeof (char));
+  }
+  
+  sprintf (tmp[0], "(%c) Backup before install", backup ? '*':' ');
+  sprintf (tmp[1], "(%c) Wipe cache", cwipe ? '*':' ');
+  sprintf (tmp[2], "(%c) Wipe data", dwipe ? '*':' ');
+  sprintf (tmp[3], "(%c) Reboot afterwards", reboot_afterwards ? '*':' ');
+  tmp[4] = NULL;
 
   char **h = preinstall_opts;
   char **j = tmp;
@@ -550,31 +574,31 @@ preinstall_menu (char *filename)
   };
   char *preinstall_opts[] =
   { 
-	"Abort Install", 
-	"Backup Before Install", 
-	"Wipe /data", 
-	"Wipe /cache", 
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 	"Add to install queue", 
 	"Clear install queue", 
+	"Abort install",
 	install_string, 
-	NULL, 
 	NULL
   };
   
-#define ITEM_NO 		0
-#define ITEM_BACKUP 	1
+#define ITEM_BACKUP		0
+#define ITEM_CWIPE 		1
 #define ITEM_DWIPE 		2
-#define ITEM_CWIPE		3
+#define ITEM_REBOOT		3
 #define ITEM_QUEUE		4
 #define ITEM_CLEAR      5
-#define ITEM_INSTALL 	6
-#define ITEM_REBOOT		7
+#define ITEM_NO			6
+#define ITEM_INSTALL 	7
 
   int chosen_item = -1;
 
   while (chosen_item != ITEM_BACK)
 	  {
-	    get_preinstall_menu_opts (preinstall_opts + 7);	// put the menu options in preinstall_opts[] starting at index 7
+	    get_preinstall_menu_opts (preinstall_opts);
 	    chosen_item = get_menu_selection (headers, preinstall_opts, 0, chosen_item < 0 ? 0 : chosen_item);
 		
 	    switch (chosen_item)
@@ -583,14 +607,13 @@ preinstall_menu (char *filename)
 		      choose_file_menu("/sdcard/");
 			  return;
 		    case ITEM_BACKUP:
-		      ui_print ("Backing up before installing...\n");
-		      nandroid("backup", "preinstall", DEFAULT, 0, 1, 0);
+		      set_backup();
 		      break;
 		    case ITEM_DWIPE:
-		      wipe_partition("data");
+		      set_dwipe();
 		      break;
 		    case ITEM_CWIPE:
-		      wipe_partition("cache");
+		      set_cwipe();
 		      break;
 			case ITEM_QUEUE:
 			  queue_item(filename);

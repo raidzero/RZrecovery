@@ -560,7 +560,7 @@ show_delete_menu()
 	sprintf(del_cmd,"rm -rf /sdcard/nandroid/%s", filename);
         break;
       case D_ITEM_D:  
-        if (confirm_selection("Are you sure?", operation))
+        if (confirm_selection("Are you sure?", operation, 0))
         { 
 	if (strcmp(filename,"") != 0) 
 	  {  
