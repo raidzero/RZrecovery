@@ -7,6 +7,7 @@ NODATA=0
 NOSYSTEM=0
 NOSECURE=0
 NOCACHE=0
+NOSDEXT=0
 RESTORE=0
 BACKUP=0
 COMPRESS=0
@@ -60,6 +61,7 @@ fi
 
 
 DD_DEVICE=`cat /etc/fstab | grep "/datadata" | awk '{print$1}'`
+EXT_DEVICE=`cat /etc/fstab | grep "/sd-ext" | awk '{print$1}'`
 
 if [ -e /proc/mtd ]; then
 	flashfile="/proc/mtd"
@@ -103,7 +105,7 @@ esac
 ECHO=echo
 OUTPUT=""
 
-for option in $(getopt --name="nandroid-mobile v2.2.1" -l progress -l install-rom: -l plugin -l noboot -l nodata -l nocache -l nosystem -l nosecure -l subname: -l backup -l compress -l restore -l defaultinput -- "cbruds:p:eqli:" "$@"); do
+for option in $(getopt --name="nandroid-mobile v2.2.1" -l progress -l install-rom: -l plugin -l noboot -l nodata -l nocache -l nosdext -l nosystem -l nosecure -l subname: -l backup -l compress -l restore -l defaultinput -- "cbruds:p:eqli:" "$@"); do
     case $option in
 	--verbose)
 	    VERBOSE=1
@@ -119,10 +121,14 @@ for option in $(getopt --name="nandroid-mobile v2.2.1" -l progress -l install-ro
             #$ECHO "No data"
             shift
             ;;
-	--nocache)
-	    NOCACHE=1
-	    shift
-	    ;;
+		--nocache)
+			NOCACHE=1
+			shift
+			;;
+		--nosdext)
+			NOSDEXT=1
+			shift
+			;;
         --nosystem)
             NOSYSTEM=1
             #$ECHO "No system"
@@ -429,6 +435,8 @@ if [ "$RESTORE" == 1 ]; then
     mount /cache 2>/dev/null
     [ ! -e /data/data ] && mkdir /data/data
     mount $DD_DEVICE /data/data 2>/dev/null
+	[ ! -e /sd-ext ] && mkdir /sd-ext
+	mount $EXT_DEVICE /sd-ext 2> /dev/null
     if [ ! -z "$bootIsMountable" ]; then
     	mount /boot 2>/dev/null
     fi
@@ -458,6 +466,9 @@ if [ "$RESTORE" == 1 ]; then
     fi
     if [ `ls cache* 2>/dev/null | wc -l` == 0 ]; then
     	NOCACHE=1
+    fi
+    if [ `ls sdext* 2>/dev/null | wc -l` == 0 ]; then
+    	NOSDEXT=1
     fi
     if [ `ls system* 2>/dev/null | wc -l` == 0 ]; then
         NOSYSTEM=1
@@ -493,7 +504,7 @@ if [ "$RESTORE" == 1 ]; then
 	umount boot
     fi
 
-    for image in system data cache secure; do
+    for image in system data cache secure sdext; do
         if [ "$NODATA" == 1 -a "$image" == "data" ]; then
             echo "* print "
             echo "* print Not restoring data image!"
@@ -529,6 +540,15 @@ if [ "$RESTORE" == 1 ]; then
         elif [ "$NOSECURE" == 0 ] && [ "$image" == "secure" ]; then
 			image="sdcard/.android_secure"	
 			tarfile="secure"
+	fi
+        if [ "$NOSDEXT" == 1 ] && [ "$image" == "sdext" ]; then
+            echo "* print "
+            echo "* print Not restoring sd-ext!"
+            echo "* print "
+            continue
+        elif [ "$NOSDEXT" == 0 ] && [ "$image" == "sdext" ]; then
+			image="sd-ext"	
+			tarfile="sdext"
 	fi
 	echo "* print Erasing /$image..."
 	[ "$PROGRESS" == "1" ] && echo "* show_indeterminate_progress"
@@ -603,6 +623,7 @@ if [ "$BACKUP" == 1 ]; then
    mount /sdcard 2> /dev/null 
    mkdir /data/data
    mount $DD_DEVICE /data/data 2>/dev/null
+   mount $EXT_DEVICE /sd-ext 2>/dev/null
    if [ ! "$SUBNAME" == "" ]; then
      SUBNAME=$SUBNAME-
    fi
@@ -623,6 +644,9 @@ if [ "$BACKUP" == 1 ]; then
     if [ "$NOSECURE" == 0 ]; then
 	BACKUPLEGEND=$BACKUPLEGEND"A"
     fi
+    if [ "$NOSDEXT" == 0 ]; then
+	BACKUPLEGEND=$BACKUPLEGEND"E"
+    fi
     if [ ! "$BACKUPLEGEND" == "" ]; then
 	BACKUPLEGEND=$BACKUPLEGEND-
     fi
@@ -641,6 +665,7 @@ if [ "$BACKUP" == 1 ]; then
 		umount /system 2>/dev/null
 		umount /data 2>/dev/null
 		umount /data/data
+		umount /sd-ext
 		umount /sdcard 2>/dev/null
 	    exit 32
     else
@@ -657,17 +682,19 @@ if [ "$BACKUP" == 1 ]; then
     fi
 
 # 3.
-    mount sdcard; mount data; mount system
+    mount sdcard
     FREEBLOCKS=`df -m /sdcard | grep /sdcard | awk '{print$4}'`
     if [ ! -z `echo $FREEBLOCKS | grep %` ]; then #fs name must be too long
     	FREEBLOCKS=`df -m /sdcard | grep /sdcard | awk '{print$3}'`
     fi
     REQBLOCKS=0
     if [ $NODATA != 1 ]; then
+	  mount data;
       DATABLOCKS=`du -sm /data | awk '{print$1}'`
       let REQBLOCKS=$REQBLOCKS+$DATABLOCKS
     fi  
     if [ $NOSYSTEM != 1 ]; then
+	  mount system
       SYSBLOCKS=`du -sm /system | awk '{print$1}'`
       let REQBLOCKS=$REQBLOCKS+$SYSBLOCKS
     fi  
@@ -678,6 +705,11 @@ if [ "$BACKUP" == 1 ]; then
     if [ $NOCACHE != 1 ]; then
       CACHEBLOCKS=`du -sm /cache | awk '{print$1}'`
       let REQBLOCKS=$REQBLOCKS+$CACHEBLOCKS
+    fi
+    if [ $NOSDEXT != 1 ]; then
+	  mount /sd-ext
+      EXTBLOCKS=`du -sm /sd-ext | awk '{print$1}'`
+      let REQBLOCKS=$REQBLOCKS+$EXTBLOCKS
     fi
     REQBLOCKSSTRING=`echo $REQBLOCKS | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`
     FREEBLOCKSSTRING=`echo $FREEBLOCKS | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`
@@ -742,7 +774,7 @@ if [ "$BACKUP" == 1 ]; then
     done
 
 # 6
-    for image in system data cache secure; do
+    for image in system data cache secure sdext; do
 	case $image in
             system)
 		if [ "$NOSYSTEM" == 1 ]; then
@@ -769,6 +801,15 @@ if [ "$BACKUP" == 1 ]; then
 		elif [ "$NOCACHE" != 1 ]; then
 		    dest="cache"
 		    image="cache"
+		fi
+		;;
+	    sdext)
+	    	if [ "$NOSDEXT" == 1 ]; then
+		    echo "* print Dump of the sd-ext partition suppressed."
+		    continue
+		elif [ "$NOSDEXT" != 1 ]; then
+		    dest="sdext"
+		    image="sd-ext"
 		fi
 		;;
             secure)
