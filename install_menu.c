@@ -19,7 +19,15 @@
 
 char** install_list;
 int position = 0;
+int reboot_afterwards = 0;
 
+void set_reboot_afterwards()
+{
+ reboot_afterwards ^= 1;
+ if (reboot_afterwards == 0) printf("Will not reboot afterwards.\n");
+ if (reboot_afterwards == 1) printf("Will reboot afterwards.\n");
+}
+ 
 void init_list()
 {
   if (position == 0)
@@ -352,37 +360,33 @@ install_update_package (char *filename)
   char *boot_extension = (filename + strlen (filename) - 8);
   char *rec_extension = (filename + strlen (filename) - 7);
   char *apk_extension = (filename + strlen (filename) - 3);
-
+  printf("Position: %i\n", position);
+  
   if (strcmp (extension, "zip") == 0)
 	  {
 	    ui_print ("\nZIP detected.\n");
 	    remove ("/block_update");
 	    install_update_zip (filename);
-	    return;
 	  }
   if (strcmp (extension, "tar") == 0 || strcmp (extension, "tgz") == 0)
 	  {
 	    ui_print ("\nTAR detected.\n");
 	    install_rom_from_tar (filename);
-	    return;
 	  }
   if (strcmp (apk_extension, "apk") == 0)
 	  {
 	    ui_print ("\nAPK detected.\n");
 	    preinstall_apk (filename, "recovery");
-	    return;
 	  }
   if (strcmp (rec_extension, "rec.img") == 0)
 	  {
 	    ui_print ("\nRECOVERY IMAGE detected.\n");
 	    install_img (filename, "recovery");
-	    return;
 	  }
   if (strcmp (boot_extension, "boot.img") == 0)
 	  {
 	    ui_print ("\nBOOT IMAGE detected.\n");
 	    install_img (filename, "boot");
-	    return;
 	  }
 }
 
@@ -499,17 +503,36 @@ preinstall_apk (char *filename)
 	  }
 }
 
+void
+get_preinstall_menu_opts (char **preinstall_opts)
+{
+
+  char **tmp = malloc (2 * sizeof (char *));
+  int i;
+
+  tmp[0] = malloc (strlen ("(*)  Reboot afterwards") * sizeof (char));
+
+  sprintf (tmp[0], "(%c) Reboot afterwards", reboot_afterwards ? '*':' ');
+  tmp[1] = NULL;
+
+  char **h = preinstall_opts;
+  char **j = tmp;
+
+  for (; *j; j++, h++)
+    *h = *j;
+}
+
  void
 preinstall_menu (char *filename)
 {
-   char *basename = strrchr (filename, '/') + 1;
+  char *basename = strrchr (filename, '/') + 1;
   char *current_basename = strrchr (filename, '/') + 1;
   char install_string[PATH_MAX];
   
   if (position > 0 )
   {
     ui_print("\nCurrent queue: \n");
-    basename = "item(s) now.";
+    basename = "item(s) now";
 	int z;
 	char* install_list_base;
 	for (z=0; z<position; z++)
@@ -520,14 +543,22 @@ preinstall_menu (char *filename)
 	ui_print("%i: %s\n", position+1, current_basename);
   }
   strcpy (install_string, "Install ");
-  strcat (install_string, current_basename);
+  strcat (install_string, basename);
 
-   char *headers[] =
-    { "Preinstall Menu", "Please make your selections.", " ", NULL
+  char *headers[] =
+  { "Preinstall Menu", "Please make your selections.", " ", NULL
   };
-   char *items[] =
-    { "Abort Install", "Backup Before Install", "Wipe /data", "Wipe /cache", 
-"Add to install queue", "Clear install queue", install_string, NULL
+  char *preinstall_opts[] =
+  { 
+	"Abort Install", 
+	"Backup Before Install", 
+	"Wipe /data", 
+	"Wipe /cache", 
+	"Add to install queue", 
+	"Clear install queue", 
+	install_string, 
+	NULL, 
+	NULL
   };
   
 #define ITEM_NO 		0
@@ -537,14 +568,15 @@ preinstall_menu (char *filename)
 #define ITEM_QUEUE		4
 #define ITEM_CLEAR      5
 #define ITEM_INSTALL 	6
+#define ITEM_REBOOT		7
 
   int chosen_item = -1;
 
   while (chosen_item != ITEM_BACK)
 	  {
-	    chosen_item =
-	      get_menu_selection (headers, items, 0,
-				  chosen_item < 0 ? 0 : chosen_item);
+	    get_preinstall_menu_opts (preinstall_opts + 7);	// put the menu options in preinstall_opts[] starting at index 7
+	    chosen_item = get_menu_selection (headers, preinstall_opts, 0, chosen_item < 0 ? 0 : chosen_item);
+		
 	    switch (chosen_item)
 		    {
 		    case ITEM_NO:
@@ -573,12 +605,17 @@ preinstall_menu (char *filename)
 			  {
 			    install_queued_items();
 				install_update_package (filename);
+				if (reboot_afterwards) reboot_android();
 			  }
 			  else 
 		      {  
 			    install_update_package (filename);
+				if (reboot_afterwards) reboot_android();
 		      }
 			  return;
+		    case ITEM_REBOOT:
+			   set_reboot_afterwards();
+			   break;
 		    }
 	  }
 }

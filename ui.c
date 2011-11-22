@@ -385,8 +385,7 @@ input_thread (void *cookie)
 			// Check for an up/down key press
 			if (ev.type == EV_KEY && (ev.code == KEY_UP
 				|| ev.code == KEY_DOWN || ev.code == KEY_VOLUMEUP
-				|| ev.code == KEY_VOLUMEDOWN || ev.code == 52 
-				|| ev.code == 51) && ev.value == 1) {
+				|| ev.code == KEY_VOLUMEDOWN ) && ev.value == 1) {
 					keyheld = 1;
 					last_code = ev.code;
 				} else { 
@@ -418,7 +417,6 @@ input_thread (void *cookie)
 						  {
 						    fake_key = 1;
 						    ev.type = EV_KEY;
-						    ev.code = 52;
 						    ev.code = KEY_VOLUMEDOWN;
 						    ev.value = 1;
 						    rel_sum = 0;
@@ -427,7 +425,6 @@ input_thread (void *cookie)
 						  {
 						    fake_key = 1;
 						    ev.type = EV_KEY;
-						    ev.code = 51;
 						    ev.code = KEY_VOLUMEUP;
 						    ev.value = 1;
 						    rel_sum = 0;
