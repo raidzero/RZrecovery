@@ -16,7 +16,52 @@
 #include <sys/reboot.h>
   
 #include "nandroid_menu.h"
- char **
+
+char** install_list;
+int position = 0;
+
+void init_list()
+{
+  if (position == 0)
+  {
+    printf("Allocating memory for the queue...\n");
+	install_list = malloc (50 * sizeof(char*));
+    int i;
+    for (i=0; i<50; i++)
+    {
+      install_list[i] = malloc(512);
+    }
+  }	
+}
+
+void update_list(int position, char* filename)
+{
+  strcpy(install_list[position], filename);
+  char *basename = strrchr (filename, '/') + 1;
+  ui_print("Queued item %s in position %i.\n", basename, position+1);
+}
+
+void queue_item(char* filename)
+{
+  if (position < 50 )
+  {
+    update_list(position, filename);
+    position++; 
+  } 
+  else
+  {
+    ui_print("Maximum queued items is 25.\n");
+  }
+}
+
+void clear_queue()
+{
+  position = 0;
+  free(install_list);
+  ui_print("Install queue cleared!\n");
+}
+
+char **
 sortlist (char **list, int total)
 {
   int i = 0;
@@ -43,9 +88,21 @@ sortlist (char **list, int total)
   return list;
 }
 
- void
-choose_file_menu (char *sdpath)
+void choose_file_menu (char *sdpath)
 {
+  /*
+  this is just a dummy - to give user somewhere to return to when aborting preinstall/queueing
+  and hopefully not get them stuck in a loop of iterations equal to the number of times they
+  entered the preinstall menu
+  */
+  choose_file_menu_final(sdpath);
+}
+
+
+ void
+choose_file_menu_final (char *sdpath)
+{
+  init_list();
   static char *headers[] = { "Choose item", "", NULL
   };
    char path[PATH_MAX] = "";
@@ -226,11 +283,11 @@ choose_file_menu (char *sdpath)
 				strcat (install_string, list[chosen_item]);
 				if (opendir (install_string) == NULL)
 					{	//handle selection
-					  preinstall_menu (install_string);
+					  return preinstall_menu (install_string);
 					}
 				else
 					{
-					  choose_file_menu (install_string);
+					  return choose_file_menu (install_string);
 					}
 			      }
 		    }
@@ -329,6 +386,19 @@ install_update_package (char *filename)
 	  }
 }
 
+void install_queued_items() 
+{
+   int i;
+   char* filename;
+   for (i=0; i<position; i++) 
+   {
+	 filename = install_list[i];
+	 ui_print("Installing item %i of %i from queue. \n", i+1, position);
+	 install_update_package(filename);
+   }
+   clear_queue();
+}
+
  int
 install_update_zip (char *filename)
 {
@@ -387,7 +457,7 @@ NULL
 void
 preinstall_apk (char *filename)
 {
-   char *basename = strrchr (filename, '/') + 1;
+  char *basename = strrchr (filename, '/') + 1;
   char install_string[PATH_MAX];
   char *location;
 
@@ -434,34 +504,50 @@ preinstall_menu (char *filename)
 {
    char *basename = strrchr (filename, '/') + 1;
   char install_string[PATH_MAX];
-
+  
+  if (position > 0 )
+  {
+    ui_print("\nCurrent queue: \n");
+    basename = "item(s) now.";
+	int z;
+	char* install_list_base;
+	for (z=0; z<position; z++)
+	{
+	  install_list_base = strrchr (install_list[z], '/') + 1;
+	  ui_print("%i: %s\n", z+1, install_list_base);
+	}  
+  }
   strcpy (install_string, "Install ");
   strcat (install_string, basename);
+
    char *headers[] =
     { "Preinstall Menu", "Please make your selections.", " ", NULL
   };
    char *items[] =
     { "Abort Install", "Backup Before Install", "Wipe /data", "Wipe /cache", 
-install_string, NULL
+"Add to install queue", "Clear install queue", install_string, NULL
   };
   
 #define ITEM_NO 		0
 #define ITEM_BACKUP 	1
 #define ITEM_DWIPE 		2
-#define ITEM_CWIPE	3
-#define ITEM_INSTALL 	4
+#define ITEM_CWIPE		3
+#define ITEM_QUEUE		4
+#define ITEM_CLEAR      5
+#define ITEM_INSTALL 	6
+
   int chosen_item = -1;
 
   while (chosen_item != ITEM_BACK)
 	  {
 	    chosen_item =
-	      get_menu_selection (headers, items, 1,
+	      get_menu_selection (headers, items, 0,
 				  chosen_item < 0 ? 0 : chosen_item);
 	    switch (chosen_item)
 		    {
 		    case ITEM_NO:
-		      chosen_item = ITEM_BACK;
-		      return;
+		      choose_file_menu("/sdcard/");
+			  return;
 		    case ITEM_BACKUP:
 		      ui_print ("Backing up before installing...\n");
 		      nandroid("backup", "preinstall", DEFAULT, 0, 1, 0);
@@ -472,9 +558,25 @@ install_string, NULL
 		    case ITEM_CWIPE:
 		      wipe_partition("cache");
 		      break;
+			case ITEM_QUEUE:
+			  queue_item(filename);
+			  choose_file_menu("/sdcard/");
+			  return;
+			case ITEM_CLEAR:
+			  clear_queue();
+			  choose_file_menu("/sdcard/");
+			  return;
 		    case ITEM_INSTALL:
-		      install_update_package (filename);
-		      return;
+			  if (position > 0) 
+			  {
+			    install_queued_items();
+				install_update_package (filename);
+			  }
+			  else 
+		      {  
+			    install_update_package (filename);
+		      }
+			  return;
 		    }
 	  }
 }
