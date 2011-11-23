@@ -117,8 +117,10 @@ choose_plugin_menu (char *sdpath)
  int
 run_plugin (char *filename) 
 {
+   puts(replace(filename, " ", "\\ ")); //escape any spaces
+   printf("About to load plugin %s...\n", filename);
    char *argv[] =
-    { "/sbin/nandroid-mobile.sh", "--install-rom", filename, "--progress", "--plugin",
+    { "/sbin/nandroid-mobile.sh", "--install-rom", filename, "--plugin",
 NULL
   };
    char *envp[] = { NULL };

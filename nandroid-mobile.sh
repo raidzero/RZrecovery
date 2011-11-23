@@ -231,12 +231,12 @@ if [ "$BACKUP" == 1 -o "$RESTORE" == 1 ]; then
 fi	
 
 if [ "$INSTALL_ROM" == 1 ]; then
-	
+    
     batteryAtLeast 20
 
     [ "$PROGRESS" == "1" ] && echo "* show_indeterminate_progress"
 
-    [ "$PLUGIN" == "0" ] && echo "* print Installing ROM from $ROM_FILE..."
+    [ "$PLUGIN" == "0" ] && echo "* print Installing ROM from "$ROM_FILE"..."
     mount /sdcard
 
     if [ -z "$(mount | grep sdcard)" ]; then
@@ -244,13 +244,11 @@ if [ "$INSTALL_ROM" == 1 ]; then
 	exit 13
     fi
     
-    if [ ! -f $ROM_FILE ]; then
+    if [ ! -f "$ROM_FILE" ]; then
         OLD_FILE=$ROM_FILE
-        ROM_FILE=`echo $OLD_FILE | sed 's#$#.tar#'`
-	echo $ROM_FILE
+        ROM_FILE=`echo $OLD_FILE | sed 's#$#.tgz#'`
 	if [ ! -f $ROM_FILE ]; then
-		ROM_FILE=`echo $OLD_FILE | sed 's#$#.tgz#'`
-		echo $ROM_FILE
+		ROM_FILE=`echo $OLD_FILE | sed 's#$#.tar#'`
 		if [ ! -f $ROM_FILE ]; then
 			[ "$PLUGIN" == "0" ] && echo "* print error: specified ROM file does not exist"
 			exit 14

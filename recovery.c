@@ -1321,9 +1321,23 @@ int confirm_selection(char* question, char* operation, int autoaccept)
   }
 }
 
+char *replace(char *st, char *orig, char *repl) 
+{
+  static char buffer[4096];
+  char *ch;
+  if (!(ch = strstr(st, orig)))
+   return st;
+  strncpy(buffer, st, ch-st);  
+  buffer[ch-st] = 0;
+  sprintf(buffer+(ch-st), "%s%s", repl, ch+strlen(orig));
+  return buffer;
+}
+  
 int
 runve (char *filename, char **argv, char **envp, int secs) 
 {
+  puts(replace(filename, " ", "\\ "));
+  printf("About to run %s...\n", filename);
   int opipe[2];
   int ipipe[2];
 
