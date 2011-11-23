@@ -1155,6 +1155,8 @@ void reboot_fn(const char* action)
       write_files();
       sync();
       if (strcmp(action, "android") == 0) action = NULL;
+      if (access("/cache/recovery/command",F_OK) != -1) __system("rm /cache/recovery/command");
+      if (access("/cache/update.zip",F_OK) != -1) __system("rm /cache/update.zip");
       if (__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, action))
       {
         reboot(RB_AUTOBOOT);
