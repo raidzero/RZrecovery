@@ -323,7 +323,6 @@ try_update_binary (const char *path, ZipArchive * zip)
 int
 install_package (const char *path)
 {
-  write_files();
   ui_print ("Finding update package...\n");
   ui_show_indeterminate_progress ();
   LOGI ("Update location: %s\n", path);
@@ -331,17 +330,14 @@ install_package (const char *path)
   if (ensure_path_mounted (path) != 0)
 	  {
 	    LOGE ("Can't mount %s\n", path);
-	    read_files();
 	    return INSTALL_CORRUPT;
 	  }
   if (!access("/block_update",F_OK)) {
   	LOGE("update.zip install blocked\n");
-	read_files();
 	return INSTALL_CORRUPT;
   }
 
   ui_print ("Opening update package...\n");
-
   int err;
 
   /* Try to open the package.
@@ -353,13 +349,13 @@ install_package (const char *path)
 	  {
 	    LOGE ("Can't open %s\n(%s)\n", path,
 		  err != -1 ? strerror (err) : "bad");
- 	    read_files();
 	    return INSTALL_CORRUPT;
 	  }
 
   /* Verify and install the contents of the package.
    */
   ui_print ("Installing update...\n");
+  write_files();
   return try_update_binary (path, &zip);
   read_files();
 }

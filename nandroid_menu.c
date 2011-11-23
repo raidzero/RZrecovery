@@ -138,9 +138,7 @@ nandroid (const char* operation, char *subname, char partitions, int reboot_afte
 
   char *envp[] = { NULL };
 
-  write_files();
   int status = runve ("/sbin/nandroid-mobile.sh", argv, envp, 80);
-  read_files();
 
   if (!WIFEXITED (status) || WEXITSTATUS (status) != 0)
     {

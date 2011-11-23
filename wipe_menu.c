@@ -9,7 +9,6 @@
 
 int wipe_partition(char* partition, int autoaccept) 
 {
-	write_files();
 	char wipe_header[255] = "";
 	char path_string[255] = "";
 	char operation[255] = "";
@@ -29,6 +28,8 @@ int wipe_partition(char* partition, int autoaccept)
 	if (strcmp (partition, "all") == 0)
 	{
 	    if (confirm_selection("Wipe EVERYTHING?", "Yes - wipe the entire device", autoaccept)) {
+			ui_show_indeterminate_progress();
+			write_files();
 			ui_print ("\n-- Wiping system... ");
 			ensure_path_unmounted ("/system");
 			erase_volume ("/system");
@@ -63,6 +64,8 @@ int wipe_partition(char* partition, int autoaccept)
 	  
 	if (confirm_selection(wipe_header, operation, autoaccept))
 	{	
+		ui_show_indeterminate_progress();
+		write_files();
 		ui_print("-- Wiping %s... ",partition);
 		
 		if (strcmp (partition, "battery statistics") == 0)
@@ -121,7 +124,6 @@ int wipe_partition(char* partition, int autoaccept)
 			return -1;
 		}	
 	} else {
-		read_files();
 		ui_reset_progress();
 		return -1;
 	}
