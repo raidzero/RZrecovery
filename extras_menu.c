@@ -135,19 +135,17 @@ show_extras_menu ()
   items[0] = "Custom Colors";
   items[1] = "Show Battery Status";
   items[2] = "Recovery Overclocking";
-  items[3] = "ROM Tweaks";
   if (plugins_present("/sdcard/RZR/plugins")) 
   {
-    items[4] = "Plugins";
-	items[5] = NULL;
+    items[3] = "Plugins";
+	items[4] = NULL;
   }
-  else items[4] = NULL;	
+  else items[3] = NULL;	
 
 #define COLORS			0
 #define BATT 			1	
 #define OVERCLOCK	   	2
-#define ROMTWEAKS		3
-#define PLUGINS			4
+#define PLUGINS			3
 
   int chosen_item = -1;
 
@@ -169,12 +167,9 @@ show_extras_menu ()
 		    case OVERCLOCK:
 		      show_overclock_menu ();
 		      break;
-		    case ROMTWEAKS:
-		      show_romTweaks_menu();
-		      break;
-			case PLUGINS:
-			  choose_plugin_menu("/sdcard/RZR/plugins/");
-			  break;
+		    case PLUGINS:
+		       choose_plugin_menu("/sdcard/RZR/plugins/");
+		       break;
 		    }
 	  }
 }

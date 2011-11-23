@@ -18,7 +18,6 @@ LOCAL_SRC_FILES := \
     colors_menu.c \
     extras_menu.c \
     plugins_menu.c \
-    romTweaks_menu.c \
     mount_menu.c \
     wipe_menu.c \
     install_menu.c \
