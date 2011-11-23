@@ -23,9 +23,7 @@ int volume_present(char *volume);
 void write_files ();
 void read_files ();
 
-void reboot_android ();
-void reboot_recovery ();
-void power_off ();
+void reboot_fn(const char* action);
 
 void ui_printf_int (const char *format, int arg);
 void show_check_menu (char **headers, char **chk_items, int *flags);

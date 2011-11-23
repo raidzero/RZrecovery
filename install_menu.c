@@ -628,12 +628,12 @@ preinstall_menu (char *filename)
 			  {
 			    install_queued_items();
 				install_update_package (filename);
-				if (reboot_afterwards) reboot_android();
+				if (reboot_afterwards) reboot_fn("android");
 			  }
 			  else 
 		      {  
 			    install_update_package (filename);
-				if (reboot_afterwards) reboot_android();
+				if (reboot_afterwards) reboot_fn("android");
 		      }
 			  return;
 		    case ITEM_REBOOT:

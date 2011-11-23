@@ -880,7 +880,7 @@ prompt_and_wait ()
 	    //ui_reset_progress ();
 	     int chosen_item =
 	      get_menu_selection (headers, MENU_ITEMS, 1,
-				  chosen_item < 0 ? 1 : chosen_item);
+				  chosen_item < 0 ? 0 : chosen_item);
 	    
 	      // device-specific code may take some action here.  It may
 	      // return one of the core actions handled in the switch
@@ -889,16 +889,16 @@ prompt_and_wait ()
 	     switch (chosen_item)
 		    {
 		    case MAIN_REBOOT:
-		      reboot_android ();
+		      reboot_fn("android");
 		      break;
 		     case MAIN_RECOVERY:
-		      reboot_recovery ();
+		      reboot_fn("recovery");
 		      break;
 		     case MAIN_SHUTDOWN:
-		      power_off ();
+		      reboot_fn("poweroff");
 		      break;
 		     case MAIN_BOOTLOADER:
-		      reboot_bootloader();
+		      reboot_fn("bootloader");
 		      break;
 		     case MAIN_WIPE_MENU:
 		      show_wipe_menu ();
@@ -948,9 +948,9 @@ main (int argc, char **argv)
 	    if (strstr (argv[0], "volume_info") != NULL)
 	      return volume_info_main(argc, argv);
 	    if (strstr (argv[0], "reboot_android") != NULL)
-	      return reboot_android();
+	      return reboot_fn("android");
 	    if (strstr (argv[0], "reboot_recovery") != NULL)
-	      return reboot_recovery();
+	      return reboot_fn("recovery");
 	    //we dont need to keep executing stuff past this point if an embedded function was called 
 	    return 0;
 	  }
@@ -1135,57 +1135,48 @@ main (int argc, char **argv)
 	  }
    
     // Otherwise, get ready to boot the main system...
-    finish_recovery (send_intent);
-  ui_print ("Rebooting...\n");
+  finish_recovery (send_intent);
+  //ui_print ("Rebooting...\n");
   sync ();
-  reboot (RB_AUTOBOOT);
+  //reboot (RB_AUTOBOOT);
   return EXIT_SUCCESS;
 }
 
- void
-reboot_android ()
+void reboot_fn(const char* action)
 {
-  ui_print ("\n-- Rebooting into android --\n");
-  ensure_path_mounted ("/system");
-  remove ("/system/recovery_from_boot.p");
-  write_files ();
-  sync ();
-  __reboot (LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2,
-	     LINUX_REBOOT_CMD_RESTART2, NULL);
-  
-    //or if that doesnt work
-    reboot (RB_AUTOBOOT);
-} void
+  if (strcmp(action, "android") == 0 
+  || strcmp(action, "recovery") == 0 
+  || strcmp(action, "bootloader") == 0
+  || strcmp(action, "poweroff") == 0)
+  { 
+    if (strcmp(action, "poweroff") != 0)
+    {
+      ui_print("\n-- Rebooting into %s --\n", action);
+      write_files();
+      sync();
+      if (strcmp(action, "android") == 0) action = NULL;
+      if (__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, action))
+      {
+        reboot(RB_AUTOBOOT);
+      }
+    }
+    else
+    {
+      ui_print("\n-- Shutting down --\n");
+      write_files();
+      sync();
+      if (__reboot (LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2,LINUX_REBOOT_CMD_POWER_OFF, NULL))
+      {
+        reboot(RB_AUTOBOOT);
+      }
+    }
+  }
 
-reboot_recovery ()
-{
-  ui_print ("\n-- Rebooting into recovery --\n");
-  write_files ();
-  sync ();
-  __reboot (LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2,
-	     LINUX_REBOOT_CMD_RESTART2, "recovery");
-  reboot (RB_AUTOBOOT);
-} 
+}
 
-void reboot_bootloader() 
-{
-	ui_print("\n-- Rebooting into bootloader --\n");
-	write_files();
-	sync();
-	__reboot (LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2,
-		LINUX_REBOOT_CMD_RESTART2, "bootloader");
-	reboot (RB_AUTOBOOT);
-}	
+ 
 
-void power_off ()
-{
-  ui_print ("\n-- Shutting down --");
-  write_files ();
-  sync ();
-  __reboot (LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2,
-	     LINUX_REBOOT_CMD_POWER_OFF, NULL);
-}  void
-
+void
 ui_printf_int (const char *format, int arg) 
 {
   char *out = calloc (strlen (format) + 12, sizeof (char));
