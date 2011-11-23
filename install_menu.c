@@ -378,7 +378,7 @@ install_update_package (char *filename)
   char *apk_extension = (filename + strlen (filename) - 3);
   printf("Position: %i\n", position);
   
-  if (backup) nandroid("backup", "preinstall", DEFAULT, 0, 1, 0); backup = 0;; //reset it after the first run
+  if (backup) nandroid("backup", "preinstall", DEFAULT, 1, 0); backup = 0;; //reset it after the first run
   if (dwipe) wipe_partition("cache", 1); dwipe = 0;
   if (cwipe) wipe_partition("data", 1); cwipe = 0;
   if (strcmp (extension, "zip") == 0)

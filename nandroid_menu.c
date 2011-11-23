@@ -14,14 +14,20 @@
 #include "install_menu.h"
 
 int sdext_present = 0;
+int reboot_nandroid = 0;
 
 void set_sdext() 
 {
   sdext_present = 1;
 }
 
+void set_reboot_nandroid()
+{
+  reboot_nandroid ^= 1;
+}
+
 void
-nandroid (const char* operation, char *subname, char partitions, int reboot_after, int show_progress, int compress)
+nandroid (const char* operation, char *subname, char partitions, int show_progress, int compress)
 {
   ui_print ("Starting Nandroid %s.\n", operation);
 
@@ -38,47 +44,47 @@ nandroid (const char* operation, char *subname, char partitions, int reboot_afte
 
   if (!boot) 
   {
-    printf("\nBoot ignored.");
+    printf("\nBoot ignored.\n");
     args++;
   }
   if (!asecure)
   {
-    printf("\nAndroid_secure ignored.");
+    printf("\nAndroid_secure ignored.\n");
     args++;
   }  
   if (!system)
   {
-    printf("\nSystem ignored.");
+    printf("\nSystem ignored.\n");
     args++;
   }
   if (!data)
   {
-    printf("\nData ignored.");
+    printf("\nData ignored.\n");
     args++;
   }  
   if (!cache)
   {
-    printf("\nCache ignored.");
+    printf("\nCache ignored.\n");
     args++;
   }
   if (!sdext)
   {
-    printf("\nsd-ext ignored.");
+    printf("\nsd-ext ignored.\n");
     args++;
   }    
   if (show_progress)
   {
-    printf("\nProgress shown.");
+    printf("\nProgress shown.\n");
     args++;
   }  
   if (compress)
   {
-    printf("\nCompression activated.");
+    printf("\nCompression activated.\n");
     args++;
   } 
-  if (reboot_after)
+  if (reboot_nandroid)
   {
-    printf("\nReboot triggered.");
+    printf("\nReboot triggered.\n");
   }
   if (!strcmp (subname, ""))
   {
@@ -157,7 +163,7 @@ nandroid (const char* operation, char *subname, char partitions, int reboot_afte
     else
     {
       ui_print ("(done)\n");
-       if (reboot_after) {
+       if (reboot_nandroid) {
 	 reboot_fn("android");
        }  
     }
@@ -287,13 +293,22 @@ reverse_array (char **inver_a)
 }
 
 void
-get_nandroid_adv_r_menu_opts (char **list, char p, char *br, int reboot_after, int show_progress)
+get_nandroid_adv_r_menu_opts (char **list, char p, char *br, int show_progress)
 {
-
-  char **tmp = malloc (8 * sizeof (char *));
+  int max_length;
+  if (sdext_present)
+  {
+    max_length = 9;
+  }
+  else
+  {
+    max_length = 8;
+  }
+  
+  char **tmp = malloc (max_length * sizeof (char *));
   int i;
 
-  for (i = 0; i < 7; i++)
+  for (i = 0; i < max_length; i++)
 	  {
 	    tmp[i] =
 	      malloc ((strlen ("(*)  Reboot afterwards") + strlen (br) +
@@ -310,7 +325,7 @@ if (sdext_present)
   sprintf (tmp[k], "(%c) %s SD-EXT", p & SDEXT ? '*' : ' ', br); k++;
 }
   sprintf (tmp[k], "(%c) show progress", show_progress ? '*':' '); k++;
-  sprintf (tmp[k], "(%c) reboot afterwards", reboot_after ? '*':' '); k++;
+  sprintf (tmp[k], "(%c) reboot afterwards", reboot_nandroid ? '*':' '); k++;
 
   tmp[k] = NULL;
 
@@ -323,7 +338,7 @@ if (sdext_present)
 }
 
 void
-get_nandroid_cmp_menu_opts (char **cmp_opts, int reboot_after)
+get_nandroid_cmp_menu_opts (char **cmp_opts)
 {
 
   char **tmp = malloc (2 * sizeof (char *));
@@ -331,7 +346,7 @@ get_nandroid_cmp_menu_opts (char **cmp_opts, int reboot_after)
 
   tmp[0] = malloc (strlen ("(*)  Reboot afterwards") * sizeof (char));
 
-  sprintf (tmp[0], "(%c) reboot afterwards", reboot_after ? '*':' ');
+  sprintf (tmp[0], "(%c) reboot afterwards", reboot_nandroid ? '*':' ');
   tmp[1] = NULL;
 
   char **h = cmp_opts;
@@ -342,7 +357,7 @@ get_nandroid_cmp_menu_opts (char **cmp_opts, int reboot_after)
 }
 
 void
-get_nandroid_adv_b_menu_opts (char **list, char p, char *br, int reboot_after, int show_progress, int compress)
+get_nandroid_adv_b_menu_opts (char **list, char p, char *br, int show_progress, int compress)
 {
   int max_length;
   if (sdext_present) 
@@ -376,7 +391,7 @@ if (sdext_present)
 }
   sprintf (tmp[k], "(%c) show progress", show_progress ? '*':' '); k++;
   sprintf (tmp[k], "(%c) gzip compress", compress ? '*':' '); k++;
-  sprintf (tmp[k], "(%c) reboot afterwards", reboot_after ? '*':' '); k++;
+  sprintf (tmp[k], "(%c) reboot afterwards", reboot_nandroid ? '*':' '); k++;
 
   tmp[k] = NULL;
 
@@ -429,14 +444,13 @@ show_nandroid_adv_r_menu ()
   char partitions = (char) DEFAULT;
   int chosen_item = -1;
   int show_progress = 1;
-  int reboot_after = 0;
   int compress = 0;
 
   while (chosen_item != ITEM_BACK)
 	  {
 	    if (sdext_present)
 		{
-		  get_nandroid_adv_r_menu_opts (items_sd + 2, partitions, "restore", reboot_after, show_progress);	// put the menu options in items[] starting at index 2
+		  get_nandroid_adv_r_menu_opts (items_sd + 2, partitions, "restore", show_progress);	// put the menu options in items[] starting at index 2
 	      chosen_item =
 	        get_menu_selection (headers, items_sd, 0,
 				  chosen_item < 0 ? 0 : chosen_item);
@@ -444,7 +458,7 @@ show_nandroid_adv_r_menu ()
 	      switch (chosen_item)
 		    {
 		    case 0:
-		      nandroid("restore", filename, partitions, reboot_after, show_progress, compress);
+		      nandroid("restore", filename, partitions, show_progress, compress);
 		      break;
 		    case 1:
 		      nandroid_adv_r_choose_file (filename,
@@ -473,13 +487,13 @@ show_nandroid_adv_r_menu ()
 		      show_progress ^= 1;
 		      break;
 		    case 9:
-		      reboot_after ^= 1;
+		      set_reboot_nandroid();
 		      break;
 		    }
 		}
 		else
 		{
-		  get_nandroid_adv_r_menu_opts (items_sd + 2, partitions, "restore", reboot_after, show_progress);	// put the menu options in items[] starting at index 2
+		  get_nandroid_adv_r_menu_opts (items_sd + 2, partitions, "restore", show_progress);	// put the menu options in items[] starting at index 2
 	      chosen_item =
 	        get_menu_selection (headers, items_sd, 0,
 				  chosen_item < 0 ? 0 : chosen_item);
@@ -487,7 +501,7 @@ show_nandroid_adv_r_menu ()
 	      switch (chosen_item)
 		    {
 		    case 0:
-		      nandroid("restore", filename, partitions, reboot_after, show_progress, compress);
+		      nandroid("restore", filename, partitions, show_progress, compress);
 		      break;
 		    case 1:
 		      nandroid_adv_r_choose_file (filename,
@@ -513,7 +527,7 @@ show_nandroid_adv_r_menu ()
 		      show_progress ^= 1;
 		      break;
 		    case 8:
-		      reboot_after ^= 1;
+		      set_reboot_nandroid();
 		      break;
 			}
 		}
@@ -599,7 +613,6 @@ show_compress_menu()
 #define C_ITEM_D  1
 #define C_ITEM_R  2
    
-  int reboot_after = 0;
   
   char filename[PATH_MAX];
   filename[0] = NULL;
@@ -610,7 +623,7 @@ show_compress_menu()
 
   while (chosen_item != ITEM_BACK) 
   {
-    get_nandroid_cmp_menu_opts (cmp_opts + 2, reboot_after);	// put the menu options in cmp_opts[] starting at index 2
+    get_nandroid_cmp_menu_opts (cmp_opts + 2);	// put the menu options in cmp_opts[] starting at index 2
     chosen_item = get_menu_selection(headers, cmp_opts, 0, chosen_item < 0 ? 0 : chosen_item);
   
     switch (chosen_item) 
@@ -640,7 +653,7 @@ show_compress_menu()
 			}
 			if (status == 0)
 			{
-				if (reboot_after) reboot_fn("android");
+				if (reboot_nandroid) reboot_fn("android");
 			}
 			ui_reset_progress();			
 		} else {
@@ -648,7 +661,7 @@ show_compress_menu()
 		}  
         return;
 	  case C_ITEM_R:
-		reboot_after ^= 1;
+		set_reboot_nandroid();
 		break;
     }
   }  
@@ -694,7 +707,6 @@ show_nandroid_adv_b_menu ()
   filename[0] = NULL;
   int chosen_item = -1;
   int show_progress = 1;
-  int reboot_after = 0;
   int compress = 0;
 
   char partitions = (char) DEFAULT;
@@ -703,14 +715,14 @@ show_nandroid_adv_b_menu ()
 	  {
 	    if (sdext_present)
 	    {
-	      get_nandroid_adv_b_menu_opts (items_sd + 1, partitions, "backup", reboot_after, show_progress, compress);	// put the menu options in items[] starting at index 1
+	      get_nandroid_adv_b_menu_opts (items_sd + 1, partitions, "backup", show_progress, compress);	// put the menu options in items[] starting at index 1
 		  	    chosen_item =
 	      get_menu_selection (headers, items_sd, 0,
 				  chosen_item < 0 ? 0 : chosen_item);
 	      switch (chosen_item)
 		    {
 		    case 0:
-		      nandroid("backup", filename, partitions, reboot_after, show_progress, compress);
+		      nandroid("backup", filename, partitions, show_progress, compress);
 		      break;
 		    case 1:
 		      partitions ^= BOOT;
@@ -737,20 +749,20 @@ show_nandroid_adv_b_menu ()
 		      compress ^= 1;
 		      break;
 		    case 9:
-		      reboot_after ^= 1;
+		      set_reboot_nandroid();
 		      break;
 		    }
 	    }
 	    else
 	    {
-	      get_nandroid_adv_b_menu_opts (items_nosd + 1, partitions, "backup", reboot_after, show_progress, compress);	// put the menu options in items[] starting at index 1
+	      get_nandroid_adv_b_menu_opts (items_nosd + 1, partitions, "backup", show_progress, compress);	// put the menu options in items[] starting at index 1
 		  	    chosen_item =
 	      get_menu_selection (headers, items_nosd, 0,
 				  chosen_item < 0 ? 0 : chosen_item);
 				  	      switch (chosen_item)
 		    {
 		    case 0:
-		      nandroid("backup", filename, partitions, reboot_after, show_progress, compress);
+		      nandroid("backup", filename, partitions, show_progress, compress);
 		      break;
 		    case 1:
 		      partitions ^= BOOT;
@@ -774,7 +786,7 @@ show_nandroid_adv_b_menu ()
 		      compress ^= 1;
 		      break;
 		    case 8:
-		      reboot_after ^= 1;
+		      set_reboot_nandroid();
 		      break;
 		    }
 	    }

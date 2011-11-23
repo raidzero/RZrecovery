@@ -9,6 +9,6 @@
 
 #define DEFAULT     0x67 // the sum of BCDAS
 
-void nandroid (const char* operation, char *subname, char partitions, int reboot_after, int show_progress, int compress);
+void nandroid (const char* operation, char *subname, char partitions, int show_progress, int compress);
 
 void show_nandroid_menu ();
