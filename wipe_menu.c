@@ -13,7 +13,8 @@ int wipe_partition(char* partition, int autoaccept)
 	char path_string[255] = "";
 	char operation[255] = "";
 
-	if (strcmp(partition,"battery statistics") != 0 && strcmp(partition,"dalvik-cache") !=0 )
+	if (strcmp(partition,"battery statistics") != 0 && strcmp(partition,"dalvik-cache") !=0 &&
+	strcmp(partition,"android_secure") != 0)
 	{
 	  sprintf(path_string,"/%s", partition);
 	}
@@ -46,9 +47,9 @@ int wipe_partition(char* partition, int autoaccept)
 			ensure_path_unmounted ("/cache");
 			erase_volume ("/cache");
 			ensure_path_mounted ("/cache");		
-			ui_print ("\n-- Wiping .android-secure... ");
+			ui_print ("\n-- Wiping .androidxi_-secure... ");
 			ensure_path_mounted ("/sdcard");
-			__system ("rm -rf /sdcard/.android-secure/*");
+			__system ("rm -rf /sdcard/.android_secure/*");
 			ui_print ("\n-- Wiping boot...");
 			erase_volume("/boot");
 			ui_print ("\nDone.\n");
@@ -78,10 +79,10 @@ int wipe_partition(char* partition, int autoaccept)
 			return 0;
 		 }
 
-		if (strcmp (partition, "android-secure") == 0)
+		if (strcmp (partition, "android_secure") == 0)
 		{
 			ensure_path_mounted ("/sdcard");
-			__system ("rm -rf /sdcard/.android-secure/*");
+			__system ("rm -rf /sdcard/.android_secure/*");
 			ui_print("Done.\n");
 			ui_reset_progress();
 			return 0;
@@ -143,7 +144,7 @@ show_wipe_menu ()
   char *items[] = { "Wipe all",
     "Wipe system",
     "Wipe data",
-    "Wipe .android-secure",
+    "Wipe .android_secure",
     "Wipe boot",
     "Wipe cache",
     "Wipe battery stats",
@@ -185,7 +186,7 @@ show_wipe_menu ()
 		      break;
 
 		    case WIPE_AS:
-		      wipe_partition("android-secure", 0);
+		      wipe_partition("android_secure", 0);
 		      break;
 
 		    case WIPE_BOOT:
