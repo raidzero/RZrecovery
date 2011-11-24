@@ -163,8 +163,9 @@ nandroid (const char* operation, char *subname, char partitions, int show_progre
     else
     {
       ui_print ("(done)\n");
-       if (reboot_nandroid) {
-	 reboot_fn("android");
+       if (reboot_nandroid) 
+	   {
+	     reboot_android();
        }  
     }
   ui_reset_progress ();
@@ -653,7 +654,7 @@ show_compress_menu()
 			}
 			if (status == 0)
 			{
-				if (reboot_nandroid) reboot_fn("android");
+				if (reboot_nandroid) reboot_android();
 			}
 			ui_reset_progress();			
 		} else {

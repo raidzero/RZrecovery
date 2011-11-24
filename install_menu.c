@@ -432,7 +432,6 @@ install_update_zip (char *filename)
   if (status != INSTALL_SUCCESS)
 	  {
 	    ui_print ("Installation aborted.\n");
-	    return 0;
 	  }
   else
 	  {
@@ -517,7 +516,7 @@ preinstall_apk (char *filename)
 }
 
 void
-get_preinstall_menu_opts (char **preinstall_opts, int reboot_afterwards)
+get_preinstall_menu_opts (char **preinstall_opts, int reboot_into_android)
 {
 
   char **tmp = malloc (5 * sizeof (char *));
@@ -530,7 +529,7 @@ get_preinstall_menu_opts (char **preinstall_opts, int reboot_afterwards)
   sprintf (tmp[0], "(%c) Backup before install", backup ? '*':' ');
   sprintf (tmp[1], "(%c) Wipe cache", cwipe ? '*':' ');
   sprintf (tmp[2], "(%c) Wipe data", dwipe ? '*':' ');
-  sprintf (tmp[3], "(%c) Reboot afterwards", reboot_afterwards ? '*':' ');
+  sprintf (tmp[3], "(%c) Reboot afterwards", reboot_into_android ? '*':' ');
   tmp[4] = NULL;
 
   char **h = preinstall_opts;
@@ -543,7 +542,7 @@ get_preinstall_menu_opts (char **preinstall_opts, int reboot_afterwards)
  void
 preinstall_menu (char *filename)
 {
-  int reboot_afterwards = 0;
+  int reboot_into_android = 0;
   char *basename = strrchr (filename, '/') + 1;
   char *current_basename = strrchr (filename, '/') + 1;
   char install_string[PATH_MAX];
@@ -593,7 +592,7 @@ preinstall_menu (char *filename)
 
   while (chosen_item != ITEM_BACK)
 	  {
-	    get_preinstall_menu_opts (preinstall_opts, reboot_afterwards);
+	    get_preinstall_menu_opts (preinstall_opts, reboot_into_android);
 	    chosen_item = get_menu_selection (headers, preinstall_opts, 0, chosen_item < 0 ? 0 : chosen_item);
 		
 	    switch (chosen_item)
@@ -619,22 +618,16 @@ preinstall_menu (char *filename)
 			  choose_file_menu("/sdcard/");
 			  return;
 		    case ITEM_INSTALL:
-			  if (position > 0) 
-			  {
-			    install_queued_items();
-				install_update_package (filename);
-				if (reboot_afterwards) reboot_fn("android");
-				return;
+			  if (position > 0) install_queued_items(); 
+			  install_update_package (filename);
+			  if (reboot_into_android)
+			  {  
+				ui_print("Auto-reboot triggered...\n");
+				reboot_android();
 			  }
-			  else 
-		      {  
-			    install_update_package (filename);
-				if (reboot_afterwards) reboot_fn("android");
-				return;
-		      }
 			  return;
 		    case ITEM_REBOOT:
-			   reboot_afterwards ^= 1;
+			   reboot_into_android ^= 1;
 			   break;
 		    }
 	  }

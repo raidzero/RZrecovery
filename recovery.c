@@ -60,6 +60,7 @@ static const char *SDCARD_ROOT = "/sdcard";
 static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
 static const char *SIDELOAD_TEMP_DIR = "/tmp/sideload";
 
+static void reboot_fn(char* action);
  
 /*
  * The recovery tool communicates with the main system through /cache files.
@@ -944,10 +945,6 @@ main (int argc, char **argv)
 	      return mkfs_ext4_main(argc, argv);
 	    if (strstr (argv[0], "volume_info") != NULL)
 	      return volume_info_main(argc, argv);
-	    if (strstr (argv[0], "reboot_android") != NULL)
-	      return reboot_fn("android");
-	    if (strstr (argv[0], "reboot_recovery") != NULL)
-	      return reboot_fn("recovery");
 	    //we dont need to keep executing stuff past this point if an embedded function was called 
 	    return 0;
 	  }
@@ -1133,13 +1130,13 @@ main (int argc, char **argv)
    
     // Otherwise, get ready to boot the main system...
   finish_recovery (send_intent);
-  //ui_print ("Rebooting...\n");
+  ui_print ("Rebooting...\n");
   sync ();
-  //reboot (RB_AUTOBOOT);
+  reboot (RB_AUTOBOOT);
   return EXIT_SUCCESS;
 }
 
-void reboot_fn(char* action)
+static void reboot_fn(char* action)
 {
   if (strcmp(action, "android") == 0 
   || strcmp(action, "recovery") == 0 
@@ -1173,7 +1170,10 @@ void reboot_fn(char* action)
 
 }
 
- 
+void reboot_android()
+{
+  reboot_fn("android");
+}  
 
 void
 ui_printf_int (const char *format, int arg) 

@@ -127,13 +127,11 @@ try_update_binary (const char *path, ZipArchive * zip)
 			("Amend scripting was deprecated by Google in Android 1.5.\n");
 		      ui_print
 			("Please switch to Edify scripting (updater-script and update-binary) to create working update zip packages.\n");
-		      read_files();
 		      ui_reset_progress();
 		      return INSTALL_UPDATE_BINARY_MISSING;
 		    }
 
 	    mzCloseZipArchive (zip);
-	    read_files();
 	    ui_reset_progress();
 	    return INSTALL_UPDATE_BINARY_MISSING;
 	  }
@@ -315,7 +313,6 @@ try_update_binary (const char *path, ZipArchive * zip)
 	    ui_reset_progress();
 	    return ret;
 	  }
-  read_files();
   ui_reset_progress();
   return INSTALL_SUCCESS;
 }
@@ -340,8 +337,7 @@ install_package (const char *path)
   ui_print ("Opening update package...\n");
   int err;
 
-  /* Try to open the package.
-   */
+  // Try to open the package.
   ZipArchive zip;
 
   err = mzOpenZipArchive (path, &zip);
@@ -352,10 +348,10 @@ install_package (const char *path)
 	    return INSTALL_CORRUPT;
 	  }
 
-  /* Verify and install the contents of the package.
-   */
+  // Verify and install the contents of the package.
   ui_print ("Installing update...\n");
   write_files();
+  //reboot to android at this point will cause a reboot into recovery
   return try_update_binary (path, &zip);
   read_files();
 }
