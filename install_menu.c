@@ -19,15 +19,9 @@
 
 char** install_list;
 int position = 0;
-int reboot_afterwards = 0;
 int backup = 0;
 int dwipe = 0;
 int cwipe = 0;
-
-void set_reboot_afterwards()
-{
- reboot_afterwards ^= 1;
-}
 
 void set_backup()
 {
@@ -523,7 +517,7 @@ preinstall_apk (char *filename)
 }
 
 void
-get_preinstall_menu_opts (char **preinstall_opts)
+get_preinstall_menu_opts (char **preinstall_opts, int reboot_afterwards)
 {
 
   char **tmp = malloc (5 * sizeof (char *));
@@ -549,6 +543,7 @@ get_preinstall_menu_opts (char **preinstall_opts)
  void
 preinstall_menu (char *filename)
 {
+  int reboot_afterwards = 0;
   char *basename = strrchr (filename, '/') + 1;
   char *current_basename = strrchr (filename, '/') + 1;
   char install_string[PATH_MAX];
@@ -598,7 +593,7 @@ preinstall_menu (char *filename)
 
   while (chosen_item != ITEM_BACK)
 	  {
-	    get_preinstall_menu_opts (preinstall_opts);
+	    get_preinstall_menu_opts (preinstall_opts, reboot_afterwards);
 	    chosen_item = get_menu_selection (headers, preinstall_opts, 0, chosen_item < 0 ? 0 : chosen_item);
 		
 	    switch (chosen_item)
@@ -629,15 +624,17 @@ preinstall_menu (char *filename)
 			    install_queued_items();
 				install_update_package (filename);
 				if (reboot_afterwards) reboot_fn("android");
+				return;
 			  }
 			  else 
 		      {  
 			    install_update_package (filename);
 				if (reboot_afterwards) reboot_fn("android");
+				return;
 		      }
 			  return;
 		    case ITEM_REBOOT:
-			   set_reboot_afterwards();
+			   reboot_afterwards ^= 1;
 			   break;
 		    }
 	  }

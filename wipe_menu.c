@@ -29,6 +29,7 @@ int wipe_partition(char* partition, int autoaccept)
 	if (strcmp (partition, "all") == 0)
 	{
 	    if (confirm_selection("Wipe EVERYTHING?", "Yes - wipe the entire device", autoaccept)) {
+			ui_print("Preparing to wipe everything...\n");
 			ui_show_indeterminate_progress();
 			write_files();
 			ui_print ("\n-- Wiping system... ");
@@ -47,7 +48,7 @@ int wipe_partition(char* partition, int autoaccept)
 			ensure_path_unmounted ("/cache");
 			erase_volume ("/cache");
 			ensure_path_mounted ("/cache");		
-			ui_print ("\n-- Wiping .androidxi_-secure... ");
+			ui_print ("\n-- Wiping .android_secure... ");
 			ensure_path_mounted ("/sdcard");
 			__system ("rm -rf /sdcard/.android_secure/*");
 			ui_print ("\n-- Wiping boot...");
@@ -65,9 +66,10 @@ int wipe_partition(char* partition, int autoaccept)
 	  
 	if (confirm_selection(wipe_header, operation, autoaccept))
 	{	
-		ui_show_indeterminate_progress();
-		write_files();
+		
 		ui_print("-- Wiping %s... ",partition);
+		ui_show_indeterminate_progress();
+		if (strcmp(path_string, "/cache") == 0) write_files();
 		
 		if (strcmp (partition, "battery statistics") == 0)
 		{

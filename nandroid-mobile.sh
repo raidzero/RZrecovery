@@ -47,9 +47,19 @@ batteryAtLeast()
 	ENERGY=100
     fi
     if [ ! $ENERGY -ge $REQUIREDLEVEL ]; then
-	echo "* print Error: not enough battery power, need at least $REQUIREDLEVEL%."
-	echo "* print Connect charger or USB power and try again"
-	exit 1
+	menu -h "Insufficient battery power" -h "Would you like to continue anyway at your own risk?" -h "" \
+	  -i "No" \
+	  -i "Yes"
+	read BATT_CHOICE
+	[ $BATT_CHOICE == 0 ] && action="abort"
+	[ $BATT_CHOICE == 1 ] && action="continue"
+	
+	
+	if [ "$action" != "continue" ]; then
+	  echo "* print Error: not enough battery power, need at least $REQUIREDLEVEL%."
+	  echo "* print Connect charger or USB power and try again."
+	  exit 101
+	fi
     fi
 }
 
@@ -381,7 +391,6 @@ if [ "$RESTORE" == 1 ]; then
 	fi
 
 
-
     RESTOREPATH=`ls -trd $BACKUPPATH/*$SUBNAME* 2>/dev/null | tail -1`
 
     if [ "$RESTOREPATH" = "" ]; then
@@ -651,6 +660,14 @@ if [ "$BACKUP" == 1 ]; then
 
 
     TIMESTAMP="`date +%Y%m%d-%H%M`"
+    
+    if [ -e /system/build.prop ]; then
+      VERSION=`cat /system/build.prop | grep ro.build.display.id | cut -d '=' -f2`
+      if [ ! -z "$VERSION" ]; then
+        SUBNAME="$VERSION"-"$SUBNAME"
+      fi
+    fi
+    
     DESTDIR="$BACKUPPATH/$SUBNAME$BACKUPLEGEND$TIMESTAMP"
     DESTDIRFM=`echo $DESTDIR | sed 's/\/\//\//g'`
     echo "* print Destination:"
