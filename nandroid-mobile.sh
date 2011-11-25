@@ -380,8 +380,9 @@ if [ "$INSTALL_ROM" == 1 ]; then
 fi
 
 if [ "$RESTORE" == 1 ]; then
+    batteryAtLeast 20
+    
     R_START=`date +%s`
-    batteryAtLeast 30
     umount /sdcard 2>/dev/null
     mount /sdcard 2>/dev/null
 	
@@ -603,6 +604,9 @@ fi
 
 # 2.
 if [ "$BACKUP" == 1 ]; then
+
+    batteryAtLeast 20
+
     B_START=`date +%s`
     
     TAR_OPTS="c"
