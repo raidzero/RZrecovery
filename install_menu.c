@@ -4,10 +4,11 @@
 #include <sys/wait.h>
 #include <sys/limits.h>
 #include <dirent.h>
+#include <fcntl.h>
 #include <linux/input.h>
+#include <unistd.h>
  
 #include "common.h"
-#include "recovery.h"
 #include "minui/minui.h"
 #include "recovery_ui.h"
 #include "roots.h"
@@ -419,11 +420,12 @@ void install_queued_items()
  int
 install_update_zip (char *filename)
 {
-   char *path = NULL;
+  char *path = NULL;
 
-   puts (filename);
+  puts (filename);
   ui_print ("\n-- Install update.zip from sdcard...\n");
-  set_sdcard_update_bootloader_message ();
+  //set_sdcard_update_bootloader_message ();
+  // ah ha! so THAT was the problem!
   ui_print ("Attempting update from...\n");
   ui_print ("%s", filename);
   ui_print ("\n");
@@ -620,10 +622,10 @@ preinstall_menu (char *filename)
 		    case ITEM_INSTALL:
 			  if (position > 0) install_queued_items(); 
 			  install_update_package (filename);
+			  
 			  if (reboot_into_android)
 			  {  
-				ui_print("Auto-reboot triggered...\n");
-				reboot_android();
+			    reboot_android();
 			  }
 			  return;
 		    case ITEM_REBOOT:

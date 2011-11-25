@@ -323,7 +323,8 @@ install_package (const char *path)
   ui_print ("Finding update package...\n");
   ui_show_indeterminate_progress ();
   LOGI ("Update location: %s\n", path);
-
+  //reboot even here will go back to recovery!
+  
   if (ensure_path_mounted (path) != 0)
 	  {
 	    LOGE ("Can't mount %s\n", path);
