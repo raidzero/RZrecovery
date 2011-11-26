@@ -47,7 +47,7 @@ batteryAtLeast()
 	ENERGY=100
     fi
     if [ ! $ENERGY -ge $REQUIREDLEVEL ]; then
-	menu -h "Insufficient battery power" -h "Would you like to continue anyway at your own risk?" -h "" \
+	menu -h "Insufficient battery power" -h "Continue anyway at your own risk?" -h "" \
 	  -i "No" \
 	  -i "Yes"
 	read BATT_CHOICE

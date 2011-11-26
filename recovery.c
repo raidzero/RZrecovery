@@ -945,6 +945,8 @@ main (int argc, char **argv)
 	      return mkfs_ext4_main(argc, argv);
 	    if (strstr (argv[0], "volume_info") != NULL)
 	      return volume_info_main(argc, argv);
+	    if (strstr (argv[0], "reboot_android") != NULL)
+	      return reboot_android();
 	    //we dont need to keep executing stuff past this point if an embedded function was called 
 	    return 0;
 	  }

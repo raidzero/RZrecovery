@@ -374,8 +374,8 @@ install_update_package (char *filename)
   printf("Position: %i\n", position);
   
   if (backup) nandroid("backup", "preinstall", DEFAULT, 1, 0); backup = 0;; //reset it after the first run
-  if (dwipe) wipe_partition("cache", 1); dwipe = 0;
-  if (cwipe) wipe_partition("data", 1); cwipe = 0;
+  if (dwipe) wipe_partition("data", 1); dwipe = 0;
+  if (cwipe) wipe_partition("cache", 1); cwipe = 0;
   if (strcmp (extension, "zip") == 0)
 	  {
 	    ui_print ("\nZIP detected.\n");

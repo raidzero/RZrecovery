@@ -59,7 +59,7 @@ LOCAL_C_INCLUDES += system/extras/ext4_utils
 include $(BUILD_EXECUTABLE)
 
 #symlinks
-RECOVERY_LINKS := flash_image dump_image erase_image format mkfs.ext4 mkbootimg unpack_bootimg mkbootfs volume_info reboot_android reboot_recovery
+RECOVERY_LINKS := flash_image dump_image erase_image format mkfs.ext4 mkbootimg unpack_bootimg mkbootfs volume_info reboot_android
 RECOVERY_SYMLINKS := $(addprefix $(TARGET_RECOVERY_ROOT_OUT)/sbin/,$(RECOVERY_LINKS))
 $(RECOVERY_SYMLINKS): RECOVERY_BINARY := $(LOCAL_MODULE)
 $(RECOVERY_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
