@@ -631,6 +631,10 @@ preinstall_menu (char *filename)
 			  {
 			    if (install_queued_items() != 101) install_update_package (filename);
 			  }
+			  else
+			  {
+			    install_update_package(filename);
+			  }
 			  if (reboot_into_android)
 			  {  
 			    reboot_android();
