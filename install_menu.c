@@ -364,8 +364,7 @@ install_apk (char *filename, char *location)
   return 0;
 }
 
- void
-install_update_package (char *filename)
+int install_update_package (char *filename)
 {
   char *extension = (filename + strlen (filename) - 3);
   char *boot_extension = (filename + strlen (filename) - 8);
@@ -380,12 +379,12 @@ install_update_package (char *filename)
 	  {
 	    ui_print ("\nZIP detected.\n");
 	    remove ("/block_update");
-	    install_update_zip (filename);
+	    if (!install_update_zip (filename)) return -1;
 	  }
   if (strcmp (extension, "tar") == 0 || strcmp (extension, "tgz") == 0)
 	  {
 	    ui_print ("\nTAR detected.\n");
-	    install_rom_from_tar (filename);
+	    if (!install_rom_from_tar (filename)) return -1;
 	  }
   if (strcmp (apk_extension, "apk") == 0)
 	  {
@@ -402,9 +401,10 @@ install_update_package (char *filename)
 	    ui_print ("\nBOOT IMAGE detected.\n");
 	    install_img (filename, "boot");
 	  }
+  return 0;
 }
 
-void install_queued_items() 
+int install_queued_items() 
 {
    int i;
    char* filename;
@@ -412,9 +412,15 @@ void install_queued_items()
    {
 	 filename = install_list[i];
 	 ui_print("Installing item %i of %i from queue. \n", i+1, position);
-	 install_update_package(filename);
+	 if (!install_update_package(filename))
+	 {
+	   ui_print("Install failed! Aborting queue...\n");
+	   clear_queue();
+	   return 101;
+	 }
    }
    clear_queue();
+   return 0;
 }
 
  int
@@ -434,6 +440,7 @@ install_update_zip (char *filename)
   if (status != INSTALL_SUCCESS)
 	  {
 	    ui_print ("Installation aborted.\n");
+	    return -1;
 	  }
   else
 	  {
@@ -620,9 +627,10 @@ preinstall_menu (char *filename)
 			  choose_file_menu("/sdcard/");
 			  return;
 		    case ITEM_INSTALL:
-			  if (position > 0) install_queued_items(); 
-			  install_update_package (filename);
-			  
+			  if (position > 0) 
+			  {
+			    if (install_queued_items() != 101) install_update_package (filename);
+			  }
 			  if (reboot_into_android)
 			  {  
 			    reboot_android();
