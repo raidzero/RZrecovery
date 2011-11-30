@@ -1177,6 +1177,14 @@ void reboot_android()
   reboot_fn("android");
 }  
 
+int get_key()
+{
+  int key, action;
+  key = ui_wait_key();
+  action = device_handle_key(key);
+  return key;
+}
+
 void
 ui_printf_int (const char *format, int arg) 
 {
@@ -1521,6 +1529,11 @@ runve (char *filename, char **argv, char **envp, int secs)
 		              {
 			        tmplog_offset = 0;
 		              }
+		      else if (strcmp (tok, "get_key") == 0)
+		      	      {
+			        return get_key;
+			      }
+				
 		      else
 			      {
 				ui_print ("unrecognized command ");

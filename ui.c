@@ -79,6 +79,8 @@ static gr_surface gProgressBarFill;
 NULL, NULL}, };
 
  static gr_surface gCurrentIcon = NULL;
+ static int ui_log_stdout = 1;
+
  static enum ProgressBarType
 { PROGRESSBAR_TYPE_NONE, PROGRESSBAR_TYPE_INDETERMINATE,
     PROGRESSBAR_TYPE_NORMAL, 
@@ -576,7 +578,7 @@ ui_print (const char *fmt, ...)
   va_start (ap, fmt);
   vsnprintf (buf, 256, fmt, ap);
   va_end (ap);
-   fputs (buf, stdout);
+  if (ui_log_stdout) fputs (buf, stdout);
    
     // This can get called before ui_init(), so be careful.
     pthread_mutex_lock (&gUpdateMutex);
@@ -612,7 +614,7 @@ ui_print_n (const char *fmt, ...)
   va_start (ap, fmt);
   vsnprintf (buf, (text_cols -1), fmt, ap);
   va_end (ap);
-   fputs (buf, stdout);
+   if (ui_log_stdout) fputs (buf, stdout);
    text_col = 0;
    
     // This can get called before ui_init(), so be careful.
@@ -638,6 +640,42 @@ ui_print_n (const char *fmt, ...)
 	    update_screen_locked ();
 	  }
   pthread_mutex_unlock (&gUpdateMutex);
+}
+
+void view_log()
+{
+  int lines =0;
+  char line[512];
+  FILE* f;
+
+  f = fopen("/tmp/recovery.log", "r");
+  if (f == NULL)
+  {
+    ui_print("File does not exist!\n");
+    return;
+  }
+  
+  //avoid doubling the log with prints of itself...
+  ui_log_stdout = 0;
+  ui_print("\n\n\n\n\n\n"); // print a few newlines to separate old log from new log
+  while (fgets(line, 512, f) != NULL && fgets(line, 512, f) != EOF) 
+  { 
+    
+    start:
+    ui_print("%s", line);
+    lines++;
+    if (lines == 35 ) // if 35 lines have been displayed, pause to let the user read
+    {
+      lines = 0;
+      int key = ui_wait_key();
+      int action = device_handle_key(key);
+      if (action == ITEM_BACK) return;
+      if (action == HIGHLIGHT_DOWN ) goto start;
+    }
+  }
+
+  lines = 0;
+  ui_log_stdout = 1;
 }
 
  void

@@ -52,36 +52,6 @@ void show_battstat ()
   fclose (fs);
 }
 
-void
-flashlight ()
-{
-  if (access ("/sys/class/leds/spotlight/brightness", F_OK))
-	  {
-	    ui_print_n ("\nFlashlight not found.\n");
-	    return;
-	  }
-  char brightness[3];
-  int bi;
-  FILE *flr = fopen ("/sys/class/leds/spotlight/brightness", "r");
-
-  fgets (brightness, 3, flr);
-  bi = atoi (brightness);
-  FILE *flw = fopen ("/sys/class/leds/spotlight/brightness", "w");
-
-  if (bi == 0)
-	  {
-	    fputs ("255", flw);
-	    fputs ("\n", flw);
-	  }
-  else
-	  {
-	    fputs ("0", flw);
-	    fputs ("\n", flw);
-	  }
-  fclose (flr);
-  fclose (flw);
-}
-
 int plugins_present(const char* sdpath)
 {
   DIR * dir;
@@ -135,17 +105,19 @@ show_extras_menu ()
   items[0] = "Custom Colors";
   items[1] = "Show Battery Status";
   items[2] = "Recovery Overclocking";
+  items[3] = "View Log";
   if (plugins_present("/sdcard/RZR/plugins")) 
   {
-    items[3] = "Plugins";
-	items[4] = NULL;
+    items[4] = "Plugins";
+	items[5] = NULL;
   }
-  else items[3] = NULL;	
+  else items[4] = NULL;	
 
 #define COLORS			0
 #define BATT 			1	
 #define OVERCLOCK	   	2
-#define PLUGINS			3
+#define VIEW_LOG		3
+#define PLUGINS			4
 
   int chosen_item = -1;
 
@@ -166,6 +138,9 @@ show_extras_menu ()
 		      break;
 		    case OVERCLOCK:
 		      show_overclock_menu ();
+		      break;
+		    case VIEW_LOG:
+		      view_log();
 		      break;
 		    case PLUGINS:
 		       choose_plugin_menu("/sdcard/RZR/plugins/");
