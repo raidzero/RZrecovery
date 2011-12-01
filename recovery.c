@@ -297,37 +297,37 @@ write_files ()
 	  {
 	    if (access ("/cache/rgb", F_OK) != -1)
 		    {
-		      copyFile("/cache/rgb","/sdcard/RZR/rgb");
+		      __system("cp /cache/rgb /sdcard/RZR/rgb");
 		      printf ("\nColors file saved to sdcard.\n");
 		    }
 	    if (access ("/cache/oc", F_OK) != -1)
 		    {
-		      copyFile("/cache/oc","/sdcard/RZR/oc");
+		      __system("cp /cache/oc /sdcard/RZR/oc");
 		      printf ("\nOverclock file saved to sdcard.\n");
 		    }
 	    if (access ("/cache/rnd", F_OK) != -1)
 		    {
-		      copyFile("/cache/rnd","/sdcard/RZR/rnd");
+		      __system("cp /cache/rnd /sdcard/RZR/rnd");
 		      printf ("\nRave file saved to sdcard.\n");
 		    }
 	    if (access("/cache/icon_rw", F_OK) != -1)
 	    {
-	    	copyFile("/cache/icon_rw","/sdcard/RZR/icon_rw");
+	    	__system("cp /cache/icon_rw /sdcard/RZR/icon_rw");
 		printf("RW Icon saved to sdcard.\n");
 	    }
 	    if (access("/cache/icon_rz", F_OK) != -1)
 	    {
-	        copyFile("/cache/icon_rz","/sdcard/RZR/icon_rz");
+	        __system("cp /cache/icon_rz /sdcard/RZR/icon_rz");
 	        printf("RZ Icon saved to sdcard.\n");
 	    }
 	    if (access("/cache/recovery/log", F_OK) != -1)
 	    {
-	        copyFile("/cache/recovery/log","/sdcard/RZR/log");
+	        __system("cp /cache/recovery/log /sdcard/RZR/log");
 	        printf("Recovery log saved to sdcard.\n");
 	    }		
 	    if (access("/cache/recovery/last_log", F_OK) != -1)
 	    {
-	        copyFile("/cache/recovery/last_log","/sdcard/RZR/last_log");
+	        __system("cp /cache/recovery/last_log /sdcard/RZR/last_log");
 	        printf("Last recovery log saved to sdcard.\n");
 	    }
 	    sync ();
@@ -340,7 +340,7 @@ read_cpufreq ()
   ensure_path_mounted ("/sdcard");
   if (access ("/sdcard/RZR/oc", F_OK) != -1)
 	  {
-	    if (!copyFile("/sdcard/RZR/oc","/cache/oc")) printf("Overclock file copied to /cache.\n");
+	    if (!__system("cp /sdcard/RZR/oc /cache/oc")) printf("Overclock file copied to /cache.\n");
 	  }
   else
 	  {
@@ -371,7 +371,15 @@ read_files ()
  ensure_path_mounted ("/sdcard");
  ensure_path_mounted("/cache");
  sleep(1);
- if (access("/sdcard/RZR", F_OK) != -1) {
+ if (access("/sdcard/rzr", F_OK) != -1) 
+ {
+   printf("Encountered lowercase dir...\n");
+   __system("mv /sdcard/rzr /sdcard/rzr-tmp"); 
+   __system("mv/sdcard/rzr-tmp /sdcard/RZR");
+   printf("lowercase dir converted.\n");
+ }
+ if (access("/sdcard/RZR", F_OK) != -1) 
+ {
    __system("chmod -R 777 /sdcard/RZR"); //some ROMs go messing with my files!
    __system("cp /sdcard/RZR/* /cache");
    __system("mkdir /cache/recovery");
@@ -1550,48 +1558,4 @@ runve (char *filename, char **argv, char **envp, int secs)
   free (cur_line);
   return status;
 }
-
-int copyFile(FILE *from, FILE *to)
-{
-  char ch;
-
-  /* open source file */
-  if((from = fopen(from, "rb"))==NULL) {
-    printf("Cannot open source file.\n");
-    exit(1);
-  }
-
-  /* open destination file */
-  if((to = fopen(to, "wb"))==NULL) {
-    printf("Cannot open destination file.\n");
-    exit(1);
-  }
-
-  /* copy the file */
-  while(!feof(from)) {
-    ch = fgetc(from);
-    if(ferror(from)) {
-      printf("Error reading source file.\n");
-      exit(1);
-    }
-    if(!feof(from)) fputc(ch, to);
-    if(ferror(to)) {
-      printf("Error writing destination file.\n");
-      exit(1);
-    }
-  }
-
-  if(fclose(from)==EOF) {
-    printf("Error closing source file.\n");
-    exit(1);
-  }
-
-  if(fclose(to)==EOF) {
-    printf("Error closing destination file.\n");
-    exit(1);
-  }
-
-  return 0;
-}
-
 
