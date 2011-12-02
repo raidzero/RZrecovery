@@ -23,8 +23,8 @@ LOCAL_SRC_FILES := \
     mkbootimg.c \
     unpackbootimg.c \
     mkbootfs.c \
-	unyaffs.c \
-    mounts.c
+    unyaffs.c \
+    mounts.c 
 
 ##the world just isnt ready for API level 3 yet
 RECOVERY_API_VERSION := 2 
@@ -62,8 +62,6 @@ $(RECOVERY_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
 	@echo > $(TARGET_RECOVERY_ROOT_OUT)/block_update
 	$(hide) ln -sf $(RECOVERY_BINARY) $@
 	@echo "Copy prebuilts..."
-	$(shell cp $(SOURCE_HOME)/mke2fs $(TARGET_RECOVERY_ROOT_OUT)/sbin)
-	$(shell cp $(SOURCE_HOME)/tune2fs $(TARGET_RECOVERY_ROOT_OUT)/sbin)
 	$(shell cp $(SOURCE_HOME)/e2fsck $(TARGET_RECOVERY_ROOT_OUT)/sbin)
 	
 	$(shell cp $(SOURCE_HOME)/ui_commands.sh $(TARGET_RECOVERY_ROOT_OUT))
@@ -85,7 +83,7 @@ LOCAL_SRC_FILES := busybox
 include $(BUILD_PREBUILT)
 
 ##busybox symlinks
-BUSYBOX_LINKS := [ [[ arp ash awk base64 basename bbconfig blockdev brctl bunzip2 bzcat bzip2 cal cat catv chattr chgrp chmod chown chroot clear cmp comm cp cpio crond crontab cut date dc dd depmod devmem df diff dirname dmesg dnsd dos2unix du echo ed egrep env expand expr false fdisk fgrep find flashcp flash_unlock flash_lock flock fold free freeramdisk fsync ftpget ftpput fuser getopt grep groups gunzip gzip halt head hexdump id ifconfig insmod iostat install ip kill killall killall5 length less ln losetup ls lsattr lsmod lsusb lzcat lzma lzop lzopcat man md5sum mesg mkdir mkfifo mknod mkswap mktemp modinfo modprobe more mount mountpoint mpstat mv nanddump nandwrite nc netstat nice nohup nslookup ntpd od patch pgrep pidof ping pkill printenv printf ps pstree pmap poweroff pwd pwdx rdev readlink realpath renice reset resize rev rm rmdir rmmod route run-parts rx sed seq setconsole setserial setsid sh sha1sum sha256sum sha512sum sleep sort split stat strings stty sum swapoff swapon sync sysctl tac tail tar tee telnet telnetd test tftp tftpd time timeout top touch tr traceroute true ttysize umount uname uncompress unexpand uniq unix2dos unxz unlzma unlzop unzip uptime usleep uudecode uuencode vi watch wc wget which whoami xargs xzcat xz yes zcat
+BUSYBOX_LINKS := [ [[ arp ash awk base64 basename bbconfig blockdev brctl bunzip2 bzcat bzip2 cal cat catv chattr chgrp chmod chown chroot clear cmp comm cp cpio crond crontab cut date dc dd depmod devmem df diff dirname dmesg dnsd dos2unix du echo ed egrep env expand expr false fdisk fgrep find flashcp flash_unlock flash_lock flock fold free freeramdisk fsck fsync ftpget ftpput fuser getopt grep groups gunzip gzip halt head hexdump id ifconfig insmod iostat install ip kill killall killall5 length less ln losetup ls lsattr lsmod lsusb lzcat lzma lzop lzopcat man md5sum mesg mkdir mkfifo mke2fs mknod mkswap mktemp modinfo modprobe more mount mountpoint mpstat mv nanddump nandwrite nc netstat nice nohup nslookup ntpd od patch pgrep pidof ping pkill printenv printf ps pstree pmap poweroff pwd pwdx rdev readlink realpath renice reset resize rev rm rmdir rmmod route run-parts rx sed seq setconsole setserial setsid sh sha1sum sha256sum sha512sum sleep sort split stat strings stty sum swapoff swapon sync sysctl tac tail tar tee telnet telnetd test tftp tftpd time timeout top touch tr traceroute true tune2fs ttysize umount uname uncompress unexpand uniq unix2dos unxz unlzma unlzop unzip uptime usleep uudecode uuencode vi watch wc wget which whoami xargs xzcat xz yes zcat
 BUSYBOX_SYMLINKS := $(addprefix $(TARGET_RECOVERY_ROOT_OUT)/sbin/,$(BUSYBOX_LINKS))
 $(BUSYBOX_SYMLINKS): BUSYBOX_BINARY := busybox
 $(BUSYBOX_SYMLINKS): $(LOCAL_INSTALLED_MODULE)	
