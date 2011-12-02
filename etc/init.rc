@@ -9,6 +9,9 @@ on init
 
     symlink /system/etc /etc
 
+    mkdir /system/bin
+    symlink /sbin /system/bin
+
     mkdir /sdcard
     mkdir /system
     mkdir /data
@@ -25,6 +28,9 @@ on boot
 
 service ueventd /sbin/ueventd
     critical
+
+service symlinksbin /sbin/symlink_sbin
+   oneshot
 
 service recovery /sbin/recovery
 

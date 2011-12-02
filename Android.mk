@@ -1,6 +1,3 @@
-ifneq ($(TARGET_SIMULATOR),true)
-ifeq ($(TARGET_ARCH),arm)
-
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
@@ -26,40 +23,35 @@ LOCAL_SRC_FILES := \
     mkbootimg.c \
     unpackbootimg.c \
     mkbootfs.c \
+	unyaffs.c \
     mounts.c
 
-LOCAL_MODULE := recovery
-
-LOCAL_FORCE_STATIC_EXECUTABLE := true
-
-#the world just isnt ready for API level 3 yet
+##the world just isnt ready for API level 3 yet
 RECOVERY_API_VERSION := 2 
 
-LOCAL_CFLAGS += -DRECOVERY_API_VERSION=$(RECOVERY_API_VERSION)
-
+##generate the recovery version file
 TARGET_DEVICE := $(shell echo $$TARGET_PRODUCT | cut -d '_' -f2)
 RECOVERY_VERSION := "2.1.4"
 VERS_STRING := "$(RECOVERY_VERSION)-$(TARGET_DEVICE) finally"
 
-# This binary is in the recovery ramdisk, which is otherwise a copy of root.
-# It gets copied there in config/Makefile.  LOCAL_MODULE_TAGS suppresses
-# a (redundant) copy of the binary in /system/bin for user builds.
-# TODO: Build the ramdisk image in a more principled way.
+SOURCE_HOME := "/home/raidzero/android/system/2.3.7/bootable/recovery"
 
+##build the main recovery module
+LOCAL_MODULE := recovery
 LOCAL_MODULE_TAGS := eng
-
+LOCAL_FORCE_STATIC_EXECUTABLE := true
+LOCAL_CFLAGS += -DRECOVERY_API_VERSION=$(RECOVERY_API_VERSION)
 LOCAL_STATIC_LIBRARIES :=
 LOCAL_STATIC_LIBRARIES += libext4_utils libz
 LOCAL_STATIC_LIBRARIES += libminzip libunz libmincrypt
 LOCAL_STATIC_LIBRARIES += libminui libpixelflinger_static libpng libcutils
 LOCAL_STATIC_LIBRARIES += libflashutils libmtdutils libmmcutils libbmlutils liberase_image libdump_image libflash_image
 LOCAL_STATIC_LIBRARIES += libstdc++ libc
-
 LOCAL_C_INCLUDES += system/extras/ext4_utils
 include $(BUILD_EXECUTABLE)
 
-#symlinks
-RECOVERY_LINKS := flash_image dump_image erase_image format mkfs.ext4 mkbootimg unpack_bootimg mkbootfs volume_info reboot_android
+##recovery symlinks
+RECOVERY_LINKS := flash_image dump_image erase_image format mkfs.ext4 mkbootimg unpack_bootimg mkbootfs volume_info reboot_android unyaffs
 RECOVERY_SYMLINKS := $(addprefix $(TARGET_RECOVERY_ROOT_OUT)/sbin/,$(RECOVERY_LINKS))
 $(RECOVERY_SYMLINKS): RECOVERY_BINARY := $(LOCAL_MODULE)
 $(RECOVERY_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
@@ -67,75 +59,23 @@ $(RECOVERY_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
 	@mkdir -p $(dir $@)
 	@rm -rf $@
 	@echo "$(VERS_STRING)" > $(TARGET_RECOVERY_ROOT_OUT)/recovery.version
+	@echo > $(TARGET_RECOVERY_ROOT_OUT)/block_update
 	$(hide) ln -sf $(RECOVERY_BINARY) $@
+	@echo "Copy prebuilts..."
+	$(shell cp $(SOURCE_HOME)/mke2fs $(TARGET_RECOVERY_ROOT_OUT)/sbin)
+	$(shell cp $(SOURCE_HOME)/tune2fs $(TARGET_RECOVERY_ROOT_OUT)/sbin)
+	$(shell cp $(SOURCE_HOME)/e2fsck $(TARGET_RECOVERY_ROOT_OUT)/sbin)
+	
+	$(shell cp $(SOURCE_HOME)/ui_commands.sh $(TARGET_RECOVERY_ROOT_OUT))
+	$(shell cp $(SOURCE_HOME)/compress_nandroid.sh $(TARGET_RECOVERY_ROOT_OUT)/sbin)
+	$(shell cp $(SOURCE_HOME)/nandroid-mobile.sh $(TARGET_RECOVERY_ROOT_OUT)/sbin)
+	$(shell cp $(SOURCE_HOME)/symlink_sbin $(TARGET_RECOVERY_ROOT_OUT)/sbin)
+	
+	$(shell cp $(SOURCE_HOME)/su $(TARGET_RECOVERY_ROOT_OUT)/sbin)
 ALL_DEFAULT_INSTALLED_MODULES += $(RECOVERY_SYMLINKS)
 
 
-# copy prebuilt items
-include $(CLEAR_VARS)
-LOCAL_MODULE := ui_commands.sh
-LOCAL_MODULE_TAGS := eng
-LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
-LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)
-LOCAL_SRC_FILES := ui_commands.sh
-include $(BUILD_PREBUILT)
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := compress_nandroid.sh
-LOCAL_MODULE_TAGS := eng
-LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
-LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
-LOCAL_SRC_FILES := compress_nandroid.sh
-include $(BUILD_PREBUILT)
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := fix_permissions.sh
-LOCAL_MODULE_TAGS := eng
-LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
-LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
-LOCAL_SRC_FILES := fix_permissions.sh
-include $(BUILD_PREBUILT)
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := block_update
-LOCAL_MODULE_TAGS := eng
-LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
-LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)
-LOCAL_SRC_FILES := block_update
-include $(BUILD_PREBUILT)
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := mke2fs
-LOCAL_MODULE_TAGS := eng
-LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
-LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
-LOCAL_SRC_FILES := mke2fs
-include $(BUILD_PREBUILT)
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := tune2fs
-LOCAL_MODULE_TAGS := eng
-LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
-LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
-LOCAL_SRC_FILES := tune2fs
-include $(BUILD_PREBUILT)
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := e2fsck
-LOCAL_MODULE_TAGS := eng
-LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
-LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
-LOCAL_SRC_FILES := e2fsck
-include $(BUILD_PREBUILT)
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := edit_fs_mount.sh
-LOCAL_MODULE_TAGS := eng
-LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
-LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
-LOCAL_SRC_FILES := edit_fs_mount.sh
-include $(BUILD_PREBUILT)
-
+	
 include $(CLEAR_VARS)
 LOCAL_MODULE := busybox
 LOCAL_MODULE_TAGS := eng
@@ -144,41 +84,7 @@ LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
 LOCAL_SRC_FILES := busybox
 include $(BUILD_PREBUILT)
 
-include $(CLEAR_VARS)
-LOCAL_MODULE := nandroid-mobile.sh
-LOCAL_MODULE_TAGS := eng
-LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
-LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
-LOCAL_SRC_FILES := nandroid-mobile.sh
-include $(BUILD_PREBUILT)
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := RZR-noverify.sh
-LOCAL_MODULE_TAGS := eng
-LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
-LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
-LOCAL_SRC_FILES := RZR-noverify.sh
-include $(BUILD_PREBUILT)
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := su
-LOCAL_MODULE_TAGS := eng
-LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
-LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
-LOCAL_SRC_FILES := su
-include $(BUILD_PREBUILT)
-
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := unyaffs-arm-uclibc
-LOCAL_MODULE_TAGS := eng
-LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
-LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
-LOCAL_SRC_FILES := unyaffs-arm-uclibc
-include $(BUILD_PREBUILT)
-
-#busybox links
-include $(CLEAR_VARS)
+##busybox symlinks
 BUSYBOX_LINKS := [ [[ arp ash awk base64 basename bbconfig blockdev brctl bunzip2 bzcat bzip2 cal cat catv chattr chgrp chmod chown chroot clear cmp comm cp cpio crond crontab cut date dc dd depmod devmem df diff dirname dmesg dnsd dos2unix du echo ed egrep env expand expr false fdisk fgrep find flashcp flash_unlock flash_lock flock fold free freeramdisk fsync ftpget ftpput fuser getopt grep groups gunzip gzip halt head hexdump id ifconfig insmod iostat install ip kill killall killall5 length less ln losetup ls lsattr lsmod lsusb lzcat lzma lzop lzopcat man md5sum mesg mkdir mkfifo mknod mkswap mktemp modinfo modprobe more mount mountpoint mpstat mv nanddump nandwrite nc netstat nice nohup nslookup ntpd od patch pgrep pidof ping pkill printenv printf ps pstree pmap poweroff pwd pwdx rdev readlink realpath renice reset resize rev rm rmdir rmmod route run-parts rx sed seq setconsole setserial setsid sh sha1sum sha256sum sha512sum sleep sort split stat strings stty sum swapoff swapon sync sysctl tac tail tar tee telnet telnetd test tftp tftpd time timeout top touch tr traceroute true ttysize umount uname uncompress unexpand uniq unix2dos unxz unlzma unlzop unzip uptime usleep uudecode uuencode vi watch wc wget which whoami xargs xzcat xz yes zcat
 BUSYBOX_SYMLINKS := $(addprefix $(TARGET_RECOVERY_ROOT_OUT)/sbin/,$(BUSYBOX_LINKS))
 $(BUSYBOX_SYMLINKS): BUSYBOX_BINARY := busybox
@@ -190,19 +96,6 @@ $(BUSYBOX_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
 ALL_DEFAULT_INSTALLED_MODULES += $(BUSYBOX_SYMLINKS)
 
 include $(CLEAR_VARS)
-
-LOCAL_SRC_FILES := verifier_test.c verifier.c
-
-LOCAL_MODULE := verifier_test
-
-LOCAL_FORCE_STATIC_EXECUTABLE := true
-
-LOCAL_MODULE_TAGS := tests
-
-LOCAL_STATIC_LIBRARIES := libmincrypt libcutils libstdc++ libc
-
-include $(BUILD_EXECUTABLE)
-
 include $(commands_recovery_local_path)/flashutils/Android.mk
 include $(commands_recovery_local_path)/mtdutils/Android.mk
 include $(commands_recovery_local_path)/mmcutils/Android.mk
@@ -215,7 +108,3 @@ include $(commands_recovery_local_path)/updater/Android.mk
 include $(commands_recovery_local_path)/applypatch/Android.mk
 
 commands_recovery_local_path :=
-
-endif   # TARGET_ARCH == arm
-endif    # !TARGET_SIMULATOR
-

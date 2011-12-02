@@ -955,6 +955,8 @@ main (int argc, char **argv)
 	      return volume_info_main(argc, argv);
 	    if (strstr (argv[0], "reboot_android") != NULL)
 	      return reboot_android();
+	    if (strstr (argv[0], "unyaffs") != NULL)
+	      return unyaffs_main(argc, argv);
 	    //we dont need to keep executing stuff past this point if an embedded function was called 
 	    return 0;
 	  }
@@ -1016,6 +1018,7 @@ main (int argc, char **argv)
   if (access("/cache/icon_rw",F_OK) != -1) ui_set_background(BACKGROUND_ICON_RW);
   if (access("/cache/icon_rz",F_OK) != -1) ui_set_background(BACKGROUND_ICON_RZ); 
   
+  __system("sh /sbin/symlink_sbin");
   device_recovery_start ();
   read_cpufreq ();
   ensure_path_unmounted("/sdcard");

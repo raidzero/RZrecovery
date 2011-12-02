@@ -1,0 +1,4 @@
+#!/sbin/sh
+cd /system/bin
+ln -s ../../sbin/busybox sh
+chmod 777 /system/bin/sh
