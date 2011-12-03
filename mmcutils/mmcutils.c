@@ -382,7 +382,7 @@ int
 format_ext3_device (const char *device)
 {
   char *const mke2fs[] = { MKE2FS_BIN, "-j", "-q", device, NULL };
-  char *const tune2fs[] = { TUNE2FS_BIN, "-j", "-C", "1", device, NULL };
+  char *const tune2fs[] = { TUNE2FS_BIN, "-c", "1", device, NULL };
   // Run mke2fs
   if (run_exec_process (mke2fs))
   {
@@ -419,7 +419,7 @@ format_ext2_device (const char *device)
   }
 
   // Run tune2fs
-  char *const tune2fs[] = { TUNE2FS_BIN, "-C", "1", device, NULL };
+  char *const tune2fs[] = { TUNE2FS_BIN, "-c", "1", device, NULL };
   if (run_exec_process (tune2fs))
   {
     printf("\nError in tune2fs!");

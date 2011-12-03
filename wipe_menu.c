@@ -92,8 +92,8 @@ int wipe_partition(char* partition, int autoaccept)
 		
 		if (strcmp (partition, "dalvik-cache") == 0)
 		{
-			ensure_path_mounted ("/data");
-			ensure_path_mounted("/cache");
+			if (!is_path_mounted("/data")) ensure_path_mounted ("/data");
+			if (!is_path_mounted("/cache")) ensure_path_mounted("/cache");
 			__system ("rm -rf /cache/dalvik-cache/*");
 			__system ("rm -rf /data/dalvik-cache/*");
 			ui_print("Done.\n");
