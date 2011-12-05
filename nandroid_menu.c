@@ -27,6 +27,44 @@ void set_reboot_nandroid()
   reboot_nandroid ^= 1;
 }
 
+int validate(const char* sdpath) 
+{
+  char path[PATH_MAX] = "";
+  DIR *dir;
+  struct dirent *de;
+  int total = 0;
+
+  if (ensure_path_mounted (sdpath) != 0)
+	  {
+	    LOGE ("Can't mount %s\n", sdpath);
+		return 0;
+	  }
+
+  dir = opendir (sdpath);
+  if (dir == NULL)
+	  {
+	    LOGE ("Couldn't open directory %s\n", sdpath);
+	    return 0;
+	  }
+
+  while ((de = readdir (dir)) != NULL)
+	  {
+	    if (de->d_name[0] != '.')
+		    {
+		      total++;
+		    }
+	  }
+
+  if (total == 0)
+	  {
+	    return 0;
+	  }
+	  else
+	  {
+	    return 1;
+	  }
+}
+
 void show_nandroid_dir_menu()
 {
   char *headers[] = { "Choose a nandroid directory",
@@ -512,11 +550,18 @@ show_nandroid_adv_r_menu ()
 		      break;
 		    case 1:
 		      nandroid_adv_r_choose_file (filename, backuppath);
-			  headers[4] = backuppath;
+			  headers[4] = backuppath;		  
 		      break;
 			case 2:
 			  show_nandroid_dir_menu();
-			  headers[2] = backuppath;
+			  if (validate(backuppath) != 0)
+			  {
+				headers[2] = backuppath;
+				break;
+			  } else { 
+			   ui_print("No backups found in %s.\n", backuppath);
+			   break;
+			  }
 			  break;
 		    case 3:
 		      partitions ^= BOOT;
@@ -562,7 +607,14 @@ show_nandroid_adv_r_menu ()
 		      break;
 			case 2:
 			  show_nandroid_dir_menu();
-			  headers[2] = backuppath;
+			  if (validate(backuppath) != 0)
+			  {
+				headers[2] = backuppath;
+				break;
+			  } else { 
+			   ui_print("No backups found in %s.\n", backuppath);
+			   break;
+			  }
 			  break;
 		    case 3:
 		      partitions ^= BOOT;
@@ -596,7 +648,7 @@ show_delete_menu()
   char *headers[] = { "Choose a backup to delete",
     "Nandroid Dir:",
     "",
-    "",
+    "Backup:",
 	"",
 	"",
     NULL
@@ -633,7 +685,14 @@ show_delete_menu()
         break;
 	  case D_ITEM_F:
 	    show_nandroid_dir_menu();
-		headers[2] = backuppath;
+		if (validate(backuppath) != 0)
+		 {
+		   headers[2] = backuppath;
+		   break;
+		 } else { 
+		  ui_print("No backups found in %s.\n", backuppath);
+		  break;
+		}
 		break;
       case D_ITEM_D:  
         if (confirm_selection("Are you sure?", operation, 0))
@@ -692,7 +751,7 @@ show_compress_menu()
 
   while (chosen_item != ITEM_BACK) 
   {
-    get_nandroid_cmp_menu_opts (cmp_opts + 2);	// put the menu options in cmp_opts[] starting at index 2
+    get_nandroid_cmp_menu_opts (cmp_opts + 3);	// put the menu options in cmp_opts[] starting at index 3
     chosen_item = get_menu_selection(headers, cmp_opts, 0, chosen_item < 0 ? 0 : chosen_item);
   
     switch (chosen_item) 
@@ -702,7 +761,7 @@ show_compress_menu()
         headers[4] = filename;
 		sprintf(operation, "Compress %s", filename);
 		char pathname[256];
-		sprintf(pathname, "/sdcard/nandroid/%s", filename);
+		sprintf(pathname, "%s/%s", backuppath, filename);
 		char **argv = malloc (2 * sizeof (char *));
 
 		argv[0] = "/sbin/compress_nandroid.sh";
@@ -713,7 +772,14 @@ show_compress_menu()
 		break;
 	  case C_ITEM_F:
 	    show_nandroid_dir_menu();
-		headers[2] = backuppath;
+		if (validate(backuppath) != 0)
+		 {
+		   headers[2] = backuppath;
+		   break;
+		 } else { 
+		  ui_print("No backups found in %s.\n", backuppath);
+		  break;
+		}
 		break;
       case C_ITEM_D:  
 		if (strcmp(filename,"") != 0) 
