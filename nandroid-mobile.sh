@@ -13,7 +13,6 @@ BACKUP=0
 COMPRESS=0
 INSTALL_ROM=0
 PLUGIN=0
-BACKUPPATH="/sdcard/nandroid"
 
 
 # Boot, Data, System, Android-secure
@@ -115,8 +114,13 @@ esac
 ECHO=echo
 OUTPUT=""
 
-for option in $(getopt --name="nandroid-mobile v2.2.1" -l progress -l install-rom: -l plugin -l noboot -l nodata -l nocache -l nosdext -l nosystem -l nosecure -l subname: -l backup -l compress -l restore -l defaultinput -- "cbruds:p:eqli:" "$@"); do
+for option in $(getopt --name="nandroid-mobile v2.2.1" -l backuppath -l progress -l install-rom: -l plugin -l noboot -l nodata -l nocache -l nosdext -l nosystem -l nosecure -l subname: -l backup -l compress -l restore -l defaultinput -- "cbruds:p:eqli:" "$@"); do
     case $option in
+    --backuppath)
+	  shift
+	  BACKUPPATH="$1"
+	  shift
+	  ;;
 	--verbose)
 	    VERBOSE=1
 	    shift
@@ -218,6 +222,10 @@ for option in $(getopt --name="nandroid-mobile v2.2.1" -l progress -l install-ro
             ;;
     esac
 done
+
+if [ -z "$BACKUPPATH" ]; then
+  BACKUPPATH="/sdcard/nandroid"
+fi
 
 [ "$PROGRESS" == "1" ] && echo "* show_indeterminate_progress"
 
