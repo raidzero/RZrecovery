@@ -957,6 +957,8 @@ main (int argc, char **argv)
 	      return reboot_android();
 	    if (strstr (argv[0], "unyaffs") != NULL)
 	      return unyaffs_main(argc, argv);
+	    if (strstr (argv[0], "keytest") != NULL)
+	      return ui_key_test();
 	    //we dont need to keep executing stuff past this point if an embedded function was called 
 	    return 0;
 	  }

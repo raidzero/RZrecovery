@@ -678,6 +678,21 @@ void view_log()
   ui_log_stdout = 1;
 }
 
+void ui_key_test()
+{
+  device_recovery_start();
+  ui_init();
+  ui_print("-- RZrecovery Key Test Utility --\n\n");
+  ui_print("To exit, flash a full recovery with\n");
+  ui_print("fastboot / flash_image.\n");
+  ui_print("\n\nPress any key...\n\n");
+  for (;;)
+  {
+    int key = ui_wait_key();
+    ui_print("Key: %i\n", key);
+  }
+}
+  
  void
 ui_start_menu (char **headers, char **items, int sel)
 {
