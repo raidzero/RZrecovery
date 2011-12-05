@@ -407,6 +407,19 @@ read_files ()
 }
 
 int postrecoveryboot() {
+  DIR *dir;
+  struct dirent *de;
+  if (ensure_path_mounted("/sdcard") != 0) LOGE("Can't mount /sdcard!\n");
+
+  dir = opendir("/sdcard/nandroid");
+  if (dir == NULL) 
+  {
+    printf("/sdcard/nandroid not detected. Creating...\n");
+    if (__system("mkdir /sdcard/nandroid"))
+    {
+      printf("Failed to create /sdcard/nandroid!\n");
+    }
+  }
   if (access("/sbin/postrecoveryboot.sh",F_OK) != -1 ) {
     if(__system("/sbin/postrecoveryboot.sh")) {
       return 0;
@@ -446,6 +459,12 @@ get_args (int *argc, char ***argv)
   struct bootloader_message boot;
 
   memset (&boot, 0, sizeof (boot));
+  get_bootloader_message (&boot);	// this may fail, leaving a zeroed structure
+  if (boot.command[0] != 0 && boot.command[0] != 255)
+	  {
+	    LOGI ("Boot command: %.*s\n", sizeof (boot.command),
+		   boot.command);
+	  }
   get_bootloader_message (&boot);	// this may fail, leaving a zeroed structure
   if (boot.command[0] != 0 && boot.command[0] != 255)
 	  {
@@ -980,12 +999,12 @@ main (int argc, char **argv)
   freopen (TEMPORARY_LOG_FILE, "a", stderr);
   setbuf (stderr, NULL);
   printf ("Starting recovery on %s", ctime (&start));
-  postrecoveryboot();
   load_volume_table ();
   process_volumes ();
   ensure_path_mounted("/sdcard");
   sleep(1); //mounting sdcard might take a second
   activateLEDs();
+  postrecoveryboot();
   get_args (&argc, &argv);
    int previous_runs = 0;
   const char *send_intent = NULL;
@@ -1548,10 +1567,6 @@ runve (char *filename, char **argv, char **envp, int secs)
 		              {
 			        ui_reset_progress();
 			      }
-		      else if (strcmp (tok, "reset_offset") == 0)
-		              {
-			        tmplog_offset = 0;
-		              }
 		      else if (strcmp (tok, "get_key") == 0)
 		      	      {
 			        return get_key;

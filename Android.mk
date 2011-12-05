@@ -29,6 +29,8 @@ LOCAL_SRC_FILES := \
 ##the world just isnt ready for API level 3 yet
 RECOVERY_API_VERSION := 2 
 
+BOARD_RECOVERY_DEFINES := BOARD_HAS_NO_SELECT_BUTTON
+
 ##generate the recovery version file
 TARGET_DEVICE := $(shell echo $$TARGET_PRODUCT | cut -d '_' -f2)
 RECOVERY_VERSION := "2.1.4"
