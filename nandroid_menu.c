@@ -37,14 +37,14 @@ int validate(const char* sdpath)
   if (ensure_path_mounted (sdpath) != 0)
 	  {
 	    LOGE ("Can't mount %s\n", sdpath);
-		return 0;
+		return 2;
 	  }
 
   dir = opendir (sdpath);
   if (dir == NULL)
 	  {
 	    LOGE ("Couldn't open directory %s\n", sdpath);
-	    return 0;
+	    return 2;
 	  }
 
   while ((de = readdir (dir)) != NULL)
@@ -74,6 +74,7 @@ void show_nandroid_dir_menu()
 
   char *items[] = { "/sdcard/nandroid",
     "/sdcard/external_sdcard",
+	"/emmc/nandroid",
     NULL
   };
 
@@ -868,7 +869,14 @@ show_nandroid_adv_b_menu ()
 		      break;
 			case 1:
 			  show_nandroid_dir_menu();
-			  headers[2] = backuppath;
+			  if (validate(backuppath) != 2)
+			  {
+			    headers[2] = backuppath;
+				break;
+			  } else {
+			    ui_print("%s does not exist!\n", backuppath);
+				break;
+			  }
 			  break;
 		    case 2:
 		      partitions ^= BOOT;
