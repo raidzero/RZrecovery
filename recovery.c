@@ -52,6 +52,12 @@ static const struct option OPTIONS[] = {
   {NULL, 0, NULL, 0}, 
 };
 
+#ifdef BOARD_HAS_NO_SELECT_BUTTON
+static int virtualBack = 1;
+#else
+static int virtualBack = 0;
+#endif
+
 static const char *COMMAND_FILE = "/cache/recovery/command";
 static const char *INTENT_FILE = "/cache/recovery/intent";
 static const char *LOG_FILE = "/cache/recovery/log";
@@ -829,7 +835,7 @@ get_menu_selection (char **headers, char **items, int menu_only,
     // throw away keys pressed previously, so user doesn't
     // accidentally trigger menu items.
     ui_clear_key_queue ();
-   ui_start_menu (headers, items, initial_selection);
+  int item_count = ui_start_menu (headers, items, initial_selection);
   int selected = initial_selection;
   int chosen_item = -1;
 
@@ -853,6 +859,10 @@ get_menu_selection (char **headers, char **items, int menu_only,
 				break;
 			      case SELECT_ITEM:
 				chosen_item = selected;
+				if (virtualBack)
+				{
+				  if (chosen_item == item_count) chosen_item = ITEM_BACK;
+				}
 				break;
 			      case NO_ACTION:
 				break;

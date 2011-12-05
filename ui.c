@@ -42,6 +42,13 @@
 #define PROGRESSBAR_INDETERMINATE_FPS 15
   
 #define TEXTCOLOR gr_color(255,255,255,255);
+
+#ifdef BOARD_HAS_NO_SELECT_BUTTON
+static int virtualBack = 1;
+#else
+static int virtualBack = 0;
+#endif
+
 static pthread_mutex_t gUpdateMutex = PTHREAD_MUTEX_INITIALIZER;
 static gr_surface gBackgroundIcon[NUM_BACKGROUND_ICONS];
 static gr_surface
@@ -693,7 +700,7 @@ void ui_key_test()
   }
 }
   
- void
+int 
 ui_start_menu (char **headers, char **items, int sel)
 {
   int i;
@@ -716,13 +723,25 @@ ui_start_menu (char **headers, char **items, int sel)
 		      strncpy (menu[i], items[i - menu_top], text_cols - 1);
 		      menu[i][text_cols - 1] = '\0';
 		    }
+
+	    if (virtualBack) 
+	    {
+	      strcpy(menu[i], "<< Back <<");
+	      ++i;
+	    }
+
 	    menu_items = i - menu_top;
 	    show_menu = 1;
 	     menu_show_start = 0;
 	    menu_sel = sel;
 	     update_screen_locked ();
 	  }
+
   pthread_mutex_unlock (&gUpdateMutex);
+  
+  if (virtualBack) menu_items -= 1;
+
+  return menu_items;
 }
 
   int

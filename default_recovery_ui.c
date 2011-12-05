@@ -19,6 +19,12 @@
 #include "recovery_ui.h"
 #include "common.h"
 
+#ifdef BOARD_HAS_NO_SELECT_BUTTON
+static int virtualBack = 1;
+#else
+static int virtualBack = 0;
+#endif
+
 char *MENU_HEADERS[] = { "Welcome to RZRecovery",
   "by raidzero",
   "",
@@ -65,6 +71,11 @@ device_handle_key (int key_code)
 	  case KEY_VOLUMEUP:	//115
 	    return HIGHLIGHT_UP;
 
+	  case KEY_POWER:
+	  case KEY_END:
+	    if (virtualBack) return SELECT_ITEM;
+	    if (!virtualBack) return ITEM_BACK;
+	  
 	  case KEY_ENTER:
 	  case KEY_CAMERA:
 	  case KEY_CENTER:
@@ -74,8 +85,6 @@ device_handle_key (int key_code)
 
 	  case KEY_BACKSPACE:
 	  case KEY_BACK:	//158
-	  case KEY_END:
-	  case KEY_POWER:	//116
 	    return ITEM_BACK;
 	  }
   return NO_ACTION;
