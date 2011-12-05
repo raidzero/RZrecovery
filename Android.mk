@@ -35,6 +35,7 @@ RECOVERY_VERSION := "2.1.4"
 VERS_STRING := "$(RECOVERY_VERSION)-$(TARGET_DEVICE) finally"
 
 SOURCE_HOME := "/home/raidzero/android/system/2.3.7/bootable/recovery"
+DEVICE_HOME := "/home/raidzero/android/system/2.3.7/device/raidzero/$(TARGET_DEVICE)"
 
 ##build the main recovery module
 LOCAL_MODULE := recovery
@@ -67,6 +68,10 @@ $(RECOVERY_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
 	$(shell cp $(SOURCE_HOME)/ui_commands.sh $(TARGET_RECOVERY_ROOT_OUT))
 	$(shell cp $(SOURCE_HOME)/compress_nandroid.sh $(TARGET_RECOVERY_ROOT_OUT)/sbin)
 	$(shell cp $(SOURCE_HOME)/nandroid-mobile.sh $(TARGET_RECOVERY_ROOT_OUT)/sbin)
+	#don't forget postrecoveryboot.sh if its there
+	$(shell cp $(DEVICE_HOME)/recovery/postrecoveryboot.sh $(TARGET_RECOVERY_ROOT_OUT)/sbin)
+	#Maybe postrecoveryboot is not in the recovery subdir...
+	$(shell cp $(DEVICE_HOME)/postrecoveryboot.sh $(TARGET_RECOVERY_ROOT_OUT)/sbin)
 	$(shell cp $(SOURCE_HOME)/symlink_sbin $(TARGET_RECOVERY_ROOT_OUT)/sbin)
 	
 	$(shell cp $(SOURCE_HOME)/su $(TARGET_RECOVERY_ROOT_OUT)/sbin)
