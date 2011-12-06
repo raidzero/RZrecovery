@@ -28,6 +28,7 @@ int ui_key_pressed (int key);	// returns >0 if the code is currently pressed
 int ui_text_visible ();		// returns >0 if text log is currently visible
 void ui_show_text (int visible);
 void ui_clear_key_queue ();
+int virtualBack_toggled();
 
 // Write a message to the on-screen log shown with Alt-L (also to stderr).
 // The screen is small, and users may need to report these messages to support,
@@ -37,7 +38,7 @@ void ui_print (const char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
 // Display some header text followed by a menu of items, which appears
 // at the top of the screen (in place of any scrolling ui_print()
 // output, if necessary).
-int ui_start_menu (char **headers, char **items, int initial_selection);
+int ui_start_menu (char **headers, char **items, int initial_selection, int menu_only);
 
 // Set the menu highlight to the given index, and return it (capped to
 // the range [0..numitems).

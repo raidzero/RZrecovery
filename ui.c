@@ -49,6 +49,11 @@ static int virtualBack = 1;
 static int virtualBack = 0;
 #endif
 
+int virtualBack_toggled()
+{
+  return virtualBack;
+}
+
 static pthread_mutex_t gUpdateMutex = PTHREAD_MUTEX_INITIALIZER;
 static gr_surface gBackgroundIcon[NUM_BACKGROUND_ICONS];
 static gr_surface
@@ -701,7 +706,7 @@ void ui_key_test()
 }
   
 int 
-ui_start_menu (char **headers, char **items, int sel)
+ui_start_menu (char **headers, char **items, int sel, int menu_only)
 {
   int i;
 
@@ -724,12 +729,16 @@ ui_start_menu (char **headers, char **items, int sel)
 		      menu[i][text_cols - 1] = '\0';
 		    }
 
-	    if (virtualBack) 
+	    if (menu_only) goto finish; // skip the part about adding the back button
+
+	    if (virtualBack_toggled())
 	    {
 	      strcpy(menu[i], "<< Back <<");
 	      ++i;
 	    }
 
+	
+	    finish:
 	    menu_items = i - menu_top;
 	    show_menu = 1;
 	     menu_show_start = 0;
@@ -739,8 +748,13 @@ ui_start_menu (char **headers, char **items, int sel)
 
   pthread_mutex_unlock (&gUpdateMutex);
   
-  if (virtualBack) menu_items -= 1;
-
+  if (menu_only) goto end; // skip this too
+  if (virtualBack_toggled()) 
+  { 
+    return menu_items - 1;
+  }
+  
+  end:
   return menu_items;
 }
 

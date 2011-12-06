@@ -31,6 +31,13 @@ RECOVERY_API_VERSION := 2
 
 BOARD_RECOVERY_DEFINES := BOARD_HAS_NO_SELECT_BUTTON
 
+$(foreach board_define,$(BOARD_RECOVERY_DEFINES), \
+  $(if $($(board_define)), \
+      $(eval LOCAL_CFLAGS += -D$(board_define)=\"$($(board_define))\") \
+   ) \
+ )
+
+
 ##generate the recovery version file
 TARGET_DEVICE := $(shell echo $$TARGET_PRODUCT | cut -d '_' -f2)
 RECOVERY_VERSION := "2.1.4"
