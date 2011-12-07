@@ -75,11 +75,14 @@ void show_nandroid_dir_menu()
   char *items[] = { "/sdcard/nandroid",
     "/sdcard/external_sdcard",
     "/emmc/nandroid",
+    "/data/media",
     NULL
   };
 
 #define sdcard_nandroid 0
 #define sdcard_external 1
+#define emmc		2
+#define data_media	3
 
   int chosen_item = -1;
    while (chosen_item != ITEM_BACK)
@@ -96,6 +99,12 @@ void show_nandroid_dir_menu()
 		  return;
 		case sdcard_external:
 		  backuppath = "/sdcard/external_sdcard";
+		  return;
+		case emmc:
+		  backuppath = "/emmc/nandroid";
+		  return;
+		case data_media:
+		  backuppath = "/data/media/nandroid";
 		  return;
 	  }
 	}

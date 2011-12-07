@@ -837,8 +837,9 @@ if [ "$BACKUP" == 1 ]; then
 	cd /$image
 
 	[ "$PROGRESS" == "1" ] && PTOTAL=$(find . | wc -l)
-	[ "$COMPRESS" == 0 ] && tar $TAR_OPTS $DESTDIR/$dest.tar . 2>/dev/null | pipeline $PTOTAL
-	[ "$COMPRESS" == 1 ] && tar $TAR_OPTS $DESTDIR/$dest.tar.gz . | pipeline $PTOTAL
+	[ "$image" == "data" ] && TAR_END="--exclude "./media""
+	[ "$COMPRESS" == 0 ] && tar $TAR_OPTS $DESTDIR/$dest.tar . $TAR_END 2>/dev/null | pipeline $PTOTAL
+	[ "$COMPRESS" == 1 ] && tar $TAR_OPTS $DESTDIR/$dest.tar.gz . $TAR_END| pipeline $PTOTAL
 	sync
     done
 
