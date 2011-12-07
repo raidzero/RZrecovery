@@ -44,16 +44,11 @@ RECOVERY_VERSION := "2.1.4"
 VERS_STRING := "$(RECOVERY_VERSION)-$(TARGET_DEVICE) finally"
 
 SOURCE_HOME := "/home/raidzero/android/system/2.3.7/bootable/recovery"
-DEVICE_HOME := "/home/raidzero/android/system/2.3.7/device/raidzero/$(TARGET_DEVICE)"
+DEVICE_HOME := ../../device/raidzero/$(TARGET_DEVICE)
 
-ifeq (exists, $(shell [ -e $$DEVICE_HOME/recovery/busybox ] ) && echo "custom busybox detected!" )
-CUSTOM_BUSYBOX :="$(DEVICE_HOME)/recovery/busybox"
+ifeq (exists, $(shell [ -e $$TARGET_DEVICE_DIR/recovery/busybox ] && echo true ))
+CUSTOM_BUSYBOX := true
 endif
-
-ifeq (exists, $(shell [ -e $$DEVICE_HOME/recovery/postrecoveryboot.sh ] ) && echo "postrecoveryboot.sh detected!" )
-POSTRECOVERYBOOT :="$(DEVICE_HOME)/recovery/postrecoveryboot.sh"
-endif
-
 
 ##build the main recovery module
 LOCAL_MODULE := recovery
@@ -72,52 +67,70 @@ include $(BUILD_EXECUTABLE)
 ##recovery symlinks
 RECOVERY_LINKS := flash_image dump_image erase_image format mkfs.ext4 mkbootimg unpack_bootimg mkbootfs volume_info reboot_android unyaffs keytest
 RECOVERY_SYMLINKS := $(addprefix $(TARGET_RECOVERY_ROOT_OUT)/sbin/,$(RECOVERY_LINKS))
-$(RECOVERY_SYMLINKS): RECOVERY_BINARY := $(LOCAL_MODULE)
-$(RECOVERY_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
-	@echo "Symlink: $@ -> $(RECOVERY_BINARY)"
+$(RECOVERY_SYMLINKS): 
+	@echo "Symlink: $@ -> recovery"
 	@mkdir -p $(dir $@)
 	@rm -rf $@
-	@echo "$(VERS_STRING)" > $(TARGET_RECOVERY_ROOT_OUT)/recovery.version
-	@echo > $(TARGET_RECOVERY_ROOT_OUT)/block_update
-	$(hide) ln -sf $(RECOVERY_BINARY) $@
-	@echo "Copy prebuilts..."
-	$(shell cp $(SOURCE_HOME)/e2fsck $(TARGET_RECOVERY_ROOT_OUT)/sbin)
-	
-	$(shell cp $(SOURCE_HOME)/ui_commands.sh $(TARGET_RECOVERY_ROOT_OUT))
-	$(shell cp $(SOURCE_HOME)/compress_nandroid.sh $(TARGET_RECOVERY_ROOT_OUT)/sbin)
-	$(shell cp $(SOURCE_HOME)/nandroid-mobile.sh $(TARGET_RECOVERY_ROOT_OUT)/sbin)
-	$(shell cp $(SOURCE_HOME)/symlink_sbin $(TARGET_RECOVERY_ROOT_OUT)/sbin)
-
-	$(shell cp $(SOURCE_HOME)/su $(TARGET_RECOVERY_ROOT_OUT)/sbin)
+	$(hide) ln -sf recovery $@
 ALL_DEFAULT_INSTALLED_MODULES += $(RECOVERY_SYMLINKS)
 
-
-#busybox	
-ifndef $(CUSTOM_BUSYBOX)
 include $(CLEAR_VARS)
-LOCAL_MODULE := busybox
+LOCAL_MODULE := e2fsck
 LOCAL_MODULE_TAGS := eng
 LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
 LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
-ifeq ($(TARGET_ARCH_VARIANT_CPU),cortex-a9)
-LOCAL_SRC_FILES := busybox/busybox-a9
-else
-LOCAL_SRC_FILES := := busybox/busybox-generic
-endif
-LOCAL_SRC_FILES := busybox
+LOCAL_SRC_FILES := $(LOCAL_MODULE)
 include $(BUILD_PREBUILT)
-else
+
 include $(CLEAR_VARS)
-LOCAL_MODULE := busybox
+LOCAL_MODULE := nandroid-mobile.sh
 LOCAL_MODULE_TAGS := eng
 LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
 LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
-LOCAL_SRC_FILES := $(DEVICE_HOME)/recovery/busybox
+LOCAL_SRC_FILES := $(LOCAL_MODULE)
 include $(BUILD_PREBUILT)
-endif
 
-#postrecoveryboot.sh
-ifdef $(POSTRECOVERYBOOT)
+include $(CLEAR_VARS)
+LOCAL_MODULE := compress_nandroid.sh
+LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+LOCAL_SRC_FILES := $(LOCAL_MODULE)
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := su
+LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+LOCAL_SRC_FILES := $(LOCAL_MODULE)
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := symlink_sbin
+LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+LOCAL_SRC_FILES := $(LOCAL_MODULE)
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := ui_commands.sh
+LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)
+LOCAL_SRC_FILES := $(LOCAL_MODULE)
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := block_update
+LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)
+LOCAL_SRC_FILES := $(LOCAL_MODULE)
+include $(BUILD_PREBUILT)
+
+ifneq (,$(wildcard $(DEVICE_HOME)/recovery/postrecoveryboot.sh))
 include $(CLEAR_VARS)
 LOCAL_MODULE := postrecoveryboot.sh
 LOCAL_MODULE_TAGS := eng
@@ -127,15 +140,37 @@ LOCAL_SRC_FILES := $(DEVICE_HOME)/recovery/$(LOCAL_MODULE)
 include $(BUILD_PREBUILT)
 endif
 
+#busybox
+ifndef CUSTOM_BUSYBOX
+include $(CLEAR_VARS)
+LOCAL_MODULE := busybox
+LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+ifeq ($(strip $(TARGET_ARCH_VARIANT_CPU)),cortex-a9)
+LOCAL_SRC_FILES := busybox/busybox-a9
+else
+LOCAL_SRC_FILES := busybox/busybox-generic
+endif
+include $(BUILD_PREBUILT)
+else
+include $(CLEAR_VARS)
+LOCAL_MODULE := busybox
+LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+LOCAL_SRC_FILES := $(TARGET_DEVICE_DIR)/recovery/busybox
+include $(BUILD_PREBUILT)
+endif
+
 ##busybox symlinks
 BUSYBOX_LINKS := [ [[ arp ash awk base64 basename bbconfig blockdev brctl bunzip2 bzcat bzip2 cal cat catv chattr chgrp chmod chown chroot clear cmp comm cp cpio crond crontab cut date dc dd depmod devmem df diff dirname dmesg dnsd dos2unix du echo ed egrep env expand expr false fdisk fgrep find flashcp flash_unlock flash_lock flock fold free freeramdisk fsck fsync ftpget ftpput fuser getopt grep groups gunzip gzip halt head hexdump id ifconfig insmod iostat install ip kill killall killall5 length less ln losetup ls lsattr lsmod lsusb lzcat lzma lzop lzopcat man md5sum mesg mkdir mkfifo mke2fs mknod mkswap mktemp modinfo modprobe more mount mountpoint mpstat mv nanddump nandwrite nc netstat nice nohup nslookup ntpd od patch pgrep pidof ping pkill printenv printf ps pstree pmap poweroff pwd pwdx rdev readlink realpath renice reset resize rev rm rmdir rmmod route run-parts rx sed seq setconsole setserial setsid sh sha1sum sha256sum sha512sum sleep sort split stat strings stty sum swapoff swapon sync sysctl tac tail tar tee telnet telnetd test tftp tftpd time timeout top touch tr traceroute true tune2fs ttysize umount uname uncompress unexpand uniq unix2dos unxz unlzma unlzop unzip uptime usleep uudecode uuencode vi watch wc wget which whoami xargs xzcat xz yes zcat
 BUSYBOX_SYMLINKS := $(addprefix $(TARGET_RECOVERY_ROOT_OUT)/sbin/,$(BUSYBOX_LINKS))
-$(BUSYBOX_SYMLINKS): BUSYBOX_BINARY := busybox
-$(BUSYBOX_SYMLINKS): $(LOCAL_INSTALLED_MODULE)	
-	echo "Symlink: $@ $(BUSYBOX_BINARY)"
+$(BUSYBOX_SYMLINKS): 
+	@echo "Symlink: $@ -> busybox"
 	@mkdir -p $(dir $@)
 	@rm -rf $@
-	$(hide) ln -sf $(BUSYBOX_BINARY) $@
+	$(hide) ln -sf busybox $@
 ALL_DEFAULT_INSTALLED_MODULES += $(BUSYBOX_SYMLINKS)
 
 include $(CLEAR_VARS)
