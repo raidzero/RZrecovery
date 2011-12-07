@@ -50,7 +50,9 @@ ifeq (exists, $(shell [ -e $$DEVICE_HOME/recovery/busybox ] ) && echo "custom bu
 CUSTOM_BUSYBOX :="$(DEVICE_HOME)/recovery/busybox"
 endif
 
-
+ifeq (exists, $(shell [ -e $$DEVICE_HOME/recovery/postrecoveryboot.sh ] ) && echo "postrecoveryboot.sh detected!" )
+POSTRECOVERYBOOT :="$(DEVICE_HOME)/recovery/postrecoveryboot.sh"
+endif
 
 
 ##build the main recovery module
@@ -84,26 +86,44 @@ $(RECOVERY_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
 	$(shell cp $(SOURCE_HOME)/ui_commands.sh $(TARGET_RECOVERY_ROOT_OUT))
 	$(shell cp $(SOURCE_HOME)/compress_nandroid.sh $(TARGET_RECOVERY_ROOT_OUT)/sbin)
 	$(shell cp $(SOURCE_HOME)/nandroid-mobile.sh $(TARGET_RECOVERY_ROOT_OUT)/sbin)
-	#don't forget postrecoveryboot.sh if its there
-	$(shell cp $(DEVICE_HOME)/recovery/postrecoveryboot.sh $(TARGET_RECOVERY_ROOT_OUT)/sbin)
-	#Maybe postrecoveryboot is not in the recovery subdir...
-	$(shell cp $(DEVICE_HOME)/postrecoveryboot.sh $(TARGET_RECOVERY_ROOT_OUT)/sbin)
 	$(shell cp $(SOURCE_HOME)/symlink_sbin $(TARGET_RECOVERY_ROOT_OUT)/sbin)
-	#busybox
-	$(shell cp $(DEVICE_HOME)/recovery/busybox $(TARGET_RECOVERY_ROOT_OUT)/sbin)
-	
+
 	$(shell cp $(SOURCE_HOME)/su $(TARGET_RECOVERY_ROOT_OUT)/sbin)
 ALL_DEFAULT_INSTALLED_MODULES += $(RECOVERY_SYMLINKS)
 
 
-	
-ifndef $(CUSTOM_BUSYBOX)	
+#busybox	
+ifndef $(CUSTOM_BUSYBOX)
 include $(CLEAR_VARS)
 LOCAL_MODULE := busybox
 LOCAL_MODULE_TAGS := eng
 LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
 LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+ifeq ($(TARGET_ARCH_VARIANT_CPU),cortex-a9)
+LOCAL_SRC_FILES := busybox/busybox-a9
+else
+LOCAL_SRC_FILES := := busybox/busybox-generic
+endif
 LOCAL_SRC_FILES := busybox
+include $(BUILD_PREBUILT)
+else
+include $(CLEAR_VARS)
+LOCAL_MODULE := busybox
+LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+LOCAL_SRC_FILES := $(DEVICE_HOME)/recovery/busybox
+include $(BUILD_PREBUILT)
+endif
+
+#postrecoveryboot.sh
+ifdef $(POSTRECOVERYBOOT)
+include $(CLEAR_VARS)
+LOCAL_MODULE := postrecoveryboot.sh
+LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+LOCAL_SRC_FILES := $(DEVICE_HOME)/recovery/$(LOCAL_MODULE)
 include $(BUILD_PREBUILT)
 endif
 
