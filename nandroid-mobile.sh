@@ -72,9 +72,9 @@ fi
 DD_DEVICE=`cat /etc/fstab | grep "/datadata" | awk '{print$1}'`
 EXT_DEVICE=`cat /etc/fstab | grep "/sd-ext" | awk '{print$1}'`
 if [ `cat /etc/recovery.fstab | grep boot | grep -v bootloader | awk '{print$2}'` == "mtd" ]; then
-  BOOT_DEVICE="/dev/mtd/"`cat /proc/mtd | grep boot | grep -v bootloader | awk '{print$1}'i | sed 's/://g'`
+  BOOT_DEVICE="/dev/mtd/"`cat /proc/mtd | grep boot | grep -v bootloader | awk '{print$1}' | sed 's/://g'`
 else
-  BOOT_DEVICE=`cat/etc/recovery.fstab | grep boot | grep -v bootloader | awk '{print$3}'`
+  BOOT_DEVICE=`cat /etc/recovery.fstab | grep boot | grep -v bootloader | awk '{print$3}'`
 fi
 
 
