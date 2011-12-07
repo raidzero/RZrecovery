@@ -74,7 +74,7 @@ void show_nandroid_dir_menu()
 
   char *items[] = { "/sdcard/nandroid",
     "/sdcard/external_sdcard",
-	"/emmc/nandroid",
+    "/emmc/nandroid",
     NULL
   };
 

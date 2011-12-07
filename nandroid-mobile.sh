@@ -72,29 +72,10 @@ fi
 DD_DEVICE=`cat /etc/fstab | grep "/datadata" | awk '{print$1}'`
 EXT_DEVICE=`cat /etc/fstab | grep "/sd-ext" | awk '{print$1}'`
 
-if [ -e /proc/mtd ]; then
-	flashfile="/proc/mtd"
-fi
-
-if [ -e /proc/emmc ]; then
-	flashfile="/proc/emmc"	
-fi
-
-if [ ! -z "$flashfile" ]; then
-	bootP=`cat $flashfile | grep \"boot\" | awk '{print $1}' | sed 's/://g'`
-
-	if [ ! -z `echo $bootP | grep mtd` ]; then
-		blkDevice="/dev/mtd/$bootP"
-	fi
-	
-	if [ ! -z `echo $bootP | grep mmc` ]; then
-		blkDevice="/dev/block/$bootP"
-	fi
-fi	
-
 bootP=`cat /etc/recovery.fstab | grep boot  | grep -v bootloader | awk '{print$2}'`
-if [ "$bootP" -eq "vfat" ]; then
+if [ "$bootP" -eq "vfat" ] || [ "$bootP" -eq "emmc" ]; then
 	bootIsMountable="true" #boot is not raw
+	blkDevice=`cat /etc/recovery.fstab | grep boot | grep -v bootloader | awk '{print$3}'`
 fi
 
 # Hm, have to handle old options for the current UI
@@ -454,7 +435,7 @@ if [ "$RESTORE" == 1 ]; then
 	[ ! -e /sd-ext ] && mkdir /sd-ext
 	mount $EXT_DEVICE /sd-ext 2> /dev/null
     if [ ! -z "$bootIsMountable" ]; then
-    	mount /boot 2>/dev/null
+    	mount  $blkDevice /boot 2>/dev/null
     fi
     if [ -z "$(mount | grep data | grep -v "/data/data")" ]; then
 		echo "* print error: unable to mount /data, aborting"	
@@ -632,7 +613,7 @@ if [ "$BACKUP" == 1 ]; then
 	
     if [ ! -z "$bootIsMountable" ]; then 
       umount /boot 2>/dev/null
-      mount /boot
+      mount  $blkDevice /boot
    fi	
    umount /system 2>/dev/null 
    umount /data 2>/dev/null
@@ -694,6 +675,7 @@ if [ "$BACKUP" == 1 ]; then
 		umount /data/data
 		umount /sd-ext
 		umount /sdcard 2>/dev/null
+		umount /boot
 	    exit 32
     else
 		touch $DESTDIR/.nandroidwritable
@@ -765,7 +747,7 @@ if [ "$BACKUP" == 1 ]; then
 		;;
 	esac
 	
-	if [ ! -z "$bootIsMountable" ]; then
+	if [ ! -z "$bootIsMountable" ] && [ "$NOBOOT" != 1 ]; then
 		cd /boot
 		[ "$PROGRESS" == "1" ] PTOTAL=$(find . | wc -l)
 	 	tar $TAR_OPTS $DESTDIR/boot.tar . 2>/dev/null | pipeline $PTOTAL
