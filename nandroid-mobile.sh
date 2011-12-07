@@ -71,12 +71,13 @@ fi
 
 DD_DEVICE=`cat /etc/fstab | grep "/datadata" | awk '{print$1}'`
 EXT_DEVICE=`cat /etc/fstab | grep "/sd-ext" | awk '{print$1}'`
-
-bootP=`cat /etc/recovery.fstab | grep boot  | grep -v bootloader | awk '{print$2}'`
-if [ "$bootP" -eq "vfat" ] || [ "$bootP" -eq "emmc" ]; then
-	bootIsMountable="true" #boot is not raw
-	blkDevice=`cat /etc/recovery.fstab | grep boot | grep -v bootloader | awk '{print$3}'`
+if [ `cat /etc/recovery.fstab | grep boot | grep -v bootloader | awk '{print$2}'` == "mtd" ]; then
+  BOOT_DEVICE="/dev/mtd/"`cat /proc/mtd | grep boot | grep -v bootloader | awk '{print$1}'i | sed 's/://g'`
+else
+  BOOT_DEVICE=`cat/etc/recovery.fstab | grep boot | grep -v bootloader | awk '{print$3}'`
 fi
+
+
 
 # Hm, have to handle old options for the current UI
 case $1 in
@@ -434,9 +435,6 @@ if [ "$RESTORE" == 1 ]; then
     mount $DD_DEVICE /data/data 2>/dev/null
 	[ ! -e /sd-ext ] && mkdir /sd-ext
 	mount $EXT_DEVICE /sd-ext 2> /dev/null
-    if [ ! -z "$bootIsMountable" ]; then
-    	mount  $blkDevice /boot 2>/dev/null
-    fi
     if [ -z "$(mount | grep data | grep -v "/data/data")" ]; then
 		echo "* print error: unable to mount /data, aborting"	
 		exit 23
@@ -474,32 +472,18 @@ if [ "$RESTORE" == 1 ]; then
         NOSECURE=1
     fi
 
-    if [ -z "$bootIsMountable" ]; then 
-    	for image in boot; do
-        	if [ "$NOBOOT" == "1" -a "$image" == "boot" ]; then
-            	echo "* print "
-            	echo "* print Not flashing boot image!"
-            	echo "* print "
-            	continue
-        	fi
-        	echo "* print Flashing $image..."
-			[ "$PROGRESS" == "1" ] && echo "* show_indeterminate_progress"
-			flash_image $image $image.img $OUTPUT
-			echo " done."
-    	done
-    else 
-	echo "* print Erasing /boot..."
-	rm -rf /boot/* 2> /dev/null
-        TAR_OPTS="x"
-	[ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"
-	TAR_OPTS="${TAR_OPTS}f"
-	[ "$PROGRESS" == "1" ] && PTOTAL=$(tar tf $RESTOREPATH/boot.tar | wc -l)
-        $ECHO "* print Unpacking boot..."
-        tar $TAR_OPTS $RESTOREPATH/boot.tar -C /boot | pipeline $PTOTAL
-	cd /
-	sync
-	umount boot
-    fi
+    for image in boot; do
+        if [ "$NOBOOT" == "1" -a "$image" == "boot" ]; then
+            echo "* print "
+            echo "* print Not flashing boot image!"
+            echo "* print "
+            continue
+        fi
+        echo "* print Flashing $image..."
+	[ "$PROGRESS" == "1" ] && echo "* show_indeterminate_progress"
+	flash_image $image $image.img $OUTPUT
+	echo " done."
+    done
 
     for image in system data cache secure sdext; do
         if [ "$NODATA" == 1 -a "$image" == "data" ]; then
@@ -611,10 +595,6 @@ if [ "$BACKUP" == 1 ]; then
     
     echo "* print Mounting..."
 	
-    if [ ! -z "$bootIsMountable" ]; then 
-      umount /boot 2>/dev/null
-      mount  $blkDevice /boot
-   fi	
    umount /system 2>/dev/null 
    umount /data 2>/dev/null
    umount /sdcard 2>/dev/null
@@ -675,7 +655,6 @@ if [ "$BACKUP" == 1 ]; then
 		umount /data/data
 		umount /sd-ext
 		umount /sdcard 2>/dev/null
-		umount /boot
 	    exit 32
     else
 		touch $DESTDIR/.nandroidwritable
@@ -737,7 +716,6 @@ if [ "$BACKUP" == 1 ]; then
 
 # 5.
     for image in boot; do
-
 	case $image in
             boot)
 		if [ "$NOBOOT" == 1 ]; then
@@ -747,38 +725,29 @@ if [ "$BACKUP" == 1 ]; then
 		;;
 	esac
 	
-	if [ ! -z "$bootIsMountable" ] && [ "$NOBOOT" != 1 ]; then
-		cd /boot
-		[ "$PROGRESS" == "1" ] PTOTAL=$(find . | wc -l)
-	 	tar $TAR_OPTS $DESTDIR/boot.tar . 2>/dev/null | pipeline $PTOTAL
-
-		cd /
-		sync
-	else
-		sleep 1s
-		MD5RESULT=1
-		ATTEMPT=0
-		DEVICEMD5=`dump_image $image - | md5sum | awk '{print$1}'`
-		while [ $MD5RESULT -eq 1 ]; do
-	    		let ATTEMPT=$ATTEMPT+1
-	    		dump_image $image $DESTDIR/$image.img
-	    		sync
-	    		echo -n "* print Verifying $image dump..."
-	    		IMGMD5=`md5sum $DESTDIR/$image.img | awk '{print$1}'`
+	sleep 1s
+	MD5RESULT=1
+	ATTEMPT=0
+	DEVICEMD5=`md5sum $BOOT_DEVICE | awk '{print$1}'`
+	while [ $MD5RESULT -eq 1 ]; do
+	    	let ATTEMPT=$ATTEMPT+1
+	    	dd if=$BOOT_DEVICE of=$DESTDIR/$image.img
+	    	sync
+	    	echo -n "* print Verifying $image dump..."
+	    	IMGMD5=`md5sum $DESTDIR/$image.img | awk '{print$1}'`
 	    	if [ "$IMGMD5" -eq "$DEVICEMD5" ]; then
 			MD5RESULT=1
 		else
 			MD5RESULT=0
 	    	fi
-	   	 if [ "$ATTEMPT" == "5" ]; then
+	   	if [ "$ATTEMPT" == "5" ]; then
 			echo "* print Fatal error while trying to dump $image, aborting."
 			umount /system 2>/dev/null
 			umount /data 2>/dev/null
 			umount /sdcard 2>/dev/null
 			exit 35
 	    	fi
-		done
-	fi	
+	done
 	echo " complete!"
     done
 
