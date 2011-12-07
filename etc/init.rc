@@ -32,9 +32,10 @@ service ueventd /sbin/ueventd
 service symlinksbin /sbin/symlink_sbin
    oneshot
 
-service recovery /sbin/recovery
-
+#start adb before recovery
 service adbd /sbin/adbd recovery
+
+service recovery /sbin/recovery
 
 on property:persist.service.adb.enable=1
     start adbd
