@@ -57,12 +57,24 @@ device_handle_key (int key_code)
 	  {
 	  case KEY_CAPSLOCK:
 	  case 52:              //galaxy s 4g
-	  case KEY_VOLUMEDOWN:	//114
 	    return HIGHLIGHT_DOWN;
+	  
+	  case KEY_VOLUMEDOWN:	//114
+#ifdef BOARD_HAS_INVERTED_VOLUME
+	    return HIGHLIGHT_UP;
+#else
+	    return HIGHLIGHT_DOWN;
+#endif
 
+	  case KEY_VOLUMEUP:	//115
+#ifdef BOARD_HAS_INVERTED_VOLUME
+	    return HIGHLIGHT_DOWN;
+#else
+	    return HIGHLIGHT_UP;
+#endif
+	  
 	  case KEY_LEFTSHIFT:
 	  case 51:              //galaxy s 4g
-	  case KEY_VOLUMEUP:	//115
 	    return HIGHLIGHT_UP;
 
 	  case KEY_POWER:

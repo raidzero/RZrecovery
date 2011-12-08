@@ -29,7 +29,7 @@ LOCAL_SRC_FILES := \
 ##the world just isnt ready for API level 3 yet
 RECOVERY_API_VERSION := 2 
 
-BOARD_RECOVERY_DEFINES := BOARD_HAS_NO_SELECT_BUTTON
+BOARD_RECOVERY_DEFINES := BOARD_HAS_NO_SELECT_BUTTON BOARD_HAS_INVERTED_VOLUME
 
 $(foreach board_define,$(BOARD_RECOVERY_DEFINES), \
   $(if $($(board_define)), \
@@ -45,13 +45,6 @@ VERS_STRING := "$(RECOVERY_VERSION)-$(TARGET_DEVICE) finally"
 
 SOURCE_HOME := "/home/raidzero/android/system/2.3.7/bootable/recovery"
 DEVICE_HOME := ../../device/raidzero/$(TARGET_DEVICE)
-
-ifeq (exists, $(shell [ -e $$DEVICE_HOME/recovery/busybox ] ) && echo "custom busybox detected!" )
-CUSTOM_BUSYBOX :="$(DEVICE_HOME)/recovery/busybox"
-endif
-
-
-
 
 ##build the main recovery module
 LOCAL_MODULE := recovery
@@ -76,9 +69,14 @@ $(RECOVERY_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
 	@mkdir -p $(dir $@)
 	@rm -rf $@
 	@echo "$(VERS_STRING)" > $(TARGET_RECOVERY_ROOT_OUT)/recovery.version
-	@echo > $(TARGET_RECOVERY_ROOT_OUT)/block_update
 	$(hide) ln -sf $(RECOVERY_BINARY) $@
 ALL_DEFAULT_INSTALLED_MODULES += $(RECOVERY_SYMLINKS)
+
+include $(CLEAR_VARS)
+RECOVERY_VERSION: VERS_FILE := $(LOCAL_MODULE)
+$(RECOVERY_VERSION) : $(LOCAL_INSTALLED_MODULE)
+	@echo "$(VERS_STRING)" > $(TARGET_RECOVERY_ROOT_OUT)/$(VERS_FILE)
+ALL_DEFAULT_INSTALLED_MODULES += $(RECOVERY_VERSION)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := e2fsck
