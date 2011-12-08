@@ -46,6 +46,13 @@ VERS_STRING := "$(RECOVERY_VERSION)-$(TARGET_DEVICE) finally"
 SOURCE_HOME := "/home/raidzero/android/system/2.3.7/bootable/recovery"
 DEVICE_HOME := ../../device/raidzero/$(TARGET_DEVICE)
 
+ifeq (exists, $(shell [ -e $$DEVICE_HOME/recovery/busybox ] ) && echo "custom busybox detected!" )
+CUSTOM_BUSYBOX :="$(DEVICE_HOME)/recovery/busybox"
+endif
+
+
+
+
 ##build the main recovery module
 LOCAL_MODULE := recovery
 LOCAL_MODULE_TAGS := eng
@@ -63,11 +70,14 @@ include $(BUILD_EXECUTABLE)
 ##recovery symlinks
 RECOVERY_LINKS := flash_image dump_image erase_image format mkfs.ext4 mkbootimg unpack_bootimg mkbootfs volume_info reboot_android unyaffs keytest
 RECOVERY_SYMLINKS := $(addprefix $(TARGET_RECOVERY_ROOT_OUT)/sbin/,$(RECOVERY_LINKS))
-$(RECOVERY_SYMLINKS): 
-	@echo "Symlink: $@ -> recovery"
+$(RECOVERY_SYMLINKS): RECOVERY_BINARY := $(LOCAL_MODULE)
+$(RECOVERY_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
+	@echo "Symlink: $@ -> $(RECOVERY_BINARY)"
 	@mkdir -p $(dir $@)
 	@rm -rf $@
-	$(hide) ln -sf recovery $@
+	@echo "$(VERS_STRING)" > $(TARGET_RECOVERY_ROOT_OUT)/recovery.version
+	@echo > $(TARGET_RECOVERY_ROOT_OUT)/block_update
+	$(hide) ln -sf $(RECOVERY_BINARY) $@
 ALL_DEFAULT_INSTALLED_MODULES += $(RECOVERY_SYMLINKS)
 
 include $(CLEAR_VARS)
@@ -157,11 +167,12 @@ include $(BUILD_PREBUILT)
 ##busybox symlinks
 BUSYBOX_LINKS := [ [[ arp ash awk base64 basename bbconfig blockdev brctl bunzip2 bzcat bzip2 cal cat catv chattr chgrp chmod chown chroot clear cmp comm cp cpio crond crontab cut date dc dd depmod devmem df diff dirname dmesg dnsd dos2unix du echo ed egrep env expand expr false fdisk fgrep find flashcp flash_unlock flash_lock flock fold free freeramdisk fsck fsync ftpget ftpput fuser getopt grep groups gunzip gzip halt head hexdump id ifconfig insmod iostat install ip kill killall killall5 length less ln losetup ls lsattr lsmod lsusb lzcat lzma lzop lzopcat man md5sum mesg mkdir mkfifo mke2fs mknod mkswap mktemp modinfo modprobe more mount mountpoint mpstat mv nanddump nandwrite nc netstat nice nohup nslookup ntpd od patch pgrep pidof ping pkill printenv printf ps pstree pmap poweroff pwd pwdx rdev readlink realpath renice reset resize rev rm rmdir rmmod route run-parts rx sed seq setconsole setserial setsid sh sha1sum sha256sum sha512sum sleep sort split stat strings stty sum swapoff swapon sync sysctl tac tail tar tee telnet telnetd test tftp tftpd time timeout top touch tr traceroute true tune2fs ttysize umount uname uncompress unexpand uniq unix2dos unxz unlzma unlzop unzip uptime usleep uudecode uuencode vi watch wc wget which whoami xargs xzcat xz yes zcat
 BUSYBOX_SYMLINKS := $(addprefix $(TARGET_RECOVERY_ROOT_OUT)/sbin/,$(BUSYBOX_LINKS))
-$(BUSYBOX_SYMLINKS): 
-	@echo "Symlink: $@ -> busybox"
+$(BUSYBOX_SYMLINKS): BUSYBOX_BINARY := busybox
+$(BUSYBOX_SYMLINKS): $(LOCAL_INSTALLED_MODULE)	
+	echo "Symlink: $@ $(BUSYBOX_BINARY)"
 	@mkdir -p $(dir $@)
 	@rm -rf $@
-	$(hide) ln -sf busybox $@
+	$(hide) ln -sf $(BUSYBOX_BINARY) $@
 ALL_DEFAULT_INSTALLED_MODULES += $(BUSYBOX_SYMLINKS)
 
 include $(CLEAR_VARS)
