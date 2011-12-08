@@ -46,10 +46,6 @@ VERS_STRING := "$(RECOVERY_VERSION)-$(TARGET_DEVICE) finally"
 SOURCE_HOME := "/home/raidzero/android/system/2.3.7/bootable/recovery"
 DEVICE_HOME := ../../device/raidzero/$(TARGET_DEVICE)
 
-ifeq (exists, $(shell [ -e $$TARGET_DEVICE_DIR/recovery/busybox ] && echo true ))
-CUSTOM_BUSYBOX := true
-endif
-
 ##build the main recovery module
 LOCAL_MODULE := recovery
 LOCAL_MODULE_TAGS := eng
@@ -130,38 +126,33 @@ LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)
 LOCAL_SRC_FILES := $(LOCAL_MODULE)
 include $(BUILD_PREBUILT)
 
-ifneq (,$(wildcard $(DEVICE_HOME)/recovery/postrecoveryboot.sh))
+POSTRECOVERYBOOT := $(wildcard $(TARGET_DEVICE_DIR)/recovery/postrecoveryboot.sh)
+ifneq ($(strip $(POSTRECOVERYBOOT)),)
+rule: POSTRECOVERYBOOT
 include $(CLEAR_VARS)
 LOCAL_MODULE := postrecoveryboot.sh
 LOCAL_MODULE_TAGS := eng
 LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
 LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
-LOCAL_SRC_FILES := $(DEVICE_HOME)/recovery/$(LOCAL_MODULE)
+LOCAL_SRC_FILES := $(DEVICE_HOME)/recovery/postrecoveryboot.sh
 include $(BUILD_PREBUILT)
 endif
 
-#busybox
-ifndef CUSTOM_BUSYBOX
+
+CUSTOM_BUSYBOX := $(wildcard $(TARGET_DEVICE_DIR)/recovery/busybox)
 include $(CLEAR_VARS)
 LOCAL_MODULE := busybox
 LOCAL_MODULE_TAGS := eng
 LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
 LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
-ifeq ($(strip $(TARGET_ARCH_VARIANT_CPU)),cortex-a9)
-LOCAL_SRC_FILES := busybox/busybox-a9
+ifeq ($(strip $(CUSTOM_BUSYBOX)),)
+rule:
+LOCAL_SRC_FILES := busybox
 else
-LOCAL_SRC_FILES := busybox/busybox-generic
+rule: CUSTOM_BUSYBOX
+LOCAL_SRC_FILES := $(DEVICE_HOME)/recovery/busybox
 endif
 include $(BUILD_PREBUILT)
-else
-include $(CLEAR_VARS)
-LOCAL_MODULE := busybox
-LOCAL_MODULE_TAGS := eng
-LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
-LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
-LOCAL_SRC_FILES := $(TARGET_DEVICE_DIR)/recovery/busybox
-include $(BUILD_PREBUILT)
-endif
 
 ##busybox symlinks
 BUSYBOX_LINKS := [ [[ arp ash awk base64 basename bbconfig blockdev brctl bunzip2 bzcat bzip2 cal cat catv chattr chgrp chmod chown chroot clear cmp comm cp cpio crond crontab cut date dc dd depmod devmem df diff dirname dmesg dnsd dos2unix du echo ed egrep env expand expr false fdisk fgrep find flashcp flash_unlock flash_lock flock fold free freeramdisk fsck fsync ftpget ftpput fuser getopt grep groups gunzip gzip halt head hexdump id ifconfig insmod iostat install ip kill killall killall5 length less ln losetup ls lsattr lsmod lsusb lzcat lzma lzop lzopcat man md5sum mesg mkdir mkfifo mke2fs mknod mkswap mktemp modinfo modprobe more mount mountpoint mpstat mv nanddump nandwrite nc netstat nice nohup nslookup ntpd od patch pgrep pidof ping pkill printenv printf ps pstree pmap poweroff pwd pwdx rdev readlink realpath renice reset resize rev rm rmdir rmmod route run-parts rx sed seq setconsole setserial setsid sh sha1sum sha256sum sha512sum sleep sort split stat strings stty sum swapoff swapon sync sysctl tac tail tar tee telnet telnetd test tftp tftpd time timeout top touch tr traceroute true tune2fs ttysize umount uname uncompress unexpand uniq unix2dos unxz unlzma unlzop unzip uptime usleep uudecode uuencode vi watch wc wget which whoami xargs xzcat xz yes zcat
