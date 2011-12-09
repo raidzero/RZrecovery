@@ -72,11 +72,10 @@ fi
 DD_DEVICE=`cat /etc/fstab | grep "/datadata" | awk '{print$1}'`
 EXT_DEVICE=`cat /etc/fstab | grep "/sd-ext" | awk '{print$1}'`
 if [ `cat /etc/recovery.fstab | grep boot | grep -v bootloader | awk '{print$2}'` == "mtd" ]; then
-  BOOT_DEVICE="/dev/mtd/"`cat /proc/mtd | grep boot | grep -v bootloader | awk '{print$1}' | sed 's/://g'`
+  BOOT_DEVICE="/dev/mtd/"`cat /proc/mtd | grep boot | egrep -v "("fota"|"bootloader")" | awk '{print$1}' | sed 's/://g'`
 else
-  BOOT_DEVICE=`cat /etc/recovery.fstab | grep boot | grep -v bootloader | awk '{print$3}'`
+  BOOT_DEVICE=`cat /etc/recovery.fstab | grep boot | egrep -v "("bootloader"|"fota_boot")" | awk '{print$3}'`
 fi
-
 
 
 # Hm, have to handle old options for the current UI
@@ -481,7 +480,10 @@ if [ "$RESTORE" == 1 ]; then
         fi
         echo "* print Flashing $image..."
 	[ "$PROGRESS" == "1" ] && echo "* show_indeterminate_progress"
-	flash_image $image $image.img $OUTPUT
+	dd if=$RESTOREPATH/$image.img of=$BOOT_DEVICE
+	if [ $? -ne 0 ]; then
+	  flash_image $image $image.img $OUTPUT
+	fi
 	echo " done."
     done
 
@@ -724,7 +726,7 @@ if [ "$BACKUP" == 1 ]; then
 		fi
 		;;
 	esac
-	
+	echo "* print Dumping boot..."
 	sleep 1s
 	MD5RESULT=1
 	ATTEMPT=0
@@ -732,6 +734,9 @@ if [ "$BACKUP" == 1 ]; then
 	while [ $MD5RESULT -eq 1 ]; do
 	    	let ATTEMPT=$ATTEMPT+1
 	    	dd if=$BOOT_DEVICE of=$DESTDIR/$image.img
+		if [ $? -ne 0 ]; then
+		  dump_image $image $DESTDIR/$image.img
+		fi  
 	    	sync
 	    	echo -n "* print Verifying $image dump..."
 	    	IMGMD5=`md5sum $DESTDIR/$image.img | awk '{print$1}'`

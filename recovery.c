@@ -46,8 +46,6 @@
 static const struct option OPTIONS[] = { 
     {"send_intent", required_argument, NULL, 's'}, 
   {"update_package", required_argument, NULL, 'u'}, 
-  {"wipe_data", no_argument, NULL, 'w'}, 
-  {"wipe_cache", no_argument, NULL, 'c'}, 
   {"set_encrypted_filesystems", required_argument, NULL, 'e'}, 
   {NULL, 0, NULL, 0}, 
 };
@@ -72,8 +70,6 @@ static void reboot_fn(char* action);
  * The arguments which may be supplied in the recovery.command file:
  *   --send_intent=anystring - write the text out to recovery.intent
  *   --update_package=path - verify install an OTA package file
- *   --wipe_data - erase user data (and cache), then reboot
- *   --wipe_cache - wipe cache (but not user data), then reboot
  *   --set_encrypted_filesystem=on|off - enables / diasables encrypted fs
  *
  * After completing, we remove /cache/recovery/command and reboot.
@@ -1006,7 +1002,6 @@ main (int argc, char **argv)
   const char *send_intent = NULL;
   const char *update_package = NULL;
   const char *encrypted_fs_mode = NULL;
-  int wipe_data = 0, wipe_cache = 0;
   int toggle_secure_fs = 0;
 
   encrypted_fs_info encrypted_fs_data;
@@ -1021,15 +1016,6 @@ main (int argc, char **argv)
 		      break;
 		    case 's':
 		      send_intent = optarg;
-		      break;
-		    case 'u':
-		      update_package = optarg;
-		      break;
-		    case 'w':
-		      wipe_data = wipe_cache = 1;
-		      break;
-		    case 'c':
-		      wipe_cache = 1;
 		      break;
 		    case 'e':
 		      encrypted_fs_mode = optarg;
@@ -1139,24 +1125,6 @@ main (int argc, char **argv)
 	    status = install_package (update_package);
 	    if (status != INSTALL_SUCCESS)
 	      ui_print ("Installation aborted.\n");
-	  }
-  else if (wipe_data)
-	  {
-	    if (device_wipe_data ())
-	      status = INSTALL_ERROR;
-	    if (erase_volume ("/data"))
-	      status = INSTALL_ERROR;
-	    if (wipe_cache && erase_volume ("/cache"))
-	      status = INSTALL_ERROR;
-	    if (status != INSTALL_SUCCESS)
-	      ui_print ("Data wipe failed.\n");
-	  }
-  else if (wipe_cache)
-	  {
-	    if (wipe_cache && erase_volume ("/cache"))
-	      status = INSTALL_ERROR;
-	    if (status != INSTALL_SUCCESS)
-	      ui_print ("Cache wipe failed.\n");
 	  }
   else
 	  {

@@ -19,6 +19,12 @@
 #include "recovery_ui.h"
 #include "common.h"
 
+#ifdef BOARD_HAS_INVERTED_VOLUME
+static int backwards_volume_keys = 1;
+#else
+static int backwards_volume_keys = 0;
+#endif
+
 char *MENU_HEADERS[] = { "Welcome to RZRecovery",
   "by raidzero",
   "",
@@ -60,18 +66,12 @@ device_handle_key (int key_code)
 	    return HIGHLIGHT_DOWN;
 	  
 	  case KEY_VOLUMEDOWN:	//114
-#ifdef BOARD_HAS_INVERTED_VOLUME
-	    return HIGHLIGHT_UP;
-#else
-	    return HIGHLIGHT_DOWN;
-#endif
+	    if (backwards_volume_keys) return HIGHLIGHT_UP;
+	    if (!backwards_volume_keys) return HIGHLIGHT_DOWN;
 
 	  case KEY_VOLUMEUP:	//115
-#ifdef BOARD_HAS_INVERTED_VOLUME
-	    return HIGHLIGHT_DOWN;
-#else
-	    return HIGHLIGHT_UP;
-#endif
+	    if (backwards_volume_keys) return HIGHLIGHT_DOWN;
+	    if (!backwards_volume_keys) return HIGHLIGHT_UP;
 	  
 	  case KEY_LEFTSHIFT:
 	  case 51:              //galaxy s 4g
@@ -86,6 +86,7 @@ device_handle_key (int key_code)
 	  case KEY_CAMERA:
 	  case KEY_CENTER:
 	  case KEY_HOME:	//102
+	  case KEY_MENU:
 	  case 272:  		//trackball press
 	    return SELECT_ITEM;
 

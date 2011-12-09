@@ -502,9 +502,9 @@ show_nandroid_adv_r_menu ()
     "",
     "Backup:",
     "",
-	"",
+    "",
     NULL,
-	NULL
+    NULL
   };
 
   char *items_nosd[] = { "Perform restore",
@@ -560,7 +560,7 @@ show_nandroid_adv_r_menu ()
 		      break;
 		    case 1:
 		      nandroid_adv_r_choose_file (filename, backuppath);
-			  headers[4] = backuppath;		  
+			  headers[4] = filename;		  
 		      break;
 			case 2:
 			  show_nandroid_dir_menu();
