@@ -49,9 +49,20 @@ static int virtualBack = 1;
 static int virtualBack = 0;
 #endif
 
+#ifdef BOARD_HAS_INVERTED_VOLUME
+static int backwards_volume_keys = 1;
+#else
+static int backwards_volume_keys = 0;
+#endif
+
 int virtualBack_toggled()
 {
   return virtualBack;
+}
+
+int backwards_volume_keys_toggled()
+{
+  return backwards_volume_keys;
 }
 
 static pthread_mutex_t gUpdateMutex = PTHREAD_MUTEX_INITIALIZER;

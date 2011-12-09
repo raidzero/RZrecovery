@@ -637,10 +637,10 @@ if [ "$BACKUP" == 1 ]; then
     TIMESTAMP="`date +%Y%m%d-%H%M`"
     
     if [ -e /system/build.prop ]; then
-      VERSION=`cat /system/build.prop | grep ro.build.display.id | cut -d '=' -f2`
+      VERSION=`cat /system/build.prop | grep ro.build.display.id | cut -d '=' -f2 | sed 's/ /_/g'`
       if [ ! -z "$VERSION" ]; then
         SUBNAME="$VERSION"-"$SUBNAME"
-      fi
+      fi 
     fi
     
     DESTDIR="$BACKUPPATH/$SUBNAME$BACKUPLEGEND$TIMESTAMP"

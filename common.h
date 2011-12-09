@@ -29,7 +29,7 @@ int ui_text_visible ();		// returns >0 if text log is currently visible
 void ui_show_text (int visible);
 void ui_clear_key_queue ();
 int virtualBack_toggled();
-
+int backwards_volume_keys_toggled();
 // Write a message to the on-screen log shown with Alt-L (also to stderr).
 // The screen is small, and users may need to report these messages to support,
 // so keep the output short and not too cryptic.
