@@ -170,8 +170,9 @@ int set_backuppath(const char* sdpath)
   if (dir == NULL) return -1;
   
   ensure_path_mounted("/sdcard");
+  __system("rm /cache/nandloc");
   FILE *fp;
-  fp = fopen("/sdcard/RZR/nandloc", "w");
+  fp = fopen("/cache/nandloc", "w");
   fprintf(fp, "%s\0", backuppath);
   fclose(fp);
   
