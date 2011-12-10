@@ -37,8 +37,25 @@
 #define ABS_MT_TOUCH_MAJOR 0x30
 #define SYN_MT_REPORT 2
 
+int keyhold_delay;
+
 // The amount of time in ms to delay before duplicating a held down key.
-#define KEYHOLD_DELAY 185
+void get_keyhold_delay()
+{
+  if (access("/cache/scroll",F_OK) != -1)
+  {
+    FILE *fp = fopen("/cache/scroll" ,"r");
+    char* delay = calloc(5, sizeof(char));
+
+    fgets(delay, 5, fp);
+    keyhold_delay = atoi(delay);
+    printf("keyhold_delay: %i\n", keyhold_delay);
+  }
+  else
+  {
+    keyhold_delay = 185;
+  }
+}
 
 enum {
     DOWN_NOT,
@@ -374,8 +391,11 @@ int ev_get(struct input_event *ev, unsigned dont_wait, unsigned keyheld)
 
     do {
         // When keyheld is true, that means the previous event
-        // was an up/down keypress so wait KEYHOLD_DELAY.
-        r = poll(ev_fds, ev_count, dont_wait ? 0 : keyheld ? KEYHOLD_DELAY : -1);
+        // was an up/down keypress so wait keyhold_delay.
+	
+	//int keyhold_delay = 185;
+	get_keyhold_delay();
+        r = poll(ev_fds, ev_count, dont_wait ? 0 : keyheld ? keyhold_delay : -1);
 
         if(r > 0) {
             for(n = 0; n < ev_count; n++) {

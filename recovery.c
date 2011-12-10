@@ -297,6 +297,11 @@ write_files ()
 	        __system("cp /cache/nandloc /sdcard/RZR/nandloc");
 		printf("Nandroid location file saved to sdcard.\n");
 	      }
+	    if (access("/cache/scroll", F_OK) != -1)
+	      {
+	        __system("cp /cache/scroll /sdcard/RZR/scroll");
+		printf("Scroll speed saved to sdcard.\n");
+	      }
 	    if (access ("/cache/rgb", F_OK) != -1)
 		    {
 		      __system("cp /cache/rgb /sdcard/RZR/rgb");

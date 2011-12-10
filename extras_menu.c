@@ -179,6 +179,72 @@ int set_backuppath(const char* sdpath)
   return 0;
 }
 
+void set_repeat_scroll_delay(char *delay)
+{
+  __system("rm /cache/scroll");
+  FILE *fp = fopen("/cache/scroll", "w");
+  fprintf(fp, "%s\0", delay);
+  fclose(fp);
+}
+ 
+void show_repeat_scroll_menu()
+{
+  static char *headers[] = { "Repeat Scroll Delay",
+    "In millseconds. Lower is faster",
+    "",
+    NULL
+  };
+
+  static char *items[] = { "255",
+    "245",
+    "235",
+    "225",
+    "215",
+    "205",
+    "195",
+    "185",
+    "175",
+    "165",
+    "155",
+    "145",
+    "135",
+    "125",
+    "115",
+    "105",
+    NULL
+  };
+
+#define SPD_255	0
+#define SPD_245 1
+#define SPD_235 3
+#define SPD_225 4
+#define SPD_215 5
+#define SPD_205 6
+#define SPD_195 7
+#define SPD_185 8
+#define SPD_175 9
+#define SPD_165 10
+#define SPD_155 11
+#define SPD_145 12
+#define SPD_135 13
+#define SPD_125 14
+#define SPD_115 15
+#define SPD_105 16
+
+  char *delay;
+  int chosen_item = -1;
+  while (chosen_item != ITEM_BACK)
+  {
+    chosen_item = get_menu_selection(headers, items, 1, chosen_item < 0 ? 0: chosen_item);
+    delay = items[chosen_item];
+
+    set_repeat_scroll_delay(delay);
+    ui_print("Scroll delay is %s milliseconds.\n", delay);
+    return;
+  }
+  return;
+}        
+
 void show_options_menu()
 {
   static char *headers[] = { "Options",
@@ -190,12 +256,14 @@ void show_options_menu()
     "Custom Colors",
 	"Recovery Overclocking",
 	"Nandroid Location",
+	"Repeat-scroll Delay",
 	NULL
   };
   
 #define OPT_COLORS	0
 #define OPT_OVRCLCK	1
 #define OPT_NANDLOC	2
+#define OPT_RPTSCRL	3
 
   int chosen_item = -1;
   while (chosen_item != ITEM_BACK)
@@ -213,9 +281,12 @@ void show_options_menu()
 		    case OPT_OVRCLCK:
 		      show_overclock_menu ();
 		      break;
-			case OPT_NANDLOC:
-			  show_nandroid_dir_menu();
-			  break;
+		    case OPT_NANDLOC:
+		      show_nandroid_dir_menu();
+		      break;
+		    case OPT_RPTSCRL:
+		      show_repeat_scroll_menu();
+		      break;
 		    }
 	  }
 }  
