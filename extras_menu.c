@@ -108,9 +108,9 @@ void show_nandroid_dir_menu()
   };
 
   char *items[] = { "/sdcard/nandroid",
-    "/sdcard/external_sdcard",
+    "/sdcard/external_sdcard/nandroid",
     "/emmc/nandroid",
-    "/data/media",
+    "/data/media/nandroid",
     NULL
   };
 

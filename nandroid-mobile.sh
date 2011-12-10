@@ -24,7 +24,7 @@ TARFLAGS="v"
 
 ASSUMEDEFAULTUSERINPUT=0
 
-sd_mounted=`mount | grep "/sdcard" | wc -l`
+sd_mounted=`mount | grep "$ROOT_BACKUPDEVICE" | wc -l`
 data_mounted=`mount | grep "/data" | wc -l`
 system_mounted=`mount | grep "/system" | wc -l`
 cache_mounted=`mount | grep /cache" | wc -l`
@@ -71,7 +71,7 @@ fi
 
 DD_DEVICE=`cat /etc/fstab | grep "/datadata" | awk '{print$1}'`
 EXT_DEVICE=`cat /etc/fstab | grep "/sd-ext" | awk '{print$1}'`
-if [ `cat /etc/recovery.fstab | grep boot | grep -v bootloader | awk '{print$2}'` == "mtd" ]; then
+if [ `cat /etc/recovery.fstab | grep boot | egrep -v "("fota"|"bootloader")" | awk '{print$2}'` == "mtd" ]; then
   BOOT_DEVICE="/dev/mtd/"`cat /proc/mtd | grep boot | egrep -v "("fota"|"bootloader")" | awk '{print$1}' | sed 's/://g'`
 else
   BOOT_DEVICE=`cat /etc/recovery.fstab | grep boot | egrep -v "("bootloader"|"fota_boot")" | awk '{print$3}'`
@@ -204,9 +204,7 @@ for option in $(getopt --name="nandroid-mobile v2.2.1" -l backuppath -l progress
     esac
 done
 
-if [ -z "$BACKUPPATH" ]; then
-  BACKUPPATH="/sdcard/nandroid"
-fi
+ROOT_BACKUPDEVICE=`echo $BACKUPPATH | cut -d '/' -f2 | sed 's#^#/#g'`
 
 [ "$PROGRESS" == "1" ] && echo "* show_indeterminate_progress"
 
@@ -236,10 +234,10 @@ if [ "$INSTALL_ROM" == 1 ]; then
     [ "$PROGRESS" == "1" ] && echo "* show_indeterminate_progress"
 
     [ "$PLUGIN" == "0" ] && echo "* print Installing ROM from "$ROM_FILE"..."
-    mount /sdcard
+    mount $ROOT_BACKUPDEVICE
 
-    if [ -z "$(mount | grep sdcard)" ]; then
-	[ "$PLUGIN" == "0" ] && echo "* print error: unable to mount /sdcard, aborting"
+    if [ -z "$(mount | grep $ROOT_BACKUPDEVICE)" ]; then
+	[ "$PLUGIN" == "0" ] && echo "* print error: unable to mount $ROOT_BACKUPDEVICE, aborting"
 	exit 13
     fi
     
@@ -372,11 +370,11 @@ if [ "$RESTORE" == 1 ]; then
     batteryAtLeast 20
     
     R_START=`date +%s`
-    umount /sdcard 2>/dev/null
-    mount /sdcard 2>/dev/null
+    umount $ROOT_BACKUPDEVICE 2>/dev/null
+    mount $ROOT_BACKUPDEVICE 2>/dev/null
 	
 	if [ "$(mount | grep sdcard)" == "" ]; then
-	    echo "* print error: unable to mount /sdcard"
+	    echo "* print error: unable to mount $ROOT_BACKUPDEVICE"
 	    exit 16
 	fi
 
@@ -387,7 +385,7 @@ if [ "$RESTORE" == 1 ]; then
 		echo "* print Error: no backups found"
 		exit 21
     else
-        RECENT=`ls -lt /sdcard/nandroid | head -n 1`
+        RECENT=`ls -lt $ROOT_BACKUPDEVICE/nandroid | head -n 1`
 	BACKUPNAME=`basename $RESTOREPATH`
 	CURRENT=`echo $RECENT | grep $BACKUPNAME | wc -l`
 	if [ $CURRENT -gt 0 ]; then
@@ -599,10 +597,10 @@ if [ "$BACKUP" == 1 ]; then
 	
    umount /system 2>/dev/null 
    umount /data 2>/dev/null
-   umount /sdcard 2>/dev/null
+   umount $ROOT_BACKUPDEVICE 2>/dev/null
    mount /system 
    mount /data 
-   mount /sdcard 2> /dev/null 
+   mount $ROOT_BACKUPDEVICE 2> /dev/null 
    mkdir /data/data
    mount $DD_DEVICE /data/data 2>/dev/null
    mount $EXT_DEVICE /sd-ext 2>/dev/null
@@ -656,7 +654,7 @@ if [ "$BACKUP" == 1 ]; then
 		umount /data 2>/dev/null
 		umount /data/data
 		umount /sd-ext
-		umount /sdcard 2>/dev/null
+		umount $ROOT_BACKUPDEVICE 2>/dev/null
 	    exit 32
     else
 		touch $DESTDIR/.nandroidwritable
@@ -664,7 +662,7 @@ if [ "$BACKUP" == 1 ]; then
 			echo "* print error: cannot write to $DESTDIR"
 				umount /system 2>/dev/null
 				umount /data 2>/dev/null
-				umount /sdcard 2>/dev/null
+				umount $ROOT_BACKUPDEVICE 2>/dev/null
 			exit 33
 		fi
 		rm $DESTDIR/.nandroidwritable
@@ -672,10 +670,10 @@ if [ "$BACKUP" == 1 ]; then
     fi
 
 # 3.
-    mount sdcard
-    FREEBLOCKS=`df -m /sdcard | grep /sdcard | awk '{print$4}'`
+    mount $ROOT_BACKUPDEVICE
+    FREEBLOCKS=`df -m $ROOT_BACKUPDEVICE | grep $ROOT_BACKUPDEVICE | awk '{print$4}'`
     if [ ! -z `echo $FREEBLOCKS | grep %` ]; then #fs name must be too long
-    	FREEBLOCKS=`df -m /sdcard | grep /sdcard | awk '{print$3}'`
+    	FREEBLOCKS=`df -m $ROOT_BACKUPDEVICE | grep $ROOT_BACKUPDEVICE | awk '{print$3}'`
     fi
     REQBLOCKS=0
     if [ $NODATA != 1 ]; then
@@ -689,7 +687,7 @@ if [ "$BACKUP" == 1 ]; then
       let REQBLOCKS=$REQBLOCKS+$SYSBLOCKS
     fi  
     if [ $NOSECURE != 1 ]; then
-      SECBLOCKS=`du -sm /sdcard/.android_secure | awk '{print$1}'`
+      SECBLOCKS=`du -sm $ROOT_BACKUPDEVICE/.android_secure | awk '{print$1}'`
       let REQBLOCKS=$REQBLOCKS+$SECBLOCKS
     fi
     if [ $NOCACHE != 1 ]; then
@@ -710,7 +708,7 @@ if [ "$BACKUP" == 1 ]; then
 	umount /system 2>/dev/null
 	umount /data 2>/dev/null
 	rm -rf $DESTDIR
-	umount /sdcard 2>/dev/null
+	umount $ROOT_BACKUPDEVICE 2>/dev/null
 	exit 34
     fi
 	
@@ -740,16 +738,16 @@ if [ "$BACKUP" == 1 ]; then
 	    	sync
 	    	echo -n "* print Verifying $image dump..."
 	    	IMGMD5=`md5sum $DESTDIR/$image.img | awk '{print$1}'`
-	    	if [ "$IMGMD5" -eq "$DEVICEMD5" ]; then
+	    	if [ "$IMGMD5" == "$DEVICEMD5" ]; then
 			MD5RESULT=1
 		else
 			MD5RESULT=0
 	    	fi
-	   	if [ "$ATTEMPT" == "5" ]; then
+	   	if [ $ATTEMPT -eq 5 ]; then
 			echo "* print Fatal error while trying to dump $image, aborting."
 			umount /system 2>/dev/null
 			umount /data 2>/dev/null
-			umount /sdcard 2>/dev/null
+			umount $ROOT_BACKUPDEVICE 2>/dev/null
 			exit 35
 	    	fi
 	done
@@ -800,7 +798,7 @@ if [ "$BACKUP" == 1 ]; then
                     echo "* print Dump of .android_secure suppressed."
                     continue
 		elif [ "$NOSECURE" != 1 ]; then
-					image="/sdcard/.android_secure"
+					image="$ROOT_BACKUPDEVICE/.android_secure"
 					dest="secure"
 		fi
 		;;
@@ -822,7 +820,7 @@ if [ "$BACKUP" == 1 ]; then
 			umount /data 2>/dev/null
 			umount /data/data
 			TOTALSIZE=`du -sm $DESTDIR | awk '{print$1}'`
-			umount /sdcard 2>/dev/null
+			umount $ROOT_BACKUPDEVICE 2>/dev/null
 			umount /boot 2>/dev/null
     echo "* print Backup successful."
     B_END=`date +%s`

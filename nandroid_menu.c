@@ -24,9 +24,9 @@ char* get_nandroid_path()
   if (access("/cache/nandloc", F_OK) != -1)
   {
     FILE *fp = fopen("/cache/nandloc", "r");
-	backuppath = calloc (30, sizeof(char));
+	backuppath = calloc (40, sizeof(char));
 	
-	fgets(backuppath, 30, fp);
+	fgets(backuppath, 40, fp);
 	printf("Nandroid directory: %s\n", backuppath);
   }
   else
@@ -47,8 +47,6 @@ void set_reboot_nandroid()
 {
   reboot_nandroid ^= 1;
 }
-
-
 
 void
 nandroid ( const char* operation, char *subname, char partitions, int show_progress, int compress)
