@@ -292,6 +292,11 @@ write_files ()
 	  }
   else
 	  {
+	    if (access("/cache/nandloc", F_OK) != -1)
+	      {
+	        __system("cp /cache/nandloc /sdcard/RZR/nandloc");
+		printf("Nandroid location file saved to sdcard.\n");
+	      }
 	    if (access ("/cache/rgb", F_OK) != -1)
 		    {
 		      __system("cp /cache/rgb /sdcard/RZR/rgb");
@@ -938,6 +943,9 @@ prompt_and_wait ()
 		      break;
 		     case MAIN_INSTALL:
 		      choose_file_menu ("/sdcard/");
+		      break;
+		     case MAIN_OPTIONS:
+		      show_options_menu();
 		      break;
 		     case MAIN_EXTRAS:
 		      show_extras_menu ();

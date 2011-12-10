@@ -34,6 +34,7 @@ char *MENU_ITEMS[] = { "Reboot android",
   "Mount menu",
   "Nandroid menu",
   "Install from sdcard",
+  "Options menu",
   "Extras menu",
   NULL
 };
@@ -61,12 +62,12 @@ device_handle_key (int key_code)
 	    return HIGHLIGHT_DOWN;
 	  
 	  case KEY_VOLUMEDOWN:	//114
-	    if (backwards_volume_keys_toggled()) return HIGHLIGHT_UP;
-	    if (!backwards_volume_keys_toggled()) return HIGHLIGHT_DOWN;
+	    if (backwardsVolume_toggled()) return HIGHLIGHT_UP;
+	    if (!backwardsVolume_toggled()) return HIGHLIGHT_DOWN;
 
 	  case KEY_VOLUMEUP:	//115
-	    if (backwards_volume_keys_toggled()) return HIGHLIGHT_DOWN;
-	    if (!backwards_volume_keys_toggled()) return HIGHLIGHT_UP;
+	    if (backwardsVolume_toggled()) return HIGHLIGHT_DOWN;
+	    if (!backwardsVolume_toggled()) return HIGHLIGHT_UP;
 	  
 	  case KEY_LEFTSHIFT:
 	  case 51:              //galaxy s 4g
@@ -82,6 +83,7 @@ device_handle_key (int key_code)
 	  case KEY_CENTER:
 	  case KEY_HOME:	//102
 	  case KEY_MENU:
+	  case KEY_SEARCH:
 	  case 272:  		//trackball press
 	    return SELECT_ITEM;
 

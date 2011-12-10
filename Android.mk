@@ -29,15 +29,6 @@ LOCAL_SRC_FILES := \
 ##the world just isnt ready for API level 3 yet
 RECOVERY_API_VERSION := 2 
 
-BOARD_RECOVERY_DEFINES := BOARD_HAS_NO_SELECT_BUTTON BOARD_HAS_INVERTED_VOLUME
-
-$(foreach board_define,$(BOARD_RECOVERY_DEFINES), \
-  $(if $($(board_define)), \
-      $(eval LOCAL_CFLAGS += -D$(board_define)=\"$($(board_define))\") \
-   ) \
- )
-
-
 ##generate the recovery version file
 TARGET_DEVICE := $(shell echo $$TARGET_PRODUCT | cut -d '_' -f2)
 RECOVERY_VERSION := "2.1.4"
@@ -56,6 +47,15 @@ LOCAL_STATIC_LIBRARIES += libext4_utils libz
 LOCAL_STATIC_LIBRARIES += libminzip libunz libmincrypt
 LOCAL_STATIC_LIBRARIES += libminui libpixelflinger_static libpng libcutils
 LOCAL_STATIC_LIBRARIES += libflashutils libmtdutils libmmcutils libbmlutils liberase_image libdump_image libflash_image
+
+BOARD_RECOVERY_DEFINES := BOARD_HAS_NO_SELECT_BUTTON BOARD_HAS_INVERTED_VOLUME
+
+$(foreach board_define,$(BOARD_RECOVERY_DEFINES), \
+  $(if $($(board_define)), \
+      $(eval LOCAL_CFLAGS += -D$(board_define)=\"$($(board_define))\") \
+   ) \
+)
+
 LOCAL_STATIC_LIBRARIES += libstdc++ libc
 LOCAL_C_INCLUDES += system/extras/ext4_utils
 include $(BUILD_EXECUTABLE)

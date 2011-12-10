@@ -8,6 +8,13 @@
 #include "recovery_ui.h"
 #include "plugins_menu.h"
 
+char* backuppath = "/sdcard/nandroid";
+
+char* return_nandroid_path()
+{
+  return backuppath;
+}
+
 void show_battstat ()
 {
   FILE *fs = fopen ("/sys/class/power_supply/battery/status", "r");
@@ -92,6 +99,128 @@ int plugins_present(const char* sdpath)
 	return 0;
   }
 }
+
+void show_nandroid_dir_menu()
+{
+  char *headers[] = { "Choose a nandroid directory",
+    "",
+    NULL
+  };
+
+  char *items[] = { "/sdcard/nandroid",
+    "/sdcard/external_sdcard",
+    "/emmc/nandroid",
+    "/data/media",
+    NULL
+  };
+
+#define sdcard_nandroid 0
+#define sdcard_external 1
+#define emmc			2
+#define data_media		3
+
+  int chosen_item = -1;
+   while (chosen_item != ITEM_BACK)
+	{
+	  chosen_item = get_menu_selection (headers, items, 0, chosen_item < 0 ? 0 : chosen_item);
+	  if (chosen_item == ITEM_BACK)
+	  {
+	    return;
+	  }
+	  switch (chosen_item)
+	  {
+		case sdcard_nandroid:
+		  backuppath = "/sdcard/nandroid";
+		  break;
+		case sdcard_external:
+		  backuppath = "/sdcard/external_sdcard";
+		  break;
+		case emmc:
+		  backuppath = "/emmc/nandroid";
+		  break;
+		case data_media:
+		  backuppath = "/data/media/nandroid";
+		  break;
+	  }
+	  
+	  int status = set_backuppath(backuppath);
+	  
+	  if (status != -1)
+	  {
+	    ui_print("Nandroid directory: %s\n", backuppath);
+		return;
+	  }
+	  else
+	  {
+	    ui_print("Invalid selection: %s!\n", backuppath);
+      }
+	}
+}
+
+int set_backuppath(const char* sdpath) 
+{
+  char path[PATH_MAX] = "";
+  DIR *dir;
+  struct dirent *de;
+  int total = 0;
+
+  if (ensure_path_mounted (sdpath) != 0) return -1;
+
+  dir = opendir (sdpath);
+  if (dir == NULL) return -1;
+  
+  ensure_path_mounted("/sdcard");
+  FILE *fp;
+  fp = fopen("/sdcard/RZR/nandloc", "w");
+  fprintf(fp, "%s\0", backuppath);
+  fclose(fp);
+  
+  return 0;
+}
+
+void show_options_menu()
+{
+  static char *headers[] = { "Options",
+    "",
+    NULL
+  };
+  
+  static char *items[] = {
+    "Custom Colors",
+	"Recovery Overclocking",
+	"Nandroid Location",
+	NULL
+  };
+  
+#define OPT_COLORS	0
+#define OPT_OVRCLCK	1
+#define OPT_NANDLOC	2
+
+  int chosen_item = -1;
+  while (chosen_item != ITEM_BACK)
+	  {
+	    chosen_item =
+	      get_menu_selection (headers, items, 0,
+				  chosen_item < 0 ? 0 : chosen_item);
+
+
+	    switch (chosen_item)
+		    {
+		    case OPT_COLORS:
+		      show_colors_menu ();
+		      break;
+		    case OPT_OVRCLCK:
+		      show_overclock_menu ();
+		      break;
+			case OPT_NANDLOC:
+			  show_nandroid_dir_menu();
+			  break;
+		    }
+	  }
+}  
+  
+  
+
   
 void
 show_extras_menu ()
@@ -102,22 +231,18 @@ show_extras_menu ()
   };
   
   char* items[6];
-  items[0] = "Custom Colors";
-  items[1] = "Show Battery Status";
-  items[2] = "Recovery Overclocking";
-  items[3] = "View Log";
+  items[0] = "Show Battery Status";
+  items[1] = "View Log";
   if (plugins_present("/sdcard/RZR/plugins")) 
   {
-    items[4] = "Plugins";
-	items[5] = NULL;
+    items[2] = "Plugins";
+	items[3] = NULL;
   }
-  else items[4] = NULL;	
+  else items[2] = NULL;	
 
-#define COLORS			0
-#define BATT 			1	
-#define OVERCLOCK	   	2
-#define VIEW_LOG		3
-#define PLUGINS			4
+#define BATT 			0	
+#define VIEW_LOG		1
+#define PLUGINS			2
 
   int chosen_item = -1;
 
@@ -130,14 +255,8 @@ show_extras_menu ()
 
 	    switch (chosen_item)
 		    {
-		    case COLORS:
-		      show_colors_menu ();
-		      break;
 		    case BATT:
 		      show_battstat ();
-		      break;
-		    case OVERCLOCK:
-		      show_overclock_menu ();
 		      break;
 		    case VIEW_LOG:
 		      view_log();

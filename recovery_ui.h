@@ -69,7 +69,8 @@ int device_wipe_data ();
 #define MAIN_MOUNTS		5
 #define MAIN_NANDROID		6
 #define MAIN_INSTALL		7
-#define MAIN_EXTRAS  		8
+#define MAIN_OPTIONS		8
+#define MAIN_EXTRAS  		9
 
 // Header text to display above the main menu.
 extern char *MENU_HEADERS[];
