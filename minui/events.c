@@ -49,7 +49,6 @@ void get_keyhold_delay()
 
     fgets(delay, 5, fp);
     keyhold_delay = atoi(delay);
-    printf("keyhold_delay: %i\n", keyhold_delay);
   }
   else
   {

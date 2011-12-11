@@ -186,14 +186,40 @@ void set_repeat_scroll_delay(char *delay)
   fprintf(fp, "%s\0", delay);
   fclose(fp);
 }
- 
+
+char* get_current_delay()
+
+{
+  char* delay = calloc(5, sizeof(char));
+  if (access("/cache/scroll",F_OK) != -1)
+  {
+    FILE *fp = fopen("/cache/scroll" ,"r");
+    fgets(delay, 5, fp);
+  }
+  else
+  {
+    delay = "185";
+  }
+  return delay;
+}
+
 void show_repeat_scroll_menu()
 {
-  static char *headers[] = { "Repeat Scroll Delay",
-    "In millseconds. Lower is faster",
+
+  char* keyhold_delay = get_current_delay();
+  printf("keyhold_delay: %s\n", keyhold_delay);
+  char delay_string[80];
+
+  strcpy(delay_string, "Current delay: ");
+  strcat(delay_string, keyhold_delay);
+  strcat(delay_string, " ms");
+  
+  char* headers[] = { "Repeat-scroll delay", 
+    delay_string,
     "",
     NULL
   };
+
 
   static char *items[] = { "255",
     "245",
@@ -232,6 +258,7 @@ void show_repeat_scroll_menu()
 #define SPD_105 16
 
   char *delay;
+
   int chosen_item = -1;
   while (chosen_item != ITEM_BACK)
   {
