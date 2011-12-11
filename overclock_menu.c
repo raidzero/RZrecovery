@@ -29,7 +29,6 @@ int slot_count (char *s)
 	    if (s[i++] == ' ')
 	      counter++;
 	  }
-  printf ("slot_count completed.\n");
   return counter;
 }
 
@@ -44,7 +43,6 @@ get_available_frequencies ()
 
   fgets (available_frequencies, 255, available_frequencies_file);
   fclose (available_frequencies_file);
-  printf ("get_available_frequencies complete.\n");
   return available_frequencies;
 }
 
@@ -57,7 +55,6 @@ get_max_freq ()
 
   fgets (freq, 9, fs);
   fclose (fs);
-  printf ("get_max_freq complete.\n");
   return freq;
 }
 
@@ -79,13 +76,11 @@ show_overclock_menu ()
 	  {
 	    freq[freqlen - 1] = 0;
 	  }
-  printf ("Removed last char in freq.\n");
   freqlen = strlen (freq);
   if (freq[freqlen - 1] == '\n')
 	  {
 	    freq[freqlen - 1] = 0;
 	  }
-  printf ("Created freqlen string \n");
    
     // create an array from available_frequencies delimited by spaces - crude and
     // I hope it works on all devices 
@@ -102,7 +97,6 @@ show_overclock_menu ()
 		slots = realloc (slots, arglen);
 		ap = &slots[arglen - 35];
 	      }
-   printf ("available_frequencies array created.\n");
   
     //since there is no way to delete the last element, I will copy all the elements up to num_slots
     //into a new available_slots array and then free the slots array
@@ -116,9 +110,7 @@ show_overclock_menu ()
 	  {
 	    available_slots[i] = slots[i];
 	  }
-  printf ("All elements but last copied into available_slots\n");
   free (slots);
-  printf ("slots[] freed\n");
    
   //create pretty header lines
   char max_string[50]; 
@@ -132,10 +124,8 @@ show_overclock_menu ()
   strcat(max_string, freqstring);
   strcat(max_string," MHz");
 
-  printf ("max_string created\n");
     char *headers[] = { "Recovery CPU settings", max_string, " ", NULL
   };
-  printf ("headers[] created\n");
    
 #define slot1         		0
 #define slot2			1
@@ -175,7 +165,6 @@ show_overclock_menu ()
 
 
 
-   printf ("Definitions list created.\n");
    int chosen_item = -1;
 
    while (chosen_item != ITEM_BACK)

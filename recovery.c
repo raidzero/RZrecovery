@@ -428,6 +428,7 @@ int postrecoveryboot() {
       return 1;
     }
   }
+  ensure_path_unmounted("/sdcard");
   return 0;
 }
 
@@ -1006,8 +1007,6 @@ main (int argc, char **argv)
   printf ("Starting recovery on %s", ctime (&start));
   load_volume_table ();
   process_volumes ();
-  ensure_path_mounted("/sdcard");
-  sleep(1); //mounting sdcard might take a second
   activateLEDs();
   postrecoveryboot();
   get_args (&argc, &argv);
