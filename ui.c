@@ -408,8 +408,8 @@ input_thread (void *cookie)
 		    {
 		    if (ev_get(&ev, 0, keyheld) != 1) {
 			// Check for an up/down key press
-			if (ev.type == EV_KEY && (ev.code == KEY_UP
-				|| ev.code == KEY_DOWN || ev.code == KEY_VOLUMEUP
+			if (ev.type == EV_KEY && (ev.code == 
+				KEY_VOLUMEUP
 				|| ev.code == KEY_VOLUMEDOWN ) && ev.value == 1) {
 					keyheld = 1;
 					last_code = ev.code;

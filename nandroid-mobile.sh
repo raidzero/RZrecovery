@@ -24,10 +24,9 @@ TARFLAGS="v"
 
 ASSUMEDEFAULTUSERINPUT=0
 
-sd_mounted=`mount | grep "$ROOT_BACKUPDEVICE" | wc -l`
 data_mounted=`mount | grep "/data" | wc -l`
 system_mounted=`mount | grep "/system" | wc -l`
-cache_mounted=`mount | grep /cache" | wc -l`
+cache_mounted=`mount | grep "/cache" | wc -l`
 	
 echo2log()
 {
@@ -373,7 +372,7 @@ if [ "$RESTORE" == 1 ]; then
     umount $ROOT_BACKUPDEVICE 2>/dev/null
     mount $ROOT_BACKUPDEVICE 2>/dev/null
 	
-	if [ "$(mount | grep sdcard)" == "" ]; then
+	if [ "$(mount | grep $ROOT_BACKUPDEVICE)" == "" ]; then
 	    echo "* print error: unable to mount $ROOT_BACKUPDEVICE"
 	    exit 16
 	fi
@@ -478,9 +477,9 @@ if [ "$RESTORE" == 1 ]; then
         fi
         echo "* print Flashing $image..."
 	[ "$PROGRESS" == "1" ] && echo "* show_indeterminate_progress"
-	dd if=$RESTOREPATH/$image.img of=$BOOT_DEVICE
+	flash_image $image $image.img $OUTPUT
 	if [ $? -ne 0 ]; then
-	  flash_image $image $image.img $OUTPUT
+	  dd if=$RESTOREPATH/$image.img of=$BOOT_DEVICE
 	fi
 	echo " done."
     done
@@ -519,7 +518,7 @@ if [ "$RESTORE" == 1 ]; then
             echo "* print "
             continue
         elif [ "$NOSECURE" == 0 ] && [ "$image" == "secure" ]; then
-			image="sdcard/.android_secure"	
+			image="$ROOT_BACKUPDEVICE/.android_secure"	
 			tarfile="secure"
 	fi
         if [ "$NOSDEXT" == 1 ] && [ "$image" == "sdext" ]; then
@@ -704,7 +703,7 @@ if [ "$BACKUP" == 1 ]; then
     echo "* print $REQBLOCKSSTRING MB Required!"
     echo "* print $FREEBLOCKSSTRING MB Available!"
     if [ "$FREEBLOCKS" -le "$REQBLOCKS" ]; then
-	echo "* print Error: not enough free space available on sdcard, aborting."
+	echo "* print Error: not enough free space available on $ROOT_BACKUPDEVICE, aborting."
 	umount /system 2>/dev/null
 	umount /data 2>/dev/null
 	rm -rf $DESTDIR
@@ -726,18 +725,17 @@ if [ "$BACKUP" == 1 ]; then
 	esac
 	echo "* print Dumping boot..."
 	sleep 1s
-	MD5RESULT=1
+	MD5RESULT=0
 	ATTEMPT=0
 	DEVICEMD5=`md5sum $BOOT_DEVICE | awk '{print$1}'`
-	while [ $MD5RESULT -eq 1 ]; do
+	echo "DEVICEMD5: $DEVICEMD5"
+	while [ $MD5RESULT -eq 0 ]; do
 	    	let ATTEMPT=$ATTEMPT+1
-	    	dd if=$BOOT_DEVICE of=$DESTDIR/$image.img
-		if [ $? -ne 0 ]; then
-		  dump_image $image $DESTDIR/$image.img
-		fi  
-	    	sync
-	    	echo -n "* print Verifying $image dump..."
+		dump_image $image $DESTDIR/$image.img
+		[ $? -ne 0 ] && dd if=$BOOT_DEVICE of=$DESTDIR/$image.img
 	    	IMGMD5=`md5sum $DESTDIR/$image.img | awk '{print$1}'`
+		echo "IMGMD5: $IMGMD5"
+	    	echo -n "* print Verifying $image dump..."
 	    	if [ "$IMGMD5" == "$DEVICEMD5" ]; then
 			MD5RESULT=1
 		else
