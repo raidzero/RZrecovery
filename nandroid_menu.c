@@ -633,7 +633,7 @@ show_compress_menu()
   char *headers[] = { "Choose a backup to compress",
     "Nandroid Dir:",
     "",
-    "Prefix:",
+    "Backup:",
 	"",
 	"",
     NULL
