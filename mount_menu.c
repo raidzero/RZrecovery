@@ -43,8 +43,8 @@ is_usb_storage_enabled ()
 static void
 get_mount_menu_options (char **items, int usb, int ms, int md, int msd, int mb, int me)
 {
-  static char *items1[7];
-  static char *items2[7];
+  char *items1[7];
+  char *items2[7];
   int noUsb = 0;
   if (usb == 3) noUsb = 1;
   
@@ -68,12 +68,19 @@ get_mount_menu_options (char **items, int usb, int ms, int md, int msd, int mb, 
   }
 
   int i = 0;
+  //allocate memory for each item, since we now have a variable in here
+  int l;
+  for (l=0; l<7; l++)
+  {
+    items1[l] = calloc(strlen("Unmount /sdcard/external_sdcard"), sizeof(char));
+    items2[l] = calloc(strlen("Unmount /sdcard/external_sdcard"), sizeof(char));
+  }
   if (!noUsb) {
     items1[i] = "Enable USB Mass Storage"; i++;
   }
   items1[i] = "Mount /system"; i++;
   items1[i] = "Mount /data"; i++; 
-  items1[i] = sprintf(items1[i], "Mount %s", items1[i]); i++;
+  sprintf(items1[i], "Mount %s", STORAGE_ROOT); i++;
   if (bm) {
   	items1[i] = "Mount /boot"; i++;
   }
@@ -90,7 +97,7 @@ get_mount_menu_options (char **items, int usb, int ms, int md, int msd, int mb, 
   }
   items2[j] = "Unmount /system"; j++;
   items2[j] = "Unmount /data"; j++;
-  items2[j] = sprintf(items2[j], "Unmount %s", STORAGE_ROOT); j++;
+  sprintf(items2[j], "Unmount %s", STORAGE_ROOT); j++;
   if (bm) {
   	items2[j] = "Unmount /boot"; j++;
   }

@@ -69,9 +69,11 @@ void set_storage_root()
   printf("STORAGE_ROOT: %s\n", STORAGE_ROOT);
 }
 	 
-char *get_storage_root() 
+char* get_storage_root() 
 {
-  return STORAGE_ROOT;
+  char STORAGE_ROOT_STRING[PATH_MAX];
+  strcpy(STORAGE_ROOT_STRING, STORAGE_ROOT);
+  return STORAGE_ROOT_STRING;
 }  
 
 char* get_rzr_dir()
@@ -974,6 +976,7 @@ void prompt_and_wait ()
 		      show_wipe_menu ();
 		      break;
 		     case MAIN_MOUNTS:
+		      printf("Mount Menu selected.\n");
 		      show_mount_menu ();
 		      break;
 		     case MAIN_NANDROID:
