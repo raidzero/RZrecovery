@@ -13,9 +13,10 @@ char* RZR_DIR;
 void
 set_color (char red, char green, char blue)
 {
-  char* RANDOM_FILE;
+  char RANDOM_FILE[PATH_MAX];
   strcpy(RANDOM_FILE, RZR_DIR);
   strcat(RANDOM_FILE, "/rnd");
+  printf("RANDOM_FILE: %s\n", RANDOM_FILE);
   char txt;
 
   if (green >= 150) txt = 0; else txt = 255;
@@ -78,6 +79,7 @@ void
 show_colors_menu ()
 {
   RZR_DIR = get_rzr_dir();
+  printf("RZR_DIR: %s\n", RZR_DIR);
   static char *headers[] = { "Choose a color",
     "",
     NULL

@@ -50,8 +50,7 @@ static const struct option OPTIONS[] = {
   {NULL, 0, NULL, 0}, 
 };
 
-static const char* STORAGE_ROOT;
-static const char* RZR_DIR;
+char* STORAGE_ROOT;
 
 void set_storage_root()
 {
@@ -63,6 +62,10 @@ void set_storage_root()
 	  STORAGE_ROOT = "/data/media";
 	}
   }
+  else
+  { 
+  STORAGE_ROOT = "/sdcard";
+  }
   printf("STORAGE_ROOT: %s\n", STORAGE_ROOT);
 }
 	 
@@ -73,14 +76,25 @@ char *get_storage_root()
 
 char* get_rzr_dir()
 {
+  char RZR_DIR[PATH_MAX];
   strcpy(RZR_DIR, STORAGE_ROOT);
   strcat(RZR_DIR, "/RZR");
   return RZR_DIR;
 }
 
+char* get_nandroid_dir()
+{
+  char NANDROID_DIR[PATH_MAX];
+  strcpy(NANDROID_DIR, STORAGE_ROOT);
+  strcat(NANDROID_DIR, "/nandroid");
+  printf("NANDROID_DIR %s\n", NANDROID_DIR);
+  return NANDROID_DIR;
+}
+
 static const char *COMMAND_FILE = "/cache/recovery/command";
 static const char *INTENT_FILE = "/cache/recovery/intent";
 static const char *LOG_FILE = "/cache/recovery/log";
+static const char *SDCARD_ROOT = "/sdcard";
 static const char *LAST_LOG_FILE = "/cache/recovery/last_log";
 static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
 static const char *SIDELOAD_TEMP_DIR = "/tmp/sideload";
@@ -412,17 +426,18 @@ read_files ()
      __system("echo > /cache/icon_rw");
    }
   }
+ read_cpufreq();
  sync ();
  ensure_path_unmounted(STORAGE_ROOT);
 }
 
 int postrecoveryboot() 
 {
+  char* NANDROID_DIR = get_nandroid_dir();
+  
   DIR *dir;
   struct dirent *de;
-  char* NANDROID_DIR;
-  strcpy(NANDROID_DIR, STORAGE_ROOT);
-  strcat(NANDROID_DIR, "/nandroid");
+  
   if (ensure_path_mounted(STORAGE_ROOT) != 0) LOGE("Can't mount %s!\n", STORAGE_ROOT);
 
   dir = opendir(NANDROID_DIR);
@@ -442,6 +457,7 @@ int postrecoveryboot()
     }
   }
   ensure_path_unmounted(STORAGE_ROOT);
+  printf("postrecoveryboot finished.\n");
   return 0;
 }
 
@@ -1050,14 +1066,13 @@ int main (int argc, char **argv)
 		      continue;
 		    }
 	  }
-  read_files();
+  //read_files();
   ui_init();
   if (access("/cache/icon_rw",F_OK) != -1) ui_set_background(BACKGROUND_ICON_RW);
   if (access("/cache/icon_rz",F_OK) != -1) ui_set_background(BACKGROUND_ICON_RZ); 
   
   __system("sh /sbin/symlink_sbin");
   device_recovery_start ();
-  read_cpufreq ();
   ensure_path_unmounted(STORAGE_ROOT);
   printf ("Command:");
   for (arg = 0; arg < argc; arg++)

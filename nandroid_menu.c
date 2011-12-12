@@ -195,6 +195,7 @@ nandroid ( const char* operation, char *subname, char partitions, int show_progr
 	     reboot_android();
        }  
     }
+  ensure_path_unmounted(backuppath);  
   ui_reset_progress ();
 }
 
