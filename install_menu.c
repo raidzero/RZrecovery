@@ -19,6 +19,7 @@
 #include "nandroid_menu.h"
 
 char** install_list;
+char* STORAGE_ROOT;
 int position = 0;
 int backup = 0;
 int dwipe = 0;
@@ -114,6 +115,7 @@ void choose_file_menu (char *sdpath)
   and hopefully not get them stuck in a loop of iterations equal to the number of times they
   entered the preinstall menu
   */
+  STORAGE_ROOT = get_storage_root();
   choose_file_menu_final(sdpath);
 }
 
@@ -137,9 +139,9 @@ choose_file_menu_final (char *sdpath)
   char **dlist;
   char **list;
 
-  if (ensure_path_mounted ("/sdcard") != 0)
+  if (ensure_path_mounted (STORAGE_ROOT) != 0)
 	  {
-	    LOGE ("Can't mount /sdcard\n");
+	    LOGE ("Can't mount %s", STORAGE_ROOT);
 	    return;
 	  }
    dir = opendir (sdpath);
@@ -319,13 +321,13 @@ install_img (char *filename, char *partition)
    ui_print ("\n-- Flash image from...\n");
   ui_print ("%s", filename);
   ui_print ("\n");
-  ensure_path_mounted ("/sdcard");
+  ensure_path_mounted ("STORAGE_ROOT");
    char *argv[] = { "/sbin/flash_img", partition, filename, NULL
   };
    char *envp[] = { NULL };
    int status = runve ("/sbin/flash_img", argv, envp, 1);
 
-   ui_print ("\nFlash from sdcard complete.");
+   ui_print ("\nFlash from %s complete.\n", STORAGE_ROOT);
   ui_print ("\nThanks for using RZrecovery.\n");
   return 0;
 }
@@ -336,7 +338,7 @@ install_apk (char *filename, char *location)
    ui_print ("\n-- Installing APK from\n");
   ui_print ("%s", filename);
   ui_print ("\nTo\n");
-  ensure_path_mounted ("/sdcard");
+  ensure_path_mounted (STORAGE_ROOT);
   ensure_path_mounted (location);
    char locString[PATH_MAX];
   char *basename = strrchr (filename, '/') + 1;
@@ -429,9 +431,7 @@ install_update_zip (char *filename)
   char *path = NULL;
 
   puts (filename);
-  ui_print ("\n-- Install update.zip from sdcard...\n");
-  //set_sdcard_update_bootloader_message ();
-  // ah ha! so THAT was the problem!
+  ui_print ("\n-- Install update.zip from %s...\n", STORAGE_ROOT);
   ui_print ("Attempting update from...\n");
   ui_print ("%s", filename);
   ui_print ("\n");
@@ -444,7 +444,7 @@ install_update_zip (char *filename)
 	  }
   else
 	  {
-	    ui_print ("\nInstall from sdcard complete.\n");
+	    ui_print ("\nInstall from %s complete.\n", STORAGE_ROOT);
 	    ui_print ("\nThanks for using RZrecovery.\n");
 	  }
   return 0;
@@ -599,6 +599,10 @@ preinstall_menu (char *filename)
 
   int chosen_item = -1;
 
+  char* STORAGE_ROOT_;
+  strcpy(STORAGE_ROOT_, STORAGE_ROOT);
+  strcat(STORAGE_ROOT_, "/");
+
   while (chosen_item != ITEM_BACK)
 	  {
 	    get_preinstall_menu_opts (preinstall_opts, reboot_into_android);
@@ -607,7 +611,7 @@ preinstall_menu (char *filename)
 	    switch (chosen_item)
 		    {
 		    case ITEM_NO:
-		      choose_file_menu("/sdcard/");
+		      choose_file_menu(STORAGE_ROOT_);
 			  return;
 		    case ITEM_BACKUP:
 		      set_backup();
@@ -620,11 +624,11 @@ preinstall_menu (char *filename)
 		      break;
 			case ITEM_QUEUE:
 			  queue_item(filename);
-			  choose_file_menu("/sdcard/");
+			  choose_file_menu(STORAGE_ROOT_);
 			  return;
 			case ITEM_CLEAR:
 			  clear_queue();
-			  choose_file_menu("/sdcard/");
+			  choose_file_menu(STORAGE_ROOT_);
 			  return;
 		    case ITEM_INSTALL:
 			  if (position > 0) 

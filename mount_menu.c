@@ -11,6 +11,8 @@
 #define BOARD_UMS_LUNFILE	"/sys/devices/platform/usb_mass_storage/lun0/file"
 #endif
 
+char* STORAGE_ROOT;
+
 static int
 is_usb_storage_enabled ()
 {
@@ -71,7 +73,7 @@ get_mount_menu_options (char **items, int usb, int ms, int md, int msd, int mb, 
   }
   items1[i] = "Mount /system"; i++;
   items1[i] = "Mount /data"; i++; 
-  items1[i] = "Mount /sdcard"; i++;
+  items1[i] = sprintf(items1[i], "Mount %s", items1[i]); i++;
   if (bm) {
   	items1[i] = "Mount /boot"; i++;
   }
@@ -88,7 +90,7 @@ get_mount_menu_options (char **items, int usb, int ms, int md, int msd, int mb, 
   }
   items2[j] = "Unmount /system"; j++;
   items2[j] = "Unmount /data"; j++;
-  items2[j] = "Unmount /sdcard"; j++;
+  items2[j] = sprintf(items2[j], "Unmount %s", STORAGE_ROOT); j++;
   if (bm) {
   	items2[j] = "Unmount /boot"; j++;
   }
@@ -120,7 +122,7 @@ static void
 enable_usb_mass_storage ()
 {
   int fd;
-  Volume *vol = volume_for_path ("/sdcard");
+  Volume *vol = volume_for_path (STORAGE_ROOT);
 
   if ((fd = open (BOARD_UMS_LUNFILE, O_WRONLY)) < 0)
 	  {
@@ -149,6 +151,7 @@ disable_usb_mass_storage ()
 void
 show_mount_menu ()
 {
+  STORAGE_ROOT = get_storage_root();
   static char *headers[] = { "Choose a mount or unmount option",
     "",
     NULL
@@ -161,8 +164,8 @@ show_mount_menu ()
   printf("system mounted: %i\n", ms);
   int md = is_path_mounted ("/data");
   printf("data mounted: %i\n", md);
-  int msd = is_path_mounted ("/sdcard");
-  printf("sdcard mounted: %i\n", msd);
+  int msd = is_path_mounted (STORAGE_ROOT);
+  printf("%s mounted: %i\n", STORAGE_ROOT, msd);
   int mb = is_path_mounted ("/boot");
   printf("boot mounted: %i\n", mb);
   int me = is_path_mounted ("/emmc");
@@ -206,11 +209,11 @@ show_mount_menu ()
 		      break;
 		    case ITEM_SD:
 		      if (msd) {
-		        ensure_path_unmounted ("/sdcard");
+		        ensure_path_unmounted (STORAGE_ROOT);
 		      } else { 
 		        disable_usb_mass_storage ();
 		        usb = 0;
-		        ensure_path_mounted ("/sdcard");
+		        ensure_path_mounted (STORAGE_ROOT);
 		      }
 		      msd ^= 1;
 		      break;

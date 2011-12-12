@@ -259,9 +259,12 @@ setup_data_media ()
   symlink ("/data/media", "/sdcard");
 }
 
+
 int
 ensure_path_mounted (const char *path)
 {
+  int fail_silently = get_fail_silently();
+
   Volume *v = volume_for_path (path);
 
   if (v == NULL)
@@ -277,7 +280,7 @@ ensure_path_mounted (const char *path)
 		      setup_data_media ();
 		      return 0;
 		    }
-	    LOGE ("unknown volume for path [%s]\n", path);
+	    if (!fail_silently) LOGE ("unknown volume for path [%s]\n", path);
 	    return -1;
 	  }
   if (strcmp (v->fs_type, "ramdisk") == 0)
@@ -291,7 +294,7 @@ ensure_path_mounted (const char *path)
   result = scan_mounted_volumes ();
   if (result < 0)
 	  {
-	    LOGE ("failed to scan mounted volumes\n");
+	    if (!fail_silently) LOGE ("failed to scan mounted volumes\n");
 	    return -1;
 	  }
 

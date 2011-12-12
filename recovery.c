@@ -50,16 +50,40 @@ static const struct option OPTIONS[] = {
   {NULL, 0, NULL, 0}, 
 };
 
+static const char* STORAGE_ROOT;
+static const char* RZR_DIR;
+
+void set_storage_root()
+{
+  if (!volume_present("/sdcard")) //no sdcard
+  {
+    if (volume_present("/emmc")) STORAGE_ROOT="/emmc";
+	if (!volume_present("/emmc")) //no sdcard OR /emmc, must assume /data/media
+	{
+	  STORAGE_ROOT = "/data/media";
+	}
+  }
+  printf("STORAGE_ROOT: %s\n", STORAGE_ROOT);
+}
+	 
+char *get_storage_root() 
+{
+  return STORAGE_ROOT;
+}  
+
+char* get_rzr_dir()
+{
+  strcpy(RZR_DIR, STORAGE_ROOT);
+  strcat(RZR_DIR, "/RZR");
+  return RZR_DIR;
+}
 
 static const char *COMMAND_FILE = "/cache/recovery/command";
 static const char *INTENT_FILE = "/cache/recovery/intent";
 static const char *LOG_FILE = "/cache/recovery/log";
 static const char *LAST_LOG_FILE = "/cache/recovery/last_log";
-static const char *SDCARD_ROOT = "/sdcard";
 static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
 static const char *SIDELOAD_TEMP_DIR = "/tmp/sideload";
-
-static void reboot_fn(char* action);
  
 /*
  * The recovery tool communicates with the main system through /cache files.
@@ -218,6 +242,7 @@ int volume_present(const char* volume) {
 process_volumes ()
 {
   create_fstab ();
+  set_storage_root();
   printf ("process_volumes done.\n");
 } 
 
@@ -272,7 +297,7 @@ void create_fstab ()
     write_fstab_root ("/datadata", file);
   }
   write_fstab_root ("/system", file);
-  write_fstab_root ("/sdcard", file);
+  if (volume_present("/sdcard")) write_fstab_root ("/sdcard", file);
   if (volume_present("/sd-ext")) write_fstab_root ("/sd-ext", file);
   if (volume_present("/emmc")) write_fstab_root("/emmc", file);
   fclose (file);
@@ -285,7 +310,7 @@ void create_fstab ()
 write_files ()
 {
   ensure_path_mounted("/cache");
-  if (ensure_path_mounted ("/sdcard") != 0)
+  if (ensure_path_mounted (STORAGE_ROOT) != 0)
 	  {
 	    LOGE ("Can't mount /sdcard\n");
 	    return;
@@ -294,48 +319,48 @@ write_files ()
 	  {
 	    if (access("/cache/nandloc", F_OK) != -1)
 	      {
-	        __system("cp /cache/nandloc /sdcard/RZR/nandloc");
-		printf("Nandroid location file saved to sdcard.\n");
+	        __system("cp /cache/nandloc %s/RZR/nandloc", STORAGE_ROOT);
+		printf("Nandroid location file saved to %s.\n", STORAGE_ROOT);
 	      }
 	    if (access("/cache/scroll", F_OK) != -1)
 	      {
-	        __system("cp /cache/scroll /sdcard/RZR/scroll");
-		printf("Scroll speed saved to sdcard.\n");
+	        __system("cp /cache/scroll %s/RZR/scroll", STORAGE_ROOT);
+		printf("Scroll speed saved to %s.\n", STORAGE_ROOT);
 	      }
 	    if (access ("/cache/rgb", F_OK) != -1)
 		    {
-		      __system("cp /cache/rgb /sdcard/RZR/rgb");
-		      printf ("\nColors file saved to sdcard.\n");
+		      __system("cp /cache/rgb %s/RZR/rgb", STORAGE_ROOT);
+		      printf ("\nColors file saved to %s.\n", STORAGE_ROOT);
 		    }
 	    if (access ("/cache/oc", F_OK) != -1)
 		    {
-		      __system("cp /cache/oc /sdcard/RZR/oc");
-		      printf ("\nOverclock file saved to sdcard.\n");
+		      __system("cp /cache/oc %s/RZR/oc", STORAGE_ROOT);
+		      printf ("\nOverclock file saved to %s.\n", STORAGE_ROOT);
 		    }
 	    if (access ("/cache/rnd", F_OK) != -1)
 		    {
-		      __system("cp /cache/rnd /sdcard/RZR/rnd");
-		      printf ("\nRave file saved to sdcard.\n");
+		      __system("cp /cache/rnd %sRZR/rnd", STORAGE_ROOT);
+		      printf ("\nRave file saved to %s.\n", STORAGE_ROOT);
 		    }
 	    if (access("/cache/icon_rw", F_OK) != -1)
 	    {
-	    	__system("cp /cache/icon_rw /sdcard/RZR/icon_rw");
-		printf("RW Icon saved to sdcard.\n");
+	    	__system("cp /cache/icon_rw %sRZR/icon_rw", STORAGE_ROOT);
+		printf("RW Icon saved to %s.\n", STORAGE_ROOT);
 	    }
 	    if (access("/cache/icon_rz", F_OK) != -1)
 	    {
-	        __system("cp /cache/icon_rz /sdcard/RZR/icon_rz");
-	        printf("RZ Icon saved to sdcard.\n");
+	        __system("cp /cache/icon_rz %s/RZR/icon_rz", STORAGE_ROOT);
+	        printf("RZ Icon saved to %s.\n", STORAGE_ROOT);
 	    }
 	    if (access("/cache/recovery/log", F_OK) != -1)
 	    {
-	        __system("cp /cache/recovery/log /sdcard/RZR/log");
-	        printf("Recovery log saved to sdcard.\n");
+	        __system("cp /cache/recovery/log %sRZR/log", STORAGE_ROOT);
+	        printf("Recovery log saved to %s.\n", STORAGE_ROOT);
 	    }		
 	    if (access("/cache/recovery/last_log", F_OK) != -1)
 	    {
-	        __system("cp /cache/recovery/last_log /sdcard/RZR/last_log");
-	        printf("Last recovery log saved to sdcard.\n");
+	        __system("cp /cache/recovery/last_log %s/RZR/last_log", STORAGE_ROOT);
+	        printf("Last recovery log saved to %s.\n", STORAGE_ROOT);
 	    }
 	    sync ();
 	  }
@@ -344,15 +369,6 @@ write_files ()
  void
 read_cpufreq ()
 {
-  ensure_path_mounted ("/sdcard");
-  if (access ("/sdcard/RZR/oc", F_OK) != -1)
-	  {
-	    if (!__system("cp /sdcard/RZR/oc /cache/oc")) printf("Overclock file copied to /cache.\n");
-	  }
-  else
-	  {
-	    mkdir ("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-	  }
    if (access ("/cache/oc", F_OK) != -1)
 	  {
 	    FILE * fs = fopen ("/cache/oc", "r");
@@ -375,20 +391,17 @@ read_cpufreq ()
   void
 read_files ()
 {
- ensure_path_mounted ("/sdcard");
+ ensure_path_mounted (STORAGE_ROOT);
  ensure_path_mounted("/cache");
- sleep(1);
- if (access("/sdcard/rzr", F_OK) != -1) 
- {
-   printf("Encountered lowercase dir...\n");
-   __system("mv /sdcard/rzr /sdcard/rzr-tmp"); 
-   __system("mv/sdcard/rzr-tmp /sdcard/RZR");
-   printf("lowercase dir converted.\n");
- }
- if (access("/sdcard/RZR", F_OK) != -1) 
- {
-   __system("chmod -R 777 /sdcard/RZR"); //some ROMs go messing with my files!
-   __system("cp /sdcard/RZR/* /cache");
+ 
+ char* RZR_DIR;
+ strcpy(RZR_DIR, STORAGE_ROOT);
+ strcat(RZR_DIR, "/RZR");
+ 
+ if (access(RZR_DIR, F_OK) != -1) 
+  {
+   __system("chmod -R 777 %s", RZR_DIR); //some ROMs go messing with my files!
+   __system("cp %sRZR/* /cache", STORAGE_ROOT);
    __system("mkdir /cache/recovery");
    __system("mv /cache/log /cache/recovery/log");
    __system("mv /cache/last_log /cache/recovery/last_log");
@@ -398,27 +411,27 @@ read_files ()
    if ( access("/cache/icon_rz",F_OK) == -1 && access("/cache/icon_rw",F_OK == -1) ) {
      __system("echo > /cache/icon_rw");
    }
-
- } else {
-    mkdir ("/sdcard/RZR", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-    __system("echo > /cache/icon_rz");
- }
+  }
  sync ();
- ensure_path_unmounted("/sdcard");
+ ensure_path_unmounted(STORAGE_ROOT);
 }
 
-int postrecoveryboot() {
+int postrecoveryboot() 
+{
   DIR *dir;
   struct dirent *de;
-  if (ensure_path_mounted("/sdcard") != 0) LOGE("Can't mount /sdcard!\n");
+  char* NANDROID_DIR;
+  strcpy(NANDROID_DIR, STORAGE_ROOT);
+  strcat(NANDROID_DIR, "/nandroid");
+  if (ensure_path_mounted(STORAGE_ROOT) != 0) LOGE("Can't mount %s!\n", STORAGE_ROOT);
 
-  dir = opendir("/sdcard/nandroid");
+  dir = opendir(NANDROID_DIR);
   if (dir == NULL) 
   {
-    printf("/sdcard/nandroid not detected. Creating...\n");
-    if (__system("mkdir /sdcard/nandroid"))
+    printf("%s not detected. Creating...\n", NANDROID_DIR);
+    if (__system("mkdir %s", NANDROID_DIR))
     {
-      printf("Failed to create /sdcard/nandroid!\n");
+      printf("Failed to create %s!\n", NANDROID_DIR);
     }
   }
   if (access("/sbin/postrecoveryboot.sh",F_OK) != -1 ) {
@@ -428,7 +441,7 @@ int postrecoveryboot() {
       return 1;
     }
   }
-  ensure_path_unmounted("/sdcard");
+  ensure_path_unmounted(STORAGE_ROOT);
   return 0;
 }
 
@@ -902,13 +915,12 @@ get_menu_selection (char **headers, char **items, int menu_only,
   return chosen_item;
 }
 
- int
-compare_string (const void *a, const void *b)
+int compare_string (const void *a, const void *b)
 {
   return strcmp (*(const char **) a, *(const char **) b);
-}  void 
+}  
 
-prompt_and_wait ()
+void prompt_and_wait ()
 {
   char **headers = prepend_title ((const char **) MENU_HEADERS);
 
@@ -927,7 +939,7 @@ prompt_and_wait ()
 	     switch (chosen_item)
 		    {
 		    case MAIN_REBOOT:
-		      reboot_fn("android");
+		      reboot_android();
 		      break;
 		     case MAIN_RECOVERY:
 		      reboot_fn("recovery");
@@ -964,9 +976,9 @@ prompt_and_wait ()
 print_property (const char *key, const char *name, void *cookie)
 {
   printf ("%s=%s\n", key, name);
-}  int 
+}  
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   if (strstr (argv[0], "recovery") == NULL)
 	 {
@@ -1046,7 +1058,7 @@ main (int argc, char **argv)
   __system("sh /sbin/symlink_sbin");
   device_recovery_start ();
   read_cpufreq ();
-  ensure_path_unmounted("/sdcard");
+  ensure_path_unmounted(STORAGE_ROOT);
   printf ("Command:");
   for (arg = 0; arg < argc; arg++)
 	  {
@@ -1156,7 +1168,7 @@ main (int argc, char **argv)
   return EXIT_SUCCESS;
 }
 
-static void reboot_fn(char* action)
+void reboot_fn(char* action)
 {
   if (strcmp(action, "android") == 0 
   || strcmp(action, "recovery") == 0 
@@ -1187,7 +1199,6 @@ static void reboot_fn(char* action)
       }
     }
   }
-
 }
 
 void reboot_android()
@@ -1203,17 +1214,16 @@ int get_key()
   return key;
 }
 
-void
-ui_printf_int (const char *format, int arg) 
+void ui_printf_int (const char *format, int arg) 
 {
   char *out = calloc (strlen (format) + 12, sizeof (char));
 
   sprintf (out, format, arg);
   ui_print ("%s", out);
   free (out);
-}   void
+}   
 
-get_check_menu_opts (char **items, char **chk_items, int *flags) 
+void get_check_menu_opts (char **items, char **chk_items, int *flags) 
 {
   int i;
   int count;
@@ -1226,9 +1236,10 @@ get_check_menu_opts (char **items, char **chk_items, int *flags)
 	    items[i] = calloc (strlen (chk_items[i]) + 5, sizeof (char));	// 4 for "(*) " and 1 for the NULL-terminator
 	    sprintf (items[i], "(%s) %s", (*flags & (1 << i)) ? "*" : " ",
 		     chk_items[i]);
-} }  void
+	} 
+}  
 
-show_check_menu (char **headers, char **chk_items, int *flags) 
+void show_check_menu (char **headers, char **chk_items, int *flags) 
 {
   int chosen_item = -1;
    int i;
@@ -1259,7 +1270,8 @@ show_check_menu (char **headers, char **chk_items, int *flags)
 #define _PATH_BSHELL "/sbin/sh"
 
 int
-__system(const char *command) {
+__system(const char *command) 
+{
   pid_t pid;
   	sig_t intsave, quitsave;
 	sigset_t mask, omask;
@@ -1564,4 +1576,3 @@ runve (char *filename, char **argv, char **envp, int secs)
   free (cur_line);
   return status;
 }
-

@@ -103,6 +103,8 @@ int plugins_present(const char* sdpath)
 void show_nandroid_dir_menu()
 {
   char *headers[] = { "Choose a nandroid directory",
+    "Current directory:",
+    "",
     "",
     NULL
   };
@@ -118,6 +120,8 @@ void show_nandroid_dir_menu()
 #define sdcard_external 1
 #define emmc			2
 #define data_media		3
+
+  headers[2] = get_nandroid_path();
 
   int chosen_item = -1;
    while (chosen_item != ITEM_BACK)
@@ -157,14 +161,22 @@ void show_nandroid_dir_menu()
 	}
 }
 
+int fail_silently;
+
+int get_fail_silently()
+{
+  return fail_silently;
+}
+
 int set_backuppath(const char* sdpath) 
 {
   char path[PATH_MAX] = "";
   DIR *dir;
   struct dirent *de;
   int total = 0;
-
-  if (ensure_path_mounted (sdpath) != 0) return -1;
+  
+  fail_silently = 1;
+  ensure_path_mounted (sdpath);
 
   dir = opendir (sdpath);
   if (dir == NULL) return -1;
@@ -214,7 +226,7 @@ void show_repeat_scroll_menu()
   strcat(delay_string, keyhold_delay);
   strcat(delay_string, " ms");
   
-  char* headers[] = { "Repeat-scroll delay", 
+  char* headers[] = { "Repeat-scroll delay (lower is faster)", 
     delay_string,
     "",
     NULL
@@ -268,7 +280,6 @@ void show_repeat_scroll_menu()
     set_repeat_scroll_delay(delay);
     ui_print("Scroll delay is %s milliseconds.\n", delay);
   }
-  return;
 }  
 
 void show_options_menu()

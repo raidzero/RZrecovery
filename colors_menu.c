@@ -8,9 +8,14 @@
 #include "roots.h"
 #include "recovery_ui.h"
 
+char* RZR_DIR;
+
 void
 set_color (char red, char green, char blue)
 {
+  char* RANDOM_FILE;
+  strcpy(RANDOM_FILE, RZR_DIR);
+  strcat(RANDOM_FILE, "/rnd");
   char txt;
 
   if (green >= 150) txt = 0; else txt = 255;
@@ -22,24 +27,24 @@ set_color (char red, char green, char blue)
   fwrite (&txt, 1, 1, fp);
   fclose (fp);
   if (access ("/cache/rnd", F_OK) != -1) remove("/cache/rnd");
-  ensure_path_mounted ("/sdcard");
-  if (access ("/sdcard/RZR/rnd", F_OK) != -1) remove("/sdcard/RZR/rnd");
+  ensure_path_mounted (RZR_DIR);
+  if (access (RANDOM_FILE, F_OK) != -1) remove(RANDOM_FILE);
 }
 
 void set_icon (char* icon) {
-  ensure_path_mounted("/sdcard");
+  ensure_path_mounted(RZR_DIR);
   
-  __system("rm /sdcard/RZR/icon*");
+  __system("rm %s/icon*", RZR_DIR);
   __system("rm /cache/icon*");
   if (strcmp(icon,"rz")==0) {
     ui_set_background(BACKGROUND_ICON_RZ);
-    __system("echo > /sdcard/RZR/icon_rz && echo > /cache/icon_rz");
+    __system("echo > %s/icon_rz && echo > /cache/icon_rz", RZR_DIR);
   }
   if (strcmp(icon,"rw")==0) { 
     ui_set_background(BACKGROUND_ICON_RW);
-    __system("echo > /sdcard/RZR/icon_rw && echo > /cache/icon_rw");
+    __system("echo > %s/icon_rw && echo > /cache/icon_rw", RZR_DIR);
   }
-  ensure_path_unmounted("/sdcard");
+  ensure_path_unmounted(RZR_DIR);
 }
 
 
@@ -62,16 +67,17 @@ set_random (int rnd)
   {
     set_color(cR, cG, cB);
     remove("/cache/rgb");
-    ensure_path_mounted("/sdcard");
-    remove("/sdcard/RZR/rgb");
+    ensure_path_mounted(RZR_DIR);
+    __system("rm %s/rgb", RZR_DIR);
     __system("echo rnd > /cache/rnd"); 
-    ensure_path_unmounted("/sdcard");
+    ensure_path_unmounted(RZR_DIR);
   }
 }
 
 void
 show_colors_menu ()
 {
+  RZR_DIR = get_rzr_dir();
   static char *headers[] = { "Choose a color",
     "",
     NULL

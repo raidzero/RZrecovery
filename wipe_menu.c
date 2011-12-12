@@ -7,6 +7,8 @@
 #include "roots.h"
 #include "recovery_ui.h"
 
+char* STORAGE_ROOT;
+
 int wipe_partition(char* partition, int autoaccept) 
 {
 	char wipe_header[255] = "";
@@ -49,8 +51,8 @@ int wipe_partition(char* partition, int autoaccept)
 			erase_volume ("/cache");
 			ensure_path_mounted ("/cache");		
 			ui_print ("\n-- Wiping .android_secure... ");
-			ensure_path_mounted ("/sdcard");
-			__system ("rm -rf /sdcard/.android_secure/*");
+			ensure_path_mounted (STORAGE_ROOT);
+			__system ("rm -rf %s/.android_secure/*", STORAGE_ROOT);
 			ui_print ("\n-- Wiping boot...");
 			erase_volume("/boot");
 			ui_print ("\nDone.\n");
@@ -83,8 +85,8 @@ int wipe_partition(char* partition, int autoaccept)
 
 		if (strcmp (partition, "android_secure") == 0)
 		{
-			ensure_path_mounted ("/sdcard");
-			__system ("rm -rf /sdcard/.android_secure/*");
+			ensure_path_mounted (STORAGE_ROOT);
+			__system ("rm -rf %s/.android_secure/*", STORAGE_ROOT);
 			ui_print("Done.\n");
 			ui_reset_progress();
 			return 0;
@@ -164,6 +166,7 @@ show_wipe_menu ()
 #define WIPE_DK				7
 
 
+  STORAGE_ROOT = get_storage_root();
   int chosen_item = -1;
 
   while (chosen_item != ITEM_BACK)

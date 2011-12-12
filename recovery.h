@@ -23,6 +23,7 @@ int volume_present(char *volume);
 void write_files ();
 void read_files ();
 
+void reboot_fn(char* action);
 void reboot_android();
 
 void ui_printf_int (const char *format, int arg);

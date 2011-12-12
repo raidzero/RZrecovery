@@ -17,6 +17,7 @@
   
 #include "nandroid_menu.h"
 
+char* RZR_DIR;
 char* strip_string(char* string)
 {
   string[strlen(string) - 4] = '\0';
@@ -26,6 +27,7 @@ char* strip_string(char* string)
  void
 choose_plugin_menu (char *sdpath)
 {
+  RZR_DIR = get_rzr_dir();
   static char *headers[] = { "Choose plugin", "", NULL
   };
    char path[PATH_MAX] = "";
@@ -36,7 +38,7 @@ choose_plugin_menu (char *sdpath)
   int j;
   char **list;
 
-  ensure_path_mounted ("/sdcard");
+  ensure_path_mounted (RZR_DIR);
   dir = opendir (sdpath);
 
   
