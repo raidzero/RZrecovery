@@ -258,19 +258,18 @@ void show_repeat_scroll_menu()
 #define SPD_105 16
 
   char *delay;
-
   int chosen_item = -1;
-  while (chosen_item != ITEM_BACK)
+
+  chosen_item = get_menu_selection(headers, items, 0, chosen_item < 0 ? 0: chosen_item);
+  if (chosen_item != ITEM_BACK)
   {
-    chosen_item = get_menu_selection(headers, items, 1, chosen_item < 0 ? 0: chosen_item);
     delay = items[chosen_item];
 
     set_repeat_scroll_delay(delay);
     ui_print("Scroll delay is %s milliseconds.\n", delay);
-    return;
   }
   return;
-}        
+}  
 
 void show_options_menu()
 {
