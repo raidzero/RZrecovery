@@ -209,14 +209,14 @@ check_and_fclose (FILE * fp, const char *name)
   void
 set_cpufreq (char *speed)
 {
-  FILE * fs =
-    fopen ("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq", "w");
+  FILE * fs = fopen ("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq", "w");
   fputs (speed, fs);
   fputs ("\n", fs);
-  printf ("Max cpu slot set to %s", speed);
+  printf ("Max cpu speed set to %s", speed);
   fclose (fs);
-}  void
+}  
 
+void
 write_fstab_root (char *path, FILE * file) 
 {
   Volume * vol = volume_for_path (path);
@@ -383,9 +383,12 @@ write_files ()
  void
 read_cpufreq ()
 {
+   ensure_path_mounted("/cache");
+   printf("Starting read_cpufreq()...\n");
    if (access ("/cache/oc", F_OK) != -1)
 	  {
-	    FILE * fs = fopen ("/cache/oc", "r");
+	    printf("Saved clockspeed detected.\n");
+		FILE * fs = fopen ("/cache/oc", "r");
 	    char *freq = calloc (9, sizeof (char));
 
 	    fgets (freq, 9, fs);
@@ -395,15 +398,15 @@ read_cpufreq ()
 		  F_OK) != -1)
 		    {
 		      set_cpufreq (freq);
-		    }
+			  printf("cpufreq set to %s.\n", freq);	  
+		    }		
 	  }
   sync ();
 }
 
  
 //read recovery files from sdcard to cache
-  void
-read_files ()
+void read_files ()
 {
  ensure_path_mounted (STORAGE_ROOT);
  ensure_path_mounted("/cache");
@@ -415,18 +418,19 @@ read_files ()
  if (access(RZR_DIR, F_OK) != -1) 
   {
    __system("chmod -R 777 %s", RZR_DIR); //some ROMs go messing with my files!
-   __system("cp %sRZR/* /cache", STORAGE_ROOT);
+   __system("cp %s/* /cache", RZR_DIR);
    __system("mkdir /cache/recovery");
    __system("mv /cache/log /cache/recovery/log");
    __system("mv /cache/last_log /cache/recovery/last_log");
    if ( access("/cache/icon_rw",F_OK) == -1 && access("/cache/icon_rz",F_OK == -1) ) {
      __system("echo > /cache/icon_rz");
+	  ui_set_background(BACKGROUND_ICON_RZ); 
    }
    if ( access("/cache/icon_rz",F_OK) == -1 && access("/cache/icon_rw",F_OK == -1) ) {
      __system("echo > /cache/icon_rw");
+	 ui_set_background(BACKGROUND_ICON_RW); 
    }
   }
- read_cpufreq();
  sync ();
  ensure_path_unmounted(STORAGE_ROOT);
 }
@@ -1035,8 +1039,8 @@ int main (int argc, char **argv)
   printf ("Starting recovery on %s", ctime (&start));
   load_volume_table ();
   process_volumes ();
+  read_cpufreq();
   activateLEDs();
-  postrecoveryboot();
   get_args (&argc, &argv);
    int previous_runs = 0;
   const char *send_intent = NULL;
@@ -1066,11 +1070,7 @@ int main (int argc, char **argv)
 		      continue;
 		    }
 	  }
-  //read_files();
   ui_init();
-  if (access("/cache/icon_rw",F_OK) != -1) ui_set_background(BACKGROUND_ICON_RW);
-  if (access("/cache/icon_rz",F_OK) != -1) ui_set_background(BACKGROUND_ICON_RZ); 
-  
   __system("sh /sbin/symlink_sbin");
   device_recovery_start ();
   ensure_path_unmounted(STORAGE_ROOT);
