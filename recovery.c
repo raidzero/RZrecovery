@@ -945,7 +945,8 @@ int compare_string (const void *a, const void *b)
 void prompt_and_wait ()
 {
   char **headers = prepend_title ((const char **) MENU_HEADERS);
-
+  
+ char STORAGE_ROOT_[PATH_MAX];
    for (;;)
 	  {
 	    finish_recovery (NULL);
@@ -976,14 +977,13 @@ void prompt_and_wait ()
 		      show_wipe_menu ();
 		      break;
 		     case MAIN_MOUNTS:
-		      printf("Mount Menu selected.\n");
 		      show_mount_menu ();
 		      break;
 		     case MAIN_NANDROID:
 		      show_nandroid_menu ();
 		      break;
 		     case MAIN_INSTALL:
-		      choose_file_menu ("/sdcard/");
+		      choose_file_menu (STORAGE_ROOT);
 		      break;
 		     case MAIN_OPTIONS:
 		      show_options_menu();

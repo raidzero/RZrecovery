@@ -249,6 +249,11 @@ void show_repeat_scroll_menu()
     "125",
     "115",
     "105",
+    "95",
+    "85",
+    "75",
+    "65",
+    "55",
     NULL
   };
 
@@ -268,6 +273,11 @@ void show_repeat_scroll_menu()
 #define SPD_125 14
 #define SPD_115 15
 #define SPD_105 16
+#define SPD_95	17
+#define SPD_85  18
+#define SPD_75	19
+#define SPD_65	20
+#define SPD_55	21
 
   char *delay;
   int chosen_item = -1;

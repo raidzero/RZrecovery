@@ -15,6 +15,8 @@ if [ "$PARTITION" == "boot" ]; then
     flash_image $PARTITION $IMAGE
   fi
 fi
+[ $? -ne 0 ] && exit 1
+[ $? -eq 0 ] && exit 0
 
 if [ "$PARTITION" == "recovery" ]; then
   if [ `cat /etc/recovery.fstab | grep recovery | awk '{print$2}'` == "mtd" ]; then
@@ -28,6 +30,8 @@ if [ "$PARTITION" == "recovery" ]; then
     flash_image $PARTITION $IMAGE
   fi
 fi
+[ $? -ne 0 ] && exit 1
+[ $? -eq 0 ] && exit 0
 
   
 
