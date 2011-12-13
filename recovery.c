@@ -439,18 +439,12 @@ void read_files ()
  if (access(RZR_DIR, F_OK) != -1) 
   {
    __system("chmod -R 777 %s", RZR_DIR); //some ROMs go messing with my files!
-   __system("cp %s/* /cache", RZR_DIR);
+   char CMD[PATH_MAX];
+   sprintf(CMD, "cp %s/* /cache", RZR_DIR);
+   __system(CMD);
    __system("mkdir /cache/recovery");
    __system("mv /cache/log /cache/recovery/log");
    __system("mv /cache/last_log /cache/recovery/last_log");
-   if ( access("/cache/icon_rw",F_OK) == -1 && access("/cache/icon_rz",F_OK == -1) ) {
-     __system("echo > /cache/icon_rz");
-	  ui_set_background(BACKGROUND_ICON_RZ); 
-   }
-   if ( access("/cache/icon_rz",F_OK) == -1 && access("/cache/icon_rw",F_OK == -1) ) {
-     __system("echo > /cache/icon_rw");
-	 ui_set_background(BACKGROUND_ICON_RW); 
-   }
   }
  sync ();
  ensure_path_unmounted(STORAGE_ROOT);
@@ -1093,6 +1087,16 @@ int main (int argc, char **argv)
 		    }
 	  }
   ui_init();
+  if ( access("/cache/icon_rw",F_OK) == -1 && access("/cache/icon_rz",F_OK == -1) ) 
+  {
+    __system("echo > /cache/icon_rz");
+    ui_set_background(BACKGROUND_ICON_RZ); 
+  }
+  if ( access("/cache/icon_rz",F_OK) == -1 && access("/cache/icon_rw",F_OK == -1) ) 
+  {
+    __system("echo > /cache/icon_rw");
+    ui_set_background(BACKGROUND_ICON_RW); 
+  }
   __system("sh /sbin/symlink_sbin");
   device_recovery_start ();
   ensure_path_unmounted(STORAGE_ROOT);
