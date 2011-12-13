@@ -449,7 +449,6 @@ int postrecoveryboot()
   dir = opendir(NANDROID_DIR);
   if (dir == NULL) 
   {
-    printf("%s not detected. Creating...\n", NANDROID_DIR);
     if (__system("mkdir %s", NANDROID_DIR))
     {
       printf("Failed to create %s!\n", NANDROID_DIR);
@@ -1043,6 +1042,7 @@ int main (int argc, char **argv)
   load_volume_table ();
   process_volumes ();
   read_cpufreq();
+  postrecoveryboot();
   activateLEDs();
   get_args (&argc, &argv);
    int previous_runs = 0;
