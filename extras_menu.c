@@ -8,12 +8,10 @@
 #include "recovery_ui.h"
 #include "plugins_menu.h"
 
-char* backuppath = "/sdcard/nandroid";
-
-char* return_nandroid_path()
-{
-  return backuppath;
-}
+/*char* STORAGE_ROOT;
+char* NANDROID_DIR;
+char* PLUGINS_DIR;*/
+char* backuppath;
 
 void show_battstat ()
 {
@@ -66,7 +64,7 @@ int plugins_present(const char* sdpath)
   int present;
   int total = 0;
 
-  ensure_path_mounted ("/sdcard");
+  ensure_path_mounted (sdpath);
   if (access(sdpath, F_OK) != -1)
   {
     dir = opendir (sdpath);
@@ -156,8 +154,8 @@ void show_nandroid_dir_menu()
 	  }
 	  else
 	  {
-	    ui_print("Invalid selection: %s!\n", backuppath);
-      }
+	    ui_print("Volume does not exist: %s!\n", backuppath);
+          }
 	}
 }
 
@@ -176,12 +174,22 @@ int set_backuppath(const char* sdpath)
   int total = 0;
   
   fail_silently = 1;
+  if (!volume_present(sdpath)) 
+  {
+    return -1;
+  }
+
   ensure_path_mounted (sdpath);
 
   dir = opendir (sdpath);
-  if (dir == NULL) return -1;
+  if (dir == NULL) 
+  {
+    char CMD[PATH_MAX];
+    sprintf(CMD, "mkdir -p %s", sdpath);
+    __system(CMD);
+    printf("Created new directory %s\n", sdpath);
+  }  
   
-  ensure_path_mounted("/sdcard");
   __system("rm /cache/nandloc");
   FILE *fp;
   fp = fopen("/cache/nandloc", "w");
@@ -294,6 +302,10 @@ void show_repeat_scroll_menu()
 
 void show_options_menu()
 {
+  char* STORAGE_ROOT = get_storage_root();
+
+  ensure_path_mounted(STORAGE_ROOT);
+
   static char *headers[] = { "Options",
     "",
     NULL
@@ -336,6 +348,7 @@ void show_options_menu()
 		      break;
 		    }
 	  }
+  ensure_path_unmounted(STORAGE_ROOT);
 }  
   
   
@@ -344,15 +357,20 @@ void show_options_menu()
 void
 show_extras_menu ()
 {
+  char* PLUGINS_DIR = get_plugins_dir();
+  
+  ensure_path_mounted(PLUGINS_DIR);
+
+  printf("Plugins Dir: %s\n", PLUGINS_DIR);
   static char *headers[] = { "Extras",
     "",
     NULL
   };
-  
+    
   char* items[6];
   items[0] = "Show Battery Status";
   items[1] = "View Log";
-  if (plugins_present("/sdcard/RZR/plugins")) 
+  if (plugins_present(PLUGINS_DIR)) 
   {
     items[2] = "Plugins";
 	items[3] = NULL;
@@ -381,8 +399,9 @@ show_extras_menu ()
 		      view_log();
 		      break;
 		    case PLUGINS:
-		       choose_plugin_menu("/sdcard/RZR/plugins/");
+		       choose_plugin_menu(PLUGINS_DIR);
 		       break;
 		    }
 	  }
+  ensure_path_unmounted(PLUGINS_DIR);
 }

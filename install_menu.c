@@ -119,6 +119,7 @@ void choose_file_menu (char *sdpath)
   strcpy(sdpath_, sdpath);
   strcat(sdpath_, "/");
   choose_file_menu_final(sdpath_);
+  ensure_path_unmounted(sdpath);
 }
 
 

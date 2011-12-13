@@ -51,6 +51,9 @@ static const struct option OPTIONS[] = {
 };
 
 char* STORAGE_ROOT;
+char* RZR_DIR;
+char* PLUGINS_DIR;
+char* NANDROID_DIR;
 
 void set_storage_root()
 {
@@ -78,25 +81,33 @@ char* get_storage_root()
 
 char* get_rzr_dir()
 {
-  char RZR_DIR[PATH_MAX];
-  strcpy(RZR_DIR, STORAGE_ROOT);
-  strcat(RZR_DIR, "/RZR");
-  return RZR_DIR;
+  char RZR_DIR_STRING[PATH_MAX];
+  strcpy(RZR_DIR_STRING, STORAGE_ROOT);
+  strcat(RZR_DIR_STRING, "/RZR");
+  return RZR_DIR_STRING;
+}
+
+char* get_plugins_dir()
+{
+  RZR_DIR = get_rzr_dir();
+  char PLUGINS_DIR_STRING[PATH_MAX];
+  strcpy(PLUGINS_DIR_STRING, RZR_DIR);
+  strcat(PLUGINS_DIR_STRING, "/plugins");
+  printf("Returning %s\n", PLUGINS_DIR_STRING);
+  return PLUGINS_DIR_STRING;
 }
 
 char* get_nandroid_dir()
 {
-  char NANDROID_DIR[PATH_MAX];
-  strcpy(NANDROID_DIR, STORAGE_ROOT);
-  strcat(NANDROID_DIR, "/nandroid");
-  printf("NANDROID_DIR %s\n", NANDROID_DIR);
-  return NANDROID_DIR;
+  char NANDROID_DIR_STRING[PATH_MAX];
+  strcpy(NANDROID_DIR_STRING, STORAGE_ROOT);
+  strcat(NANDROID_DIR_STRING, "/nandroid");
+  return NANDROID_DIR_STRING;
 }
 
 static const char *COMMAND_FILE = "/cache/recovery/command";
 static const char *INTENT_FILE = "/cache/recovery/intent";
 static const char *LOG_FILE = "/cache/recovery/log";
-static const char *SDCARD_ROOT = "/sdcard";
 static const char *LAST_LOG_FILE = "/cache/recovery/last_log";
 static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
 static const char *SIDELOAD_TEMP_DIR = "/tmp/sideload";
