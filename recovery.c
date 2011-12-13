@@ -57,15 +57,26 @@ char* NANDROID_DIR;
 
 void set_storage_root()
 {
-  if (ensure_path_mounted("/sdcard") != 0)
-  {   
-    if (ensure_path_mounted("/emmc") == 0) STORAGE_ROOT="/emmc";
-    if (ensure_path_mounted("/emmc") != 0) STORAGE_ROOT = "/data/media";  
-  }  
-  else
+  //if sdcard is mountable then use it
+  if (ensure_path_mounted("/sdcard") == 0) 
   {
-    STORAGE_ROOT = "/sdcard";
+    STORAGE_ROOT="/sdcard";
+    goto finish;
   }
+  //if we are here then sdcard is not mountable, try emmc
+  if (ensure_path_mounted("/emmc") == 0)
+  {
+    STORAGE_ROOT="/emmc";
+    goto finish;
+  }
+  //if even emmc isnt mountable, then assume data/media
+  if (ensure_path_mounted("/data/media") == 0)
+  {
+    STORAGE_ROOT="/data/media";
+    goto finish;
+  }
+     
+  finish:   
   printf("STORAGE_ROOT: %s\n", STORAGE_ROOT);
   ensure_path_unmounted(STORAGE_ROOT);
 }
@@ -91,7 +102,6 @@ char* get_plugins_dir()
   char PLUGINS_DIR_STRING[PATH_MAX];
   strcpy(PLUGINS_DIR_STRING, RZR_DIR);
   strcat(PLUGINS_DIR_STRING, "/plugins");
-  printf("Returning %s\n", PLUGINS_DIR_STRING);
   return PLUGINS_DIR_STRING;
 }
 
