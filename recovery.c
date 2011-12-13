@@ -57,19 +57,17 @@ char* NANDROID_DIR;
 
 void set_storage_root()
 {
-  if (!volume_present("/sdcard")) //no sdcard
-  {
-    if (volume_present("/emmc")) STORAGE_ROOT="/emmc";
-	if (!volume_present("/emmc")) //no sdcard OR /emmc, must assume /data/media
-	{
-	  STORAGE_ROOT = "/data/media";
-	}
-  }
+  if (ensure_path_mounted("/sdcard") != 0)
+  {   
+    if (ensure_path_mounted("/emmc") == 0) STORAGE_ROOT="/emmc";
+    if (ensure_path_mounted("/emmc") != 0) STORAGE_ROOT = "/data/media";  
+  }  
   else
-  { 
-  STORAGE_ROOT = "/sdcard";
+  {
+    STORAGE_ROOT = "/sdcard";
   }
   printf("STORAGE_ROOT: %s\n", STORAGE_ROOT);
+  ensure_path_unmounted(STORAGE_ROOT);
 }
 	 
 char* get_storage_root() 
