@@ -31,13 +31,13 @@ void set_icon (char* icon) {
   if (strcmp(icon,"rz")==0) {
     ui_set_background(BACKGROUND_ICON_RZ);
     char RZ_CMD[PATH_MAX];
-    sprintf(RZ_CMD, "echo > %s/icon_rz && echo > /cache/icon_rz", RZR_DIR);
+    sprintf(RZ_CMD, "echo > /cache/icon_rz", RZR_DIR);
     __system(RZ_CMD);
   }
   if (strcmp(icon,"rw")==0) { 
     ui_set_background(BACKGROUND_ICON_RW);
     char RW_CMD[PATH_MAX];
-    sprintf(RW_CMD, "echo > %s/icon_rw && echo > /cache/icon_rw", RZR_DIR);
+    sprintf(RW_CMD, "echo > /cache/icon_rw");
     __system(RW_CMD);
   }
 }

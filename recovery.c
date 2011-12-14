@@ -55,27 +55,25 @@ char* RZR_DIR;
 char* PLUGINS_DIR;
 char* NANDROID_DIR;
 
-char* BG_ICON;
-
-void set_bg_icon(char* icon)
+void set_bg_icon()
 {
-  if (strcmp(icon, "rz") == 0)
-  {
-    BG_ICON="rz";
-    printf("Set RZ BG image\n");
+  printf("Start background set...\n");
+  ensure_path_mounted("/cache");
+  printf("Mounted cache...\n");
+  if (access("/cache/icon_rw", F_OK) != -1) 
+  {  
+    printf("Rootz icon found.\n");
+    ui_set_background(BACKGROUND_ICON_RW);
+    printf("Set Rootz BG\n");
   }
-  if (strcmp(icon, "rw") == 0) 
+  if (access("/cache/icon_rz", F_OK) != -1) 
   {
-    BG_ICON="rz";
-    printf("Set RW BG image\n");
+    printf("RZ icon found.\n");
+    ui_set_background(BACKGROUND_ICON_RZ);
+    printf("Set RZ BG\n");
   }
-}
-
-char* get_bg_icon()
-{
-  printf("Returning icon: %s\n", BG_ICON);
-  if (!BG_ICON) return "rz";
-  return BG_ICON;
+  ensure_path_unmounted("/cache");
+  printf("End background set.\n");
 }
 
 int fail_silently;
@@ -484,9 +482,6 @@ void read_files ()
 
 int postrecoveryboot() 
 {
-  if (access("/cache/icon_rz", F_OK) != -1) set_bg_icon("rz");
-  if (access("/cache/icon_rw", F_OK) != -1) set_bg_icon("rw");
-
   char* NANDROID_DIR = get_nandroid_dir();
   
   DIR *dir;
@@ -1122,19 +1117,8 @@ int main (int argc, char **argv)
   activateLEDs();
   ui_init();
   if (STORAGE_ROOT != NULL) ensure_path_unmounted(STORAGE_ROOT);
+  set_bg_icon();
   device_recovery_start ();
-  
-  BG_ICON = get_bg_icon();
-  if (strcmp(BG_ICON, "rz") == 0) 
-  {
-    printf("Will display RZ icon\n");
-    ui_set_background(BACKGROUND_ICON_RZ);
-  }
-  if (strcmp(BG_ICON, "rw") == 0) 
-  {
-    printf("Will display RW icon\n");
-    ui_set_background(BACKGROUND_ICON_RW);
-  }
   
   printf ("Command:");
   for (arg = 0; arg < argc; arg++)
