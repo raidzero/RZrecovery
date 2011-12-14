@@ -372,70 +372,42 @@ void create_fstab ()
   LOGI ("Completed outputting fstab.\n\n");
 }
 
- 
 //write recovery files from cache to sdcard
   void
 write_files ()
-{
+{  
   ensure_path_mounted("/cache");
   if (ensure_path_mounted (STORAGE_ROOT) != 0)
-	  {
-	    LOGE ("Can't mount /sdcard\n");
-	    return;
-	  }
+  {
+	LOGE ("Can't mount %s\n", STORAGE_ROOT);
+	return;
+  }
   else
-	  {
-	    if (access("/cache/nandloc", F_OK) != -1)
-	      {
-	        __system("cp /cache/nandloc %s/RZR/nandloc", STORAGE_ROOT);
-		printf("Nandroid location file saved to %s.\n", STORAGE_ROOT);
-	      }
-	    if (access("/cache/scroll", F_OK) != -1)
-	      {
-	        __system("cp /cache/scroll %s/RZR/scroll", STORAGE_ROOT);
-		printf("Scroll speed saved to %s.\n", STORAGE_ROOT);
-	      }
-	    if (access ("/cache/rgb", F_OK) != -1)
-		    {
-		      __system("cp /cache/rgb %s/RZR/rgb", STORAGE_ROOT);
-		      printf ("\nColors file saved to %s.\n", STORAGE_ROOT);
-		    }
-	    if (access ("/cache/oc", F_OK) != -1)
-		    {
-		      __system("cp /cache/oc %s/RZR/oc", STORAGE_ROOT);
-		      printf ("\nOverclock file saved to %s.\n", STORAGE_ROOT);
-		    }
-	    if (access ("/cache/rnd", F_OK) != -1)
-		    {
-		      __system("cp /cache/rnd %sRZR/rnd", STORAGE_ROOT);
-		      printf ("\nRave file saved to %s.\n", STORAGE_ROOT);
-		    }
-	    if (access("/cache/icon_rw", F_OK) != -1)
-	    {
-	    	__system("cp /cache/icon_rw %sRZR/icon_rw", STORAGE_ROOT);
-		printf("RW Icon saved to %s.\n", STORAGE_ROOT);
-	    }
-	    if (access("/cache/icon_rz", F_OK) != -1)
-	    {
-	        __system("cp /cache/icon_rz %s/RZR/icon_rz", STORAGE_ROOT);
-	        printf("RZ Icon saved to %s.\n", STORAGE_ROOT);
-	    }
-	    if (access("/cache/recovery/log", F_OK) != -1)
-	    {
-	        __system("cp /cache/recovery/log %sRZR/log", STORAGE_ROOT);
-	        printf("Recovery log saved to %s.\n", STORAGE_ROOT);
-	    }		
-	    if (access("/cache/recovery/last_log", F_OK) != -1)
-	    {
-	        __system("cp /cache/recovery/last_log %s/RZR/last_log", STORAGE_ROOT);
-	        printf("Last recovery log saved to %s.\n", STORAGE_ROOT);
-	    }
-	    sync ();
-	  }
+  {
+    RZR_DIR = get_rzr_dir();
+    char* FILE_LIST[] = { "rgb",
+      "rnd",
+      "oc",
+      "nandloc",
+      "scroll",
+      "icon_rz",
+      "icon_rw",
+      NULL
+    };
+    int i;
+	char CP_CMD[PATH_MAX];
+	for(i=0; i<7; i++)
+	{
+	  sprintf(CP_CMD, "cp /cache/%s %s/%s", FILE_LIST[i], RZR_DIR, FILE_LIST[i]);
+	  __system(CP_CMD);
+	}
+    __system("cp /cache/recovery/log %s/log", RZR_DIR);
+	__system("cp /cache/recovery/last_log %s/last_log", RZR_DIR);
+  }
+  sync ();
 }
 
- void
-read_cpufreq ()
+void read_cpufreq ()
 {
    ensure_path_mounted("/cache");
    printf("Starting read_cpufreq()...\n");
@@ -457,7 +429,6 @@ read_cpufreq ()
 	  }
   sync ();
 }
-
  
 //read recovery files from sdcard to cache
 void read_files ()
@@ -465,9 +436,7 @@ void read_files ()
  ensure_path_mounted (STORAGE_ROOT);
  ensure_path_mounted("/cache");
  
- char* RZR_DIR;
- strcpy(RZR_DIR, STORAGE_ROOT);
- strcat(RZR_DIR, "/RZR");
+ RZR_DIR = get_rzr_dir();
  
  if (access(RZR_DIR, F_OK) != -1) 
   {
@@ -1121,6 +1090,7 @@ int main (int argc, char **argv)
 	  }
   set_storage_root();
   postrecoveryboot();
+  read_files();
   read_cpufreq();
   activateLEDs();
   if (STORAGE_ROOT != NULL) ensure_path_unmounted(STORAGE_ROOT);
