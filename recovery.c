@@ -57,6 +57,7 @@ char* NANDROID_DIR;
 
 void set_bg_icon()
 {
+  int bg_set = 0;
   printf("Start background set...\n");
   ensure_path_mounted("/cache");
   printf("Mounted cache...\n");
@@ -65,13 +66,16 @@ void set_bg_icon()
     printf("Rootz icon found.\n");
     ui_set_background(BACKGROUND_ICON_RW);
     printf("Set Rootz BG\n");
+    bg_set = 1;
   }
   if (access("/cache/icon_rz", F_OK) != -1) 
   {
     printf("RZ icon found.\n");
     ui_set_background(BACKGROUND_ICON_RZ);
     printf("Set RZ BG\n");
+    bg_set = 1;
   }
+  if (!bg_set) ui_set_background(BACKGROUND_ICON_RZ);
   ensure_path_unmounted("/cache");
   printf("End background set.\n");
 }
