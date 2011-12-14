@@ -238,7 +238,8 @@ try_mount (const char *device, const char *mount_point, const char *fs_type,
 	  }
   if (ret == 0)
     return 0;
-  LOGW ("failed to mount %s (%s)\n", device, strerror (errno));
+  int fail_silently = get_fail_silently();
+  if (!fail_silently) LOGW ("failed to mount %s (%s)\n", device, strerror (errno));
   return ret;
 }
 

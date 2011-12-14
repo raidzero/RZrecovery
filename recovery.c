@@ -55,32 +55,64 @@ char* RZR_DIR;
 char* PLUGINS_DIR;
 char* NANDROID_DIR;
 
-void set_storage_root()
+char* BG_ICON;
+
+void set_bg_icon(char* icon)
 {
+  if (strcmp(icon, "rz") == 0)
+  {
+    BG_ICON="rz";
+    printf("Set RZ BG image\n");
+  }
+  if (strcmp(icon, "rw") == 0) 
+  {
+    BG_ICON="rz";
+    printf("Set RW BG image\n");
+  }
+}
+
+char* get_bg_icon()
+{
+  printf("Returning icon: %s\n", BG_ICON);
+  if (!BG_ICON) return "rz";
+  return BG_ICON;
+}
+
+int fail_silently;
+
+void storage_root_set()
+{
+  fail_silently = 1; //dont fill the log with failed mounts, we are just testing
+  sleep(1); // lets delay a second - everything might not be initialized just yet
   //if sdcard is mountable then use it
   if (ensure_path_mounted("/sdcard") == 0) 
   {
     STORAGE_ROOT="/sdcard";
-    goto finish;
+    printf("STORAGE_ROOT: %s\n", STORAGE_ROOT);
+    return;
   }
-  //if we are here then sdcard is not mountable, try emmc
+  //if we are here then sdcard is not present/mountable, try emmc
   if (ensure_path_mounted("/emmc") == 0)
   {
     STORAGE_ROOT="/emmc";
-    goto finish;
+    printf("STORAGE_ROOT: %s\n", STORAGE_ROOT);
+    return;
   }
   //if even emmc isnt mountable, then assume data/media
   if (ensure_path_mounted("/data/media") == 0)
   {
     STORAGE_ROOT="/data/media";
-    goto finish;
+    printf("STORAGE_ROOT: %s\n", STORAGE_ROOT);
+    return;
   }
-     
-  finish:   
-  printf("STORAGE_ROOT: %s\n", STORAGE_ROOT);
-  ensure_path_unmounted(STORAGE_ROOT);
 }
 	 
+void set_storage_root()
+{
+  storage_root_set();
+  ensure_path_unmounted(STORAGE_ROOT);
+}  
+
 char* get_storage_root() 
 {
   char STORAGE_ROOT_STRING[PATH_MAX];
@@ -277,7 +309,6 @@ int volume_present(const char* volume) {
 process_volumes ()
 {
   create_fstab ();
-  set_storage_root();
   printf ("process_volumes done.\n");
 } 
 
@@ -446,12 +477,16 @@ void read_files ()
    __system("mv /cache/log /cache/recovery/log");
    __system("mv /cache/last_log /cache/recovery/last_log");
   }
+
  sync ();
  ensure_path_unmounted(STORAGE_ROOT);
 }
 
 int postrecoveryboot() 
 {
+  if (access("/cache/icon_rz", F_OK) != -1) set_bg_icon("rz");
+  if (access("/cache/icon_rw", F_OK) != -1) set_bg_icon("rw");
+
   char* NANDROID_DIR = get_nandroid_dir();
   
   DIR *dir;
@@ -957,8 +992,6 @@ int compare_string (const void *a, const void *b)
 void prompt_and_wait ()
 {
   char **headers = prepend_title ((const char **) MENU_HEADERS);
-  
- char STORAGE_ROOT_[PATH_MAX];
    for (;;)
 	  {
 	    finish_recovery (NULL);
@@ -1054,11 +1087,8 @@ int main (int argc, char **argv)
   printf ("Starting recovery on %s", ctime (&start));
   load_volume_table ();
   process_volumes ();
-  read_cpufreq();
-  postrecoveryboot();
-  activateLEDs();
   get_args (&argc, &argv);
-   int previous_runs = 0;
+  int previous_runs = 0;
   const char *send_intent = NULL;
   const char *update_package = NULL;
   const char *encrypted_fs_mode = NULL;
@@ -1086,20 +1116,26 @@ int main (int argc, char **argv)
 		      continue;
 		    }
 	  }
+  set_storage_root();
+  postrecoveryboot();
+  read_cpufreq();
+  activateLEDs();
   ui_init();
-  if ( access("/cache/icon_rw",F_OK) == -1 && access("/cache/icon_rz",F_OK == -1) ) 
-  {
-    __system("echo > /cache/icon_rz");
-    ui_set_background(BACKGROUND_ICON_RZ); 
-  }
-  if ( access("/cache/icon_rz",F_OK) == -1 && access("/cache/icon_rw",F_OK == -1) ) 
-  {
-    __system("echo > /cache/icon_rw");
-    ui_set_background(BACKGROUND_ICON_RW); 
-  }
-  __system("sh /sbin/symlink_sbin");
+  if (STORAGE_ROOT != NULL) ensure_path_unmounted(STORAGE_ROOT);
   device_recovery_start ();
-  ensure_path_unmounted(STORAGE_ROOT);
+  
+  BG_ICON = get_bg_icon();
+  if (strcmp(BG_ICON, "rz") == 0) 
+  {
+    printf("Will display RZ icon\n");
+    ui_set_background(BACKGROUND_ICON_RZ);
+  }
+  if (strcmp(BG_ICON, "rw") == 0) 
+  {
+    printf("Will display RW icon\n");
+    ui_set_background(BACKGROUND_ICON_RW);
+  }
+  
   printf ("Command:");
   for (arg = 0; arg < argc; arg++)
 	  {
@@ -1124,9 +1160,9 @@ int main (int argc, char **argv)
 		      update_package = modified_path;
 		    }
 	  }
-  printf ("\n");
-   property_list (print_property, NULL);
-  printf ("\n");
+  //printf ("\n");
+  //property_list (print_property, NULL);
+  //printf ("\n");
    int status = INSTALL_SUCCESS;
 
    if (toggle_secure_fs)

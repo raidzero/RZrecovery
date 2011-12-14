@@ -55,6 +55,8 @@ static int backwardsVolume = 1;
 static int backwardsVolume = 0;
 #endif
 
+char* BG_ICON;
+
 int virtualBack_toggled()
 {
   return virtualBack;
@@ -255,7 +257,9 @@ draw_screen_locked (void)
       		txt = 255;
   	}
   }
+ 
   
+
   draw_background_locked (gCurrentIcon);
   draw_progress_locked ();
   gr_color (0, 0, 0, 175);	// background color

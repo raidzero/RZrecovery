@@ -13,10 +13,6 @@ char* RZR_DIR;
 void
 set_color (char red, char green, char blue)
 {
-  char RANDOM_FILE[PATH_MAX];
-  strcpy(RANDOM_FILE, RZR_DIR);
-  strcat(RANDOM_FILE, "/rnd");
-  printf("RANDOM_FILE: %s\n", RANDOM_FILE);
   char txt;
 
   if (green >= 150) txt = 0; else txt = 255;
@@ -28,24 +24,22 @@ set_color (char red, char green, char blue)
   fwrite (&txt, 1, 1, fp);
   fclose (fp);
   if (access ("/cache/rnd", F_OK) != -1) remove("/cache/rnd");
-  ensure_path_mounted (RZR_DIR);
-  if (access (RANDOM_FILE, F_OK) != -1) remove(RANDOM_FILE);
 }
 
 void set_icon (char* icon) {
-  ensure_path_mounted(RZR_DIR);
-  
-  __system("rm %s/icon*", RZR_DIR);
   __system("rm /cache/icon*");
   if (strcmp(icon,"rz")==0) {
     ui_set_background(BACKGROUND_ICON_RZ);
-    __system("echo > %s/icon_rz && echo > /cache/icon_rz", RZR_DIR);
+    char RZ_CMD[PATH_MAX];
+    sprintf(RZ_CMD, "echo > %s/icon_rz && echo > /cache/icon_rz", RZR_DIR);
+    __system(RZ_CMD);
   }
   if (strcmp(icon,"rw")==0) { 
     ui_set_background(BACKGROUND_ICON_RW);
-    __system("echo > %s/icon_rw && echo > /cache/icon_rw", RZR_DIR);
+    char RW_CMD[PATH_MAX];
+    sprintf(RW_CMD, "echo > %s/icon_rw && echo > /cache/icon_rw", RZR_DIR);
+    __system(RW_CMD);
   }
-  ensure_path_unmounted(RZR_DIR);
 }
 
 
@@ -68,10 +62,7 @@ set_random (int rnd)
   {
     set_color(cR, cG, cB);
     remove("/cache/rgb");
-    ensure_path_mounted(RZR_DIR);
-    __system("rm %s/rgb", RZR_DIR);
     __system("echo rnd > /cache/rnd"); 
-    ensure_path_unmounted(RZR_DIR);
   }
 }
 
