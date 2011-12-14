@@ -401,8 +401,12 @@ write_files ()
 	  sprintf(CP_CMD, "cp /cache/%s %s/%s", FILE_LIST[i], RZR_DIR, FILE_LIST[i]);
 	  __system(CP_CMD);
 	}
-    __system("cp /cache/recovery/log %s/log", RZR_DIR);
-	__system("cp /cache/recovery/last_log %s/last_log", RZR_DIR);
+    char LOG_CMD[PATH_MAX];
+    sprintf(LOG_CMD, "cp /cache/recovery/log %s/log", RZR_DIR);
+    __system(LOG_CMD);
+    char LASTLOG_CMD[PATH_MAX];
+    sprintf(LASTLOG_CMD, "cp /cache/recovery/last_log %s/last_log", RZR_DIR);
+    __system(LASTLOG_CMD);
   }
   sync ();
 }
@@ -437,10 +441,12 @@ void read_files ()
  ensure_path_mounted("/cache");
  
  RZR_DIR = get_rzr_dir();
- 
+ NANDROID_DIR = get_nandroid_dir(); 
  if (access(RZR_DIR, F_OK) != -1) 
   {
-   __system("chmod -R 777 %s", RZR_DIR); //some ROMs go messing with my files!
+   char CHMOD_CMD[PATH_MAX];
+   sprintf(CHMOD_CMD, "chmod -R 777 %s", RZR_DIR); 
+   __system(CHMOD_CMD); //some ROMs go messing with my files!
    char CMD[PATH_MAX];
    sprintf(CMD, "cp %s/* /cache", RZR_DIR);
    __system(CMD);
@@ -448,6 +454,12 @@ void read_files ()
    __system("mv /cache/log /cache/recovery/log");
    __system("mv /cache/last_log /cache/recovery/last_log");
   }
+ if (access("/cache/nandloc", F_OK) == -1) 
+ {
+   FILE * fp = fopen("/cache/nandloc", "w");
+   fprintf(fp, "%s\0", NANDROID_DIR);
+   fclose(fp);
+ }
 
  sync ();
  ensure_path_unmounted(STORAGE_ROOT);

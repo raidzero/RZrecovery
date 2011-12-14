@@ -18,6 +18,7 @@ int sdext_present = 0;
 int reboot_nandroid = 0;
 
 char* backuppath;
+char* NANDROID_DIR;
 
 char* get_nandroid_path()
 {
@@ -29,13 +30,7 @@ char* get_nandroid_path()
 	fgets(backuppath, 40, fp);
 	printf("Nandroid directory: %s\n", backuppath);
   }
-  else
-  {
-    backuppath = "/sdcard/nandroid";
-  }	
-
   return backuppath;
-  
 }
 
 void set_sdext() 
