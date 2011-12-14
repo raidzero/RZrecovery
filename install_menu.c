@@ -328,7 +328,7 @@ install_img (char *filename, char *partition)
   
   char CMD[PATH_MAX];
   printf("COMMAND: %s\n", CMD);
-  sprintf(CMD, "/sbin/flash_image %s %s", partition, filename);
+  sprintf(CMD, "/sbin/flash_img %s %s", partition, filename);
   if (__system(CMD) == 0) {
 	ui_print("Success!\n");
 	return 0;

@@ -101,7 +101,7 @@ void storage_root_set()
     return;
   }
   //if even emmc isnt mountable, then assume data/media
-  if (ensure_path_mounted("/data/media") == 0)
+  if (ensure_path_mounted("/data") == 0)
   {
     STORAGE_ROOT="/data/media";
     printf("STORAGE_ROOT: %s\n", STORAGE_ROOT);
