@@ -12,11 +12,11 @@ if [ "$PARTITION" == "boot" ]; then
 
   dd if=$IMAGE of=$BOOT_DEVICE
   if [ $? -eq 0  ]; then
-    exit 0;
+    exit 101 
   else
     flash_image $PARTITION $IMAGE
-    [ $? -ne 0 ] && exit 1
-    [ $? -eq 0 ] && exit 0
+    [ $? -ne 0 ] && exit 102 
+    [ $? -eq 0 ] && exit 103
   fi
 fi
 
@@ -29,13 +29,13 @@ if [ "$PARTITION" == "recovery" ]; then
 
   dd if=$IMAGE of=$RECOVERY_DEVICE
   if [ $? -eq 0 ]; then
-    exit 0;
+    exit 201
   else
     flash_image $PARTITION $IMAGE
-    [ $? -ne 0 ] && exit 1
-    [ $? -eq 0 ] && exit 0
+    [ $? -ne 0 ] && exit 202
+    [ $? -eq 0 ] && exit 203
   fi
 fi
 
-  
+exit 0  
 

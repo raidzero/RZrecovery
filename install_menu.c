@@ -329,13 +329,30 @@ install_img (char *filename, char *partition)
   char CMD[PATH_MAX];
   printf("COMMAND: %s\n", CMD);
   sprintf(CMD, "/sbin/flash_img %s %s", partition, filename);
-  if (__system(CMD) == 0) {
-	ui_print("Success!\n");
-	return 0;
-  } else {
-    ui_print("Failed!\n");
-    return -1;
-  }	
+  int status = __system(CMD);
+  ui_print("exit code: %i\n", status); 
+  switch(status)
+  {
+    case 101: 
+      ui_print("dd flash boot success!\n");
+      return 0;
+    case 102: 
+      ui_print("flash_image boot fail!\n");
+      return -1;
+    case 103:
+      ui_print("flash_image boot success!\n");
+      return 0;
+    case 201:
+      ui_print("dd flash recovery success!\n");
+      return 0;
+    case 202:
+      ui_print("flash_image recovery fail!\n");
+      return -1;
+    case 203:
+      ui_print("flash_image recovery success!\n");
+      return 0;
+  }      
+  return 0;
 }
 
  int
