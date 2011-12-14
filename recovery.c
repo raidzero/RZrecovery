@@ -1080,6 +1080,10 @@ int main (int argc, char **argv)
   freopen (TEMPORARY_LOG_FILE, "a", stderr);
   setbuf (stderr, NULL);
   printf ("Starting recovery on %s", ctime (&start));
+  ui_init();
+  gr_color (0, 0, 0, 0);
+  ui_show_indeterminate_progress();
+  ui_set_background(LOADING);
   load_volume_table ();
   process_volumes ();
   get_args (&argc, &argv);
@@ -1115,10 +1119,11 @@ int main (int argc, char **argv)
   postrecoveryboot();
   read_cpufreq();
   activateLEDs();
-  ui_init();
   if (STORAGE_ROOT != NULL) ensure_path_unmounted(STORAGE_ROOT);
   set_bg_icon();
+  ui_reset_progress();
   device_recovery_start ();
+  
   
   printf ("Command:");
   for (arg = 0; arg < argc; arg++)

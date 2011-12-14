@@ -85,6 +85,8 @@ static gr_surface gProgressBarFill;
   {
   &gBackgroundIcon[BACKGROUND_ICON_RW], "icon_rw"},
   {
+  &gBackgroundIcon[LOADING], "icon_loading"},
+  {
   &gProgressBarIndeterminate[0], "indeterminate1"}, 
   {
   &gProgressBarIndeterminate[1], "indeterminate2"}, 

@@ -53,6 +53,7 @@ enum
 {
   BACKGROUND_ICON_RZ,
   BACKGROUND_ICON_RW,
+  LOADING,
   NUM_BACKGROUND_ICONS
 };
 void ui_set_background (int icon);
