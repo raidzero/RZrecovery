@@ -11,7 +11,7 @@
 #define BOARD_UMS_LUNFILE	"/sys/devices/platform/usb_mass_storage/lun0/file"
 #endif
 
-char* STORAGE_ROOT;
+
 
 static int
 is_usb_storage_enabled ()
@@ -43,6 +43,7 @@ is_usb_storage_enabled ()
 static void
 get_mount_menu_options (char **items, int usb, int ms, int md, int msd, int mb, int me)
 {
+  char* STORAGE_ROOT = get_storage_root();
   char *items1[7];
   char *items2[7];
   int noUsb = 0;
@@ -72,8 +73,8 @@ get_mount_menu_options (char **items, int usb, int ms, int md, int msd, int mb, 
   int l;
   for (l=0; l<7; l++)
   {
-    items1[l] = calloc(strlen("Unmount /sdcard/external_sdcard"), sizeof(char));
-    items2[l] = calloc(strlen("Unmount /sdcard/external_sdcard"), sizeof(char));
+    items1[l] = calloc(50, sizeof(char));
+    items2[l] = calloc(50, sizeof(char));
   }
   if (!noUsb) {
     items1[i] = "Enable USB Mass Storage"; i++;
@@ -128,6 +129,7 @@ get_mount_menu_options (char **items, int usb, int ms, int md, int msd, int mb, 
 static void
 enable_usb_mass_storage ()
 {
+  char* STORAGE_ROOT = get_storage_root();
   int fd;
   Volume *vol = volume_for_path (STORAGE_ROOT);
 
@@ -158,7 +160,7 @@ disable_usb_mass_storage ()
 void
 show_mount_menu ()
 {
-  STORAGE_ROOT = get_storage_root();
+  char* STORAGE_ROOT = get_storage_root();
   static char *headers[] = { "Choose a mount or unmount option",
     "",
     NULL

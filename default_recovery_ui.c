@@ -33,7 +33,7 @@ char *MENU_ITEMS[] = { "Reboot android",
   "Wipe menu",
   "Mount menu",
   "Nandroid menu",
-  "Install from sdcard",
+  "Install menu",
   "Options menu",
   "Extras menu",
   NULL

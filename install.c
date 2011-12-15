@@ -351,8 +351,8 @@ install_package (const char *path)
 
   // Verify and install the contents of the package.
   ui_print ("Installing update...\n");
-  write_files();
+  //write_files();
   //reboot to android at this point will cause a reboot into recovery
   return try_update_binary (path, &zip);
-  read_files();
+  //read_files();
 }

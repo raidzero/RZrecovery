@@ -16,28 +16,28 @@ set_color (char red, char green, char blue)
   char txt;
 
   if (green >= 150) txt = 0; else txt = 255;
-  FILE *fp = fopen ("/cache/rgb", "wb");
+  FILE *fp = fopen ("/tmp/rgb", "wb");
 
   fwrite (&red, 1, 1, fp);
   fwrite (&green, 1, 1, fp);
   fwrite (&blue, 1, 1, fp);
   fwrite (&txt, 1, 1, fp);
   fclose (fp);
-  if (access ("/cache/rnd", F_OK) != -1) remove("/cache/rnd");
+  if (access ("/tmp/rnd", F_OK) != -1) remove("/tmp/rnd");
 }
 
 void set_icon (char* icon) {
-  __system("rm /cache/icon*");
+  __system("rm /tmp/icon*");
   if (strcmp(icon,"rz")==0) {
     ui_set_background(BACKGROUND_ICON_RZ);
     char RZ_CMD[PATH_MAX];
-    sprintf(RZ_CMD, "echo > /cache/icon_rz", RZR_DIR);
+    sprintf(RZ_CMD, "echo > /tmp/icon_rz", RZR_DIR);
     __system(RZ_CMD);
   }
   if (strcmp(icon,"rw")==0) { 
     ui_set_background(BACKGROUND_ICON_RW);
     char RW_CMD[PATH_MAX];
-    sprintf(RW_CMD, "echo > /cache/icon_rw");
+    sprintf(RW_CMD, "echo > /tmp/icon_rw");
     __system(RW_CMD);
   }
 }
@@ -61,8 +61,8 @@ set_random (int rnd)
   if (rnd == 1)
   {
     set_color(cR, cG, cB);
-    remove("/cache/rgb");
-    __system("echo rnd > /cache/rnd"); 
+    remove("/tmp/rgb");
+    __system("echo rnd > /tmp/rnd"); 
   }
 }
 

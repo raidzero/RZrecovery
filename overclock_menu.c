@@ -10,7 +10,7 @@
 
 void set_oc (char *speed)
 {
-  FILE * f = fopen ("/cache/oc", "w");
+  FILE * f = fopen ("/tmp/oc", "w");
   fputs (speed, f);
   fputs ("\n", f);
   fclose (f);

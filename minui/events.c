@@ -42,9 +42,9 @@ int keyhold_delay;
 // The amount of time in ms to delay before duplicating a held down key.
 void get_keyhold_delay()
 {
-  if (access("/cache/scroll",F_OK) != -1)
+  if (access("/tmp/scroll",F_OK) != -1)
   {
-    FILE *fp = fopen("/cache/scroll" ,"r");
+    FILE *fp = fopen("/tmp/scroll" ,"r");
     char* delay = calloc(5, sizeof(char));
 
     fgets(delay, 5, fp);

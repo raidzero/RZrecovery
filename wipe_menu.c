@@ -7,10 +7,10 @@
 #include "roots.h"
 #include "recovery_ui.h"
 
-char* STORAGE_ROOT;
 
 int wipe_partition(char* partition, int autoaccept) 
 {
+	const char* STORAGE_ROOT = get_storage_root();
 	char wipe_header[255] = "";
 	char path_string[255] = "";
 	char operation[255] = "";
@@ -33,7 +33,7 @@ int wipe_partition(char* partition, int autoaccept)
 	    if (confirm_selection("Wipe EVERYTHING?", "Yes - wipe the entire device", autoaccept)) {
 			ui_print("Preparing to wipe everything...\n");
 			ui_show_indeterminate_progress();
-			write_files();
+			//write_files();
 			ui_print ("\n-- Wiping system... ");
 			ensure_path_unmounted ("/system");
 			erase_volume ("/system");
@@ -49,16 +49,16 @@ int wipe_partition(char* partition, int autoaccept)
 			ui_print ("\n-- Wiping cache... ");
 			ensure_path_unmounted ("/cache");
 			erase_volume ("/cache");
-			ensure_path_mounted ("/cache");		
 			ui_print ("\n-- Wiping .android_secure... ");
 			ensure_path_mounted (STORAGE_ROOT);
 			__system ("rm -rf %s/.android_secure/*", STORAGE_ROOT);
+			ensure_path_unmounted(STORAGE_ROOT);
 			ui_print ("\n-- Wiping boot...");
 			erase_volume("/boot");
 			ui_print ("\nDone.\n");
 			ui_print ("Device completely wiped.\n\n");
 			ui_print ("All that remains is RZR.\n");
-			read_files ();
+		//	read_files ();
 			ui_reset_progress();
 			return 0;
 		} else {
@@ -71,7 +71,7 @@ int wipe_partition(char* partition, int autoaccept)
 		
 		ui_print("-- Wiping %s... ",partition);
 		ui_show_indeterminate_progress();
-		if (strcmp(path_string, "/cache") == 0) write_files();
+		//if (strcmp(path_string, "/cache") == 0) write_files();
 		
 		if (strcmp (partition, "battery statistics") == 0)
 		{
@@ -87,6 +87,7 @@ int wipe_partition(char* partition, int autoaccept)
 		{
 			ensure_path_mounted (STORAGE_ROOT);
 			__system ("rm -rf %s/.android_secure/*", STORAGE_ROOT);
+			ensure_path_unmounted(STORAGE_ROOT);
 			ui_print("Done.\n");
 			ui_reset_progress();
 			return 0;
@@ -98,8 +99,10 @@ int wipe_partition(char* partition, int autoaccept)
 			if (!is_path_mounted("/cache")) ensure_path_mounted("/cache");
 			__system ("rm -rf /cache/dalvik-cache/*");
 			__system ("rm -rf /data/dalvik-cache/*");
+			ensure_path_unmounted("/data");
+			ensure_path_unmounted("/cache");
 			ui_print("Done.\n");
-			read_files();
+		//	read_files();
 			ui_reset_progress();
 			return 0;
 		}
@@ -119,12 +122,12 @@ int wipe_partition(char* partition, int autoaccept)
 		if (erase_volume (path_string) == 0)	
 		{
 			ui_print ("Done.\n", path_string);
-			read_files();
+		//	read_files();
 			ui_reset_progress();
 			return 0;
 		} else {
 			ui_print("Failed.\n", path_string);
-			read_files();
+		//	read_files();
 			ui_reset_progress();
 			return -1;
 		}	
@@ -166,7 +169,6 @@ show_wipe_menu ()
 #define WIPE_DK				7
 
 
-  STORAGE_ROOT = get_storage_root();
   int chosen_item = -1;
 
   while (chosen_item != ITEM_BACK)

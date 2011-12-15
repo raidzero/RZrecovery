@@ -167,7 +167,7 @@ draw_progress_locked ()
   if (gProgressBarType == PROGRESSBAR_TYPE_NONE)
     return;
   int iconHeight;
-  if (access("/cache/icon_rz", F_OK) != -1)
+  if (access("/tmp/icon_rz", F_OK) != -1)
   {
     iconHeight = gr_get_height (gBackgroundIcon[BACKGROUND_ICON_RZ]);
   }
@@ -228,7 +228,7 @@ draw_screen_locked (void)
     //define menu color integers
   char cRv , cGv, cBv, txt, bg;
 
-  if (access ("/cache/rnd", F_OK) != -1)
+  if (access ("/tmp/rnd", F_OK) != -1)
   {
     struct timeval tv;
     struct timezone tz;
@@ -244,9 +244,9 @@ draw_screen_locked (void)
     if (cGv >= 150) txt = 0; else txt = 255;
   } else {
   
-  	if (access ("/cache/rgb", F_OK) != -1)
+  	if (access ("/tmp/rgb", F_OK) != -1)
   	{
-      		FILE * fp = fopen ("/cache/rgb", "rb");
+      		FILE * fp = fopen ("/tmp/rgb", "rb");
       		fread (&cRv, 1, 1, fp);
       		fread (&cGv, 1, 1, fp);
      		fread (&cBv, 1, 1, fp);

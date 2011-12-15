@@ -59,16 +59,14 @@ void set_bg_icon()
 {
   int bg_set = 0;
   printf("Start background set...\n");
-  ensure_path_mounted("/cache");
-  printf("Mounted cache...\n");
-  if (access("/cache/icon_rw", F_OK) != -1) 
+  if (access("/tmp/icon_rw", F_OK) != -1) 
   {  
     printf("Rootz icon found.\n");
     ui_set_background(BACKGROUND_ICON_RW);
     printf("Set Rootz BG\n");
     bg_set = 1;
   }
-  if (access("/cache/icon_rz", F_OK) != -1) 
+  if (access("/tmp/icon_rz", F_OK) != -1) 
   {
     printf("RZ icon found.\n");
     ui_set_background(BACKGROUND_ICON_RZ);
@@ -76,7 +74,6 @@ void set_bg_icon()
     bg_set = 1;
   }
   if (!bg_set) ui_set_background(BACKGROUND_ICON_RZ);
-  ensure_path_unmounted("/cache");
   printf("End background set.\n");
 }
 
@@ -99,6 +96,7 @@ void storage_root_set()
   {
     STORAGE_ROOT="/sdcard";
     printf("STORAGE_ROOT: %s\n", STORAGE_ROOT);
+    ensure_path_unmounted("/sdcard");
     return;
   }
   //if we are here then sdcard is not present/mountable, try emmc
@@ -106,6 +104,7 @@ void storage_root_set()
   {
     STORAGE_ROOT="/emmc";
     printf("STORAGE_ROOT: %s\n", STORAGE_ROOT);
+    ensure_path_unmounted("/emmc");
     return;
   }
   //if even emmc isnt mountable, then assume data/media
@@ -113,6 +112,7 @@ void storage_root_set()
   {
     STORAGE_ROOT="/data/media";
     printf("STORAGE_ROOT: %s\n", STORAGE_ROOT);
+    ensure_path_unmounted("/data");
     return;
   }
 }
@@ -382,11 +382,10 @@ void create_fstab ()
   LOGI ("Completed outputting fstab.\n\n");
 }
 
-//write recovery files from cache to sdcard
+//write recovery files from tmp to sdcard
   void
 write_files ()
 {  
-  ensure_path_mounted("/cache");
   if (ensure_path_mounted (STORAGE_ROOT) != 0)
   {
 	LOGE ("Can't mount %s\n", STORAGE_ROOT);
@@ -408,27 +407,21 @@ write_files ()
 	char CP_CMD[PATH_MAX];
 	for(i=0; i<7; i++)
 	{
-	  sprintf(CP_CMD, "cp /cache/%s %s/%s", FILE_LIST[i], RZR_DIR, FILE_LIST[i]);
+	  sprintf(CP_CMD, "cp /tmp/%s %s/%s", FILE_LIST[i], RZR_DIR, FILE_LIST[i]);
 	  __system(CP_CMD);
 	}
-    char LOG_CMD[PATH_MAX];
-    sprintf(LOG_CMD, "cp /cache/recovery/log %s/log", RZR_DIR);
-    __system(LOG_CMD);
-    char LASTLOG_CMD[PATH_MAX];
-    sprintf(LASTLOG_CMD, "cp /cache/recovery/last_log %s/last_log", RZR_DIR);
-    __system(LASTLOG_CMD);
   }
+  ensure_path_unmounted(STORAGE_ROOT);
   sync ();
 }
 
 void read_cpufreq ()
 {
-   ensure_path_mounted("/cache");
    printf("Starting read_cpufreq()...\n");
-   if (access ("/cache/oc", F_OK) != -1)
+   if (access ("/tmp/oc", F_OK) != -1)
 	  {
 	    printf("Saved clockspeed detected.\n");
-		FILE * fs = fopen ("/cache/oc", "r");
+		FILE * fs = fopen ("/tmp/oc", "r");
 	    char *freq = calloc (9, sizeof (char));
 
 	    fgets (freq, 9, fs);
@@ -444,35 +437,44 @@ void read_cpufreq ()
   sync ();
 }
  
-//read recovery files from sdcard to cache
+//read recovery files from sdcard to tmp
 void read_files ()
 {
  ensure_path_mounted (STORAGE_ROOT);
- ensure_path_mounted("/cache");
  
  RZR_DIR = get_rzr_dir();
  NANDROID_DIR = get_nandroid_dir(); 
  if (access(RZR_DIR, F_OK) != -1) 
   {
-   char CHMOD_CMD[PATH_MAX];
-   sprintf(CHMOD_CMD, "chmod -R 777 %s", RZR_DIR); 
-   __system(CHMOD_CMD); //some ROMs go messing with my files!
-   char CMD[PATH_MAX];
-   sprintf(CMD, "cp %s/* /cache", RZR_DIR);
-   __system(CMD);
+    RZR_DIR = get_rzr_dir();
+    char* FILE_LIST[] = { "rgb",
+      "rnd",
+      "oc",
+      "nandloc",
+      "scroll",
+      "icon_rz",
+      "icon_rw",
+      NULL
+    };
+    int i;
+	char CP_CMD[PATH_MAX];
+	for(i=0; i<7; i++)
+	{
+	  sprintf(CP_CMD, "cp %s/%s /tmp/%s", RZR_DIR, FILE_LIST[i], FILE_LIST[i]);
+	  __system(CP_CMD);
+	}
    __system("mkdir /cache/recovery");
-   __system("mv /cache/log /cache/recovery/log");
-   __system("mv /cache/last_log /cache/recovery/last_log");
+   __system("mv /tmp/log /cache/recovery/log");
+   __system("mv /tmp/last_log /cache/recovery/last_log");
   }
- if (access("/cache/nandloc", F_OK) == -1) 
+ if (access("/tmp/nandloc", F_OK) == -1) 
  {
-   FILE * fp = fopen("/cache/nandloc", "w");
+   FILE * fp = fopen("/tmp/nandloc", "w");
    fprintf(fp, "%s\0", NANDROID_DIR);
    fclose(fp);
  }
-
- sync ();
  ensure_path_unmounted(STORAGE_ROOT);
+ sync ();
 }
 
 int postrecoveryboot() 

@@ -8,9 +8,6 @@
 #include "recovery_ui.h"
 #include "plugins_menu.h"
 
-/*char* STORAGE_ROOT;
-char* NANDROID_DIR;
-char* PLUGINS_DIR;*/
 char* backuppath;
 
 void show_battstat ()
@@ -190,9 +187,9 @@ int set_backuppath(const char* sdpath)
     printf("Created new directory %s\n", sdpath);
   }  
   
-  __system("rm /cache/nandloc");
+  __system("rm /tmp/nandloc");
   FILE *fp;
-  fp = fopen("/cache/nandloc", "w");
+  fp = fopen("/tmp/nandloc", "w");
   fprintf(fp, "%s\0", backuppath);
   fclose(fp);
   
@@ -201,8 +198,8 @@ int set_backuppath(const char* sdpath)
 
 void set_repeat_scroll_delay(char *delay)
 {
-  __system("rm /cache/scroll");
-  FILE *fp = fopen("/cache/scroll", "w");
+  __system("rm /tmp/scroll");
+  FILE *fp = fopen("/tmp/scroll", "w");
   fprintf(fp, "%s\0", delay);
   fclose(fp);
 }
@@ -211,9 +208,9 @@ char* get_current_delay()
 
 {
   char* delay = calloc(5, sizeof(char));
-  if (access("/cache/scroll",F_OK) != -1)
+  if (access("/tmp/scroll",F_OK) != -1)
   {
-    FILE *fp = fopen("/cache/scroll" ,"r");
+    FILE *fp = fopen("/tmp/scroll" ,"r");
     fgets(delay, 5, fp);
   }
   else
@@ -302,10 +299,6 @@ void show_repeat_scroll_menu()
 
 void show_options_menu()
 {
-  char* STORAGE_ROOT = get_storage_root();
-
-  ensure_path_mounted(STORAGE_ROOT);
-
   static char *headers[] = { "Options",
     "",
     NULL
@@ -348,7 +341,6 @@ void show_options_menu()
 		      break;
 		    }
 	  }
-  ensure_path_unmounted(STORAGE_ROOT);
 }  
   
   
