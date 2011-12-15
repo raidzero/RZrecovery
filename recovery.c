@@ -51,30 +51,21 @@ static const struct option OPTIONS[] = {
 };
 
 char* STORAGE_ROOT;
-char* RZR_DIR;
-char* PLUGINS_DIR;
-char* NANDROID_DIR;
 
 void set_bg_icon()
 {
   int bg_set = 0;
-  printf("Start background set...\n");
   if (access("/tmp/icon_rw", F_OK) != -1) 
   {  
-    printf("Rootz icon found.\n");
     ui_set_background(BACKGROUND_ICON_RW);
-    printf("Set Rootz BG\n");
     bg_set = 1;
   }
   if (access("/tmp/icon_rz", F_OK) != -1) 
   {
-    printf("RZ icon found.\n");
     ui_set_background(BACKGROUND_ICON_RZ);
-    printf("Set RZ BG\n");
     bg_set = 1;
   }
   if (!bg_set) ui_set_background(BACKGROUND_ICON_RZ);
-  printf("End background set.\n");
 }
 
 
@@ -95,7 +86,6 @@ void storage_root_set()
   if (ensure_path_mounted("/sdcard") == 0) 
   {
     STORAGE_ROOT="/sdcard";
-    printf("STORAGE_ROOT: %s\n", STORAGE_ROOT);
     ensure_path_unmounted("/sdcard");
     return;
   }
@@ -103,7 +93,6 @@ void storage_root_set()
   if (ensure_path_mounted("/emmc") == 0)
   {
     STORAGE_ROOT="/emmc";
-    printf("STORAGE_ROOT: %s\n", STORAGE_ROOT);
     ensure_path_unmounted("/emmc");
     return;
   }
@@ -111,7 +100,6 @@ void storage_root_set()
   if (ensure_path_mounted("/data") == 0)
   {
     STORAGE_ROOT="/data/media";
-    printf("STORAGE_ROOT: %s\n", STORAGE_ROOT);
     ensure_path_unmounted("/data");
     return;
   }
@@ -140,7 +128,7 @@ char* get_rzr_dir()
 
 char* get_plugins_dir()
 {
-  RZR_DIR = get_rzr_dir();
+  char* RZR_DIR = get_rzr_dir();
   char PLUGINS_DIR_STRING[PATH_MAX];
   strcpy(PLUGINS_DIR_STRING, RZR_DIR);
   strcat(PLUGINS_DIR_STRING, "/plugins");
@@ -393,14 +381,13 @@ write_files ()
   }
   else
   {
-    RZR_DIR = get_rzr_dir();
-    char CP_CMD[PATH_MAX];
-    char CLEAR_CMD[PATH_MAX];
-    
-    sprintf(CLEAR_CMD, "rm %s/*", RZR_DIR);
-    __system(CLEAR_CMD);
-    sprintf(CP_CMD, "cp /tmp/* %s/", RZR_DIR);
-    __system(CP_CMD);
+  char* RZR_DIR = get_rzr_dir();
+  char CP_CMD[PATH_MAX];
+  char DEL_CMD[PATH_MAX];
+  sprintf(DEL_CMD, "rm %s/*", RZR_DIR);
+  sprintf(CP_CMD, "cp /tmp/* %s/", RZR_DIR);
+  __system(DEL_CMD);
+  __system(CP_CMD);
   }
   ensure_path_unmounted(STORAGE_ROOT);
   sync ();
@@ -422,7 +409,7 @@ void read_cpufreq ()
 		  F_OK) != -1)
 		    {
 		      set_cpufreq (freq);
-			  printf("cpufreq set to %s.\n", freq);	  
+			  printf("cpufreq set to %s\n", freq);	  
 		    }		
 	  }
   sync ();
@@ -433,35 +420,23 @@ void read_files ()
 {
  ensure_path_mounted (STORAGE_ROOT);
  
- RZR_DIR = get_rzr_dir();
- NANDROID_DIR = get_nandroid_dir(); 
+ char* RZR_DIR = get_rzr_dir();
  if (access(RZR_DIR, F_OK) != -1) 
   {
-    RZR_DIR = get_rzr_dir();
-    char* FILE_LIST[] = { "rgb",
-      "rnd",
-      "oc",
-      "nandloc",
-      "scroll",
-      "icon_rz",
-      "icon_rw",
-      NULL
-    };
-    int i;
-	char CP_CMD[PATH_MAX];
-	for(i=0; i<7; i++)
-	{
-	  sprintf(CP_CMD, "cp %s/%s /tmp/%s", RZR_DIR, FILE_LIST[i], FILE_LIST[i]);
-	  __system(CP_CMD);
-	}
    __system("mkdir /cache/recovery");
    __system("mv /tmp/log /cache/recovery/log");
-   __system("mv /tmp/last_log /cache/recovery/last_log");
+   __system("mv /tmp/last_log /cache/recovery/last_log");	
+   char CP_CMD[PATH_MAX];
+   char DEL_CMD[PATH_MAX];
+   sprintf(DEL_CMD, "rm %s/*", RZR_DIR);
+   sprintf(CP_CMD, "cp %s/* /tmp/", RZR_DIR);
+   __system(CP_CMD);
+   __system(DEL_CMD);
   }
  if (access("/tmp/nandloc", F_OK) == -1) 
  {
    FILE * fp = fopen("/tmp/nandloc", "w");
-   fprintf(fp, "%s\0", NANDROID_DIR);
+   fprintf(fp, "%s\0", get_nandroid_dir());
    fclose(fp);
  }
  ensure_path_unmounted(STORAGE_ROOT);
@@ -1135,6 +1110,12 @@ int main (int argc, char **argv)
   if (STORAGE_ROOT != NULL) ensure_path_unmounted(STORAGE_ROOT);
   set_bg_icon();
   ui_reset_progress();
+  printf("\n");
+  printf("STORAGE_ROOT: %s\n", get_storage_root());
+  printf("NANDROID_DIR: %s\n", get_nandroid_dir());
+  printf("RZR_DIR: %s\n", get_rzr_dir());
+  printf("PLUGINS_DIR: %s\n", get_plugins_dir());
+  printf("\n");
   device_recovery_start ();
   
   
