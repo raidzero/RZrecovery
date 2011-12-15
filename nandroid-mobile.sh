@@ -548,18 +548,10 @@ if [ "$RESTORE" == 1 ]; then
 	fi  
 	echo "* print Unpacking $image..."
 
-	if [ "$PROGRESS" == 1 ]; then
-	  if [ "$COMPRESSED" == "1" ]; then
-	    tar $TAR_OPTS $RESTOREPATH/$tarfile.tar.gz -C /$image | pipeline $PTOTAL
-	  else 
-	    tar $TAR_OPTS $RESTOREPATH/$tarfile.tar -C /$image | pipeline $PTOTAL
-	  fi
-	else
-	  if [ "$COMPRESSED" == "1" ]; then
-	    tar $TAR_OPTS $RESTOREPATH/$tarfile.tar.gz -C /$image
-	  else 
-	    tar $TAR_OPTS $RESTOREPATH/$tarfile.tar -C /$image
-	  fi
+	if [ "$COMPRESSED" == "1" ]; then
+	  tar $TAR_OPTS $RESTOREPATH/$tarfile.tar.gz -C /$image | pipeline $PTOTAL
+	else 
+	  tar $TAR_OPTS $RESTOREPATH/$tarfile.tar -C /$image | pipeline $PTOTAL
 	fi
 	[ "$PROGRESS" == "1" ] && echo "* show_indeterminate_progress"
 	if [ "$image" == "data" ]; then
@@ -816,19 +808,8 @@ if [ "$BACKUP" == 1 ]; then
 
 	[ "$PROGRESS" == "1" ] && PTOTAL=$(find . | wc -l)
 	[ "$image" == "data" ] && TAR_END="--exclude "./media""
-	if [ ! -z "$TAR_END" ]; then 
-	  echo "Excluding /data/media..."
-	  echo "PWD: `pwd`"
-	  echo "CMD: tar $TAR_OPTS $DESTDIR/$dest.tar . $TAR_END | pipeline $PTOTAL"
-	fi
-	if [ "$PROGRESS" == 1 ]; then
-	  [ "$COMPRESS" == 0 ] && tar $TAR_OPTS $DESTDIR/$dest.tar . $TAR_END | pipeline $PTOTAL
-	  [ "$COMPRESS" == 1 ] && tar $TAR_OPTS $DESTDIR/$dest.tar.gz . $TAR_END| pipeline $PTOTAL
-	else
-	  [ "$COMPRESS" == 0 ] && tar $TAR_OPTS $DESTDIR/$dest.tar . $TAR_END
-	  [ "$COMPRESS" == 1 ] && tar $TAR_OPTS $DESTDIR/$dest.tar.gz . $TAR_END
-	fi
-
+	[ "$COMPRESS" == 0 ] && tar $TAR_OPTS $DESTDIR/$dest.tar . $TAR_END | pipeline $PTOTAL
+	[ "$COMPRESS" == 1 ] && tar $TAR_OPTS $DESTDIR/$dest.tar.gz . $TAR_END| pipeline $PTOTAL
 	sync
     done
 

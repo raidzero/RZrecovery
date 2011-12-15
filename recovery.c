@@ -80,6 +80,14 @@ void set_bg_icon()
   printf("End background set.\n");
 }
 
+
+int load_silently;
+
+int get_load_silently()
+{
+  return load_silently;
+}
+
 int fail_silently;
 
 void storage_root_set()
@@ -316,6 +324,8 @@ process_volumes ()
 
 int mkfs_ext4_main (int argc, char** argv)
 {
+  load_silently = 1;
+  load_volume_table();
   if (argc != 2) 
   {
     printf("Usage: mkfs.ext4 mountpoint\n");
@@ -709,6 +719,29 @@ erase_volume (const char *volume)
    return format_volume (volume);
 }
 
+
+int format_main(int argc, char ** argv)
+{
+  load_silently = 1;
+  load_volume_table();
+  if (argc != 2)
+  {
+    printf("\nUsage: %s partition\n", argv[0]);
+    return -1;
+  }
+
+  if (volume_present(argv[1]))
+  {
+    printf("About to wipe partition %s...\n", argv[1]);
+    return format_volume(argv[1]);
+  }
+  else
+  {
+    printf("Volume %s does not exist.\n", argv[1]);
+    return -1;
+  }
+}
+
  int 
 erase_volume_main (int argc, char **argv)
 {
@@ -1028,6 +1061,7 @@ print_property (const char *key, const char *name, void *cookie)
 
 int main (int argc, char **argv)
 {
+  
   if (strstr (argv[0], "recovery") == NULL)
 	 {
 	    if (strstr (argv[0], "flash_image") != NULL)
@@ -1037,7 +1071,7 @@ int main (int argc, char **argv)
 	    if (strstr (argv[0], "erase_image") != NULL)
 	      return erase_image_main (argc, argv);
 	    if (strstr (argv[0], "format") != NULL)
-	      return erase_volume_main (argc, argv);
+	      return format_main (argc, argv);
 	    if (strstr (argv[0], "mkbootimg") != NULL)
 	      return mkbootimg_main(argc, argv);
 	    if (strstr (argv[0], "unpack_bootimg") != NULL)
@@ -1057,13 +1091,13 @@ int main (int argc, char **argv)
 	    //we dont need to keep executing stuff past this point if an embedded function was called 
 	    return 0;
 	  }
-  time_t start = time (NULL);
    
-    // If these fail, there's not really anywhere to complain...
-    freopen (TEMPORARY_LOG_FILE, "a", stdout);
+  // If these fail, there's not really anywhere to complain...
+  freopen (TEMPORARY_LOG_FILE, "a", stdout);
   setbuf (stdout, NULL);
   freopen (TEMPORARY_LOG_FILE, "a", stderr);
   setbuf (stderr, NULL);
+  time_t start = time (NULL);
   printf ("Starting recovery on %s", ctime (&start));
   ui_init();
   gr_color (0, 0, 0, 0);

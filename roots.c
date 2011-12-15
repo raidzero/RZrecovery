@@ -60,6 +60,8 @@ dupe_string (const char *sz)
 void
 load_volume_table ()
 {
+  int load_silently = get_load_silently();
+
   int alloc = 2;
 
   device_volumes = malloc (alloc * sizeof (Volume));
@@ -150,16 +152,19 @@ load_volume_table ()
 
   fclose (fstab);
 
-  printf ("recovery filesystem table\n");
-  printf ("=========================\n");
-  for (i = 0; i < num_volumes; ++i)
+  if (!load_silently)
+  {
+    printf ("recovery filesystem table\n");
+    printf ("=========================\n");
+    for (i = 0; i < num_volumes; ++i)
 	  {
 	    Volume *v = &device_volumes[i];
 
 	    printf ("  %d %s %s %s %s\n", i, v->mount_point, v->fs_type,
 		    v->device, v->device2);
 	  }
-  printf ("\n");
+    printf ("\n");
+  }
 }
 
 int
