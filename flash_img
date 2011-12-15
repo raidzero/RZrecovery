@@ -10,13 +10,13 @@ if [ "$PARTITION" == "boot" ]; then
     BOOT_DEVICE=`cat /etc/recovery.fstab | grep boot | egrep -v "("bootloader"|"fota_boot")" | awk '{print$3}'`
   fi
 
-  dd if=$IMAGE of=$BOOT_DEVICE
+  flash_image $PARTITION $IMAGE
   if [ $? -eq 0  ]; then
-    exit 101 
+    exit 101
   else
-    flash_image $PARTITION $IMAGE
-    [ $? -ne 0 ] && exit 102 
-    [ $? -eq 0 ] && exit 103
+    dd if=$IMAGE of=$BOOT_DEVICE
+    [ $? -ne 0 ] exit 102 
+    [ $? -eq 0 ] exit 103
   fi
 fi
 
@@ -27,15 +27,12 @@ if [ "$PARTITION" == "recovery" ]; then
     RECOVERY_DEVICE=`cat /etc/recovery.fstab | grep recovery | awk '{print$3}'`
   fi
 
-  dd if=$IMAGE of=$RECOVERY_DEVICE
+  flash_image $PARTITION $IMAGE
   if [ $? -eq 0 ]; then
     exit 201
   else
-    flash_image $PARTITION $IMAGE
+    dd if=$IMAGE of=$RECOVERY_DEVICE
     [ $? -ne 0 ] && exit 202
     [ $? -eq 0 ] && exit 203
   fi
 fi
-
-exit 0  
-

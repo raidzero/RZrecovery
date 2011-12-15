@@ -326,31 +326,33 @@ install_img (char *filename, char *partition)
   ui_print ("%s", basename);
   ui_print ("\n");
   
-  char CMD[PATH_MAX];
-  printf("COMMAND: %s\n", CMD);
-  sprintf(CMD, "/sbin/flash_img %s %s", partition, filename);
-  int status = __system(CMD);
-  ui_print("exit code: %i\n", status); 
-  switch(status)
+  char *argv[] = { "/sbin/flash_img", partition, filename, NULL };
+  char *envp[] = { NULL };
+
+  int status = runve("/sbin/flash_img", argv, envp, 1);
+  if (!WIFEXITED (status) || WEXITSTATUS (status) != 0)
   {
-    case 101: 
-      ui_print("dd flash boot success!\n");
-      return 0;
-    case 102: 
-      ui_print("flash_image boot fail!\n");
-      return -1;
-    case 103:
-      ui_print("flash_image boot success!\n");
-      return 0;
-    case 201:
-      ui_print("dd flash recovery success!\n");
-      return 0;
-    case 202:
-      ui_print("flash_image recovery fail!\n");
-      return -1;
-    case 203:
-      ui_print("flash_image recovery success!\n");
-      return 0;
+    switch(WEXITSTATUS(status))
+    {
+      case 101: 
+        ui_print("flash_image boot success!\n");
+        return 0;
+      case 102: 
+        ui_print("dd flash boot fail!\n");
+        return -1;
+      case 103:
+        ui_print("dd flash boot success!\n");
+        return 0;
+      case 201:
+        ui_print("flash_image recovery success!\n");
+        return 0;
+      case 202:
+        ui_print("dd flash recovery fail!\n");
+        return -1;
+      case 203:
+        ui_print("dd flash recovery success!\n");
+        return 0;
+    }
   }      
   return 0;
 }
