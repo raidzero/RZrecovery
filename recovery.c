@@ -383,8 +383,11 @@ write_files ()
   {
   char* RZR_DIR = get_rzr_dir();
   char CP_CMD[PATH_MAX];
+  char DIR_CMD[PATH_MAX];
+  sprintf(DIR_CMD, "[ ! -d %s ] && mkdir -p %s", RZR_DIR, RZR_DIR);
+  __system(DIR_CMD);
   char DEL_CMD[PATH_MAX];
-  sprintf(DEL_CMD, "rm %s/*", RZR_DIR);
+  sprintf(DEL_CMD, " rm %s/*", RZR_DIR);
   sprintf(CP_CMD, "cp /tmp/* %s/", RZR_DIR);
   __system(DEL_CMD);
   __system(CP_CMD);
@@ -426,6 +429,9 @@ void read_files ()
    __system("mkdir /cache/recovery");
    __system("mv /tmp/log /cache/recovery/log");
    __system("mv /tmp/last_log /cache/recovery/last_log");	
+   char LOG_CMD[PATH_MAX];
+   sprintf(LOG_CMD, "rm %s/recovery.log", RZR_DIR); //remove the log from last run so we can get a new log
+   __system(LOG_CMD);
    char CP_CMD[PATH_MAX];
    sprintf(CP_CMD, "cp %s/* /tmp/", RZR_DIR);
    __system(CP_CMD);
