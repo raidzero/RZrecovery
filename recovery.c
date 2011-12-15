@@ -427,11 +427,8 @@ void read_files ()
    __system("mv /tmp/log /cache/recovery/log");
    __system("mv /tmp/last_log /cache/recovery/last_log");	
    char CP_CMD[PATH_MAX];
-   char DEL_CMD[PATH_MAX];
-   sprintf(DEL_CMD, "rm %s/*", RZR_DIR);
    sprintf(CP_CMD, "cp %s/* /tmp/", RZR_DIR);
    __system(CP_CMD);
-   __system(DEL_CMD);
   }
  if (access("/tmp/nandloc", F_OK) == -1) 
  {
