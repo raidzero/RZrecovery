@@ -394,22 +394,13 @@ write_files ()
   else
   {
     RZR_DIR = get_rzr_dir();
-    char* FILE_LIST[] = { "rgb",
-      "rnd",
-      "oc",
-      "nandloc",
-      "scroll",
-      "icon_rz",
-      "icon_rw",
-      NULL
-    };
-    int i;
-	char CP_CMD[PATH_MAX];
-	for(i=0; i<7; i++)
-	{
-	  sprintf(CP_CMD, "cp /tmp/%s %s/%s", FILE_LIST[i], RZR_DIR, FILE_LIST[i]);
-	  __system(CP_CMD);
-	}
+    char CP_CMD[PATH_MAX];
+    char CLEAR_CMD[PATH_MAX];
+    
+    sprintf(CLEAR_CMD, "rm %s/*", RZR_DIR);
+    __system(CLEAR_CMD);
+    sprintf(CP_CMD, "cp /tmp/* %s/", RZR_DIR);
+    __system(CP_CMD);
   }
   ensure_path_unmounted(STORAGE_ROOT);
   sync ();
