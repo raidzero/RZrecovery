@@ -532,7 +532,11 @@ if [ "$RESTORE" == 1 ]; then
 	fi
 	echo "* print Erasing /$image..."
 	[ "$PROGRESS" == "1" ] && echo "* show_indeterminate_progress"
-	rm -rf /$image/*
+	if [ "$image" != "data" ]; then
+	  rm -rf /$image/*
+	else 
+	  format /$image
+	fi
 	
 	TAR_OPTS="x"
 	[ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"

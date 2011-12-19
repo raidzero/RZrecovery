@@ -19,6 +19,7 @@
 
 #include "common.h"
 
+Volume* get_device_volumes();
 // Load and parse volume data from /etc/recovery.fstab.
 void load_volume_table ();
 
@@ -41,6 +42,4 @@ int is_path_mounted (const char *path);
 int format_volume (const char *volume);
 int erase_raw_partition (const char *partitionType, const char *partition);
 
-int is_data_media ();
-void setup_data_media ();
 #endif // RECOVERY_ROOTS_H_

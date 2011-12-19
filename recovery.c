@@ -307,7 +307,7 @@ int volume_present(const char* volume) {
 process_volumes ()
 {
   create_fstab ();
-  printf ("process_volumes done.\n");
+  if (!load_silently) printf ("process_volumes done.\n");
 } 
 
 int mkfs_ext4_main (int argc, char** argv)
@@ -690,80 +690,29 @@ erase_volume (const char *volume)
    return format_volume (volume);
 }
 
-
-int format_main(int argc, char ** argv)
+int format_main(int argc, char** argv)
 {
-  load_silently = 1;
-  load_volume_table();
-  if (argc != 2)
-  {
-    printf("\nUsage: %s partition\n", argv[0]);
-    return -1;
-  }
-
-  if (volume_present(argv[1]))
-  {
-    printf("About to wipe partition %s...\n", argv[1]);
-    return format_volume(argv[1]);
-  }
-  else
-  {
-    printf("Volume %s does not exist.\n", argv[1]);
-    return -1;
-  }
-}
-
- int 
-erase_volume_main (int argc, char **argv)
-{
-  if (argc != 2)
-	  {
-	    printf ("\nUsage: %s volume\n", argv[0]);
-	    return -1;
-	  }
-
-  const char *vol = argv[1];
-
-  if (strcmp (vol, "/cache") == 0)
-	  {
-	    
-	      // Any part of the log we'd copied to cache is now gone.
-	      // Reset the pointer so we copy from the beginning of the temp
-	      // log.
-	      tmplog_offset = 0;
-	  }
-  Volume *v = volume_for_path(vol);
-  if (v != NULL) 
-  {
-    printf("Executing internal format_volume on %s.\n", vol);
-    int status = erase_volume (vol);
-    if (status != 0)
+    if(argc<=1)
     {
-      fprintf(stderr, "failed with error: %d\n", status);
+	  puts("usage: format <partition>");
+	  return(1);
     }
-    return status;
-  }  
-  fprintf(stderr, "Volume %s does not exist!\n", vol);
-  return -1;
+
+    load_silently = 1;
+    load_volume_table();
+    process_volumes();
+
+    const char* root = argv[1];
+    printf("Formatting %s\n",root);
+
+    int status = format_volume(root);
+
+    if (status != 0) {
+        printf("Can't format %s\n", root);
+        return status;
+    }
+    return(status);
 }
-
-int volume_info_main(int argc, char** argv)
-{
- const char* vol = argv[1];
- Volume* path_volume = volume_for_path(vol); 
-
- if (path_volume != NULL) 
- { 
-   printf("Volume information: \n Mount point: %s\n Filesystem: %s\nDevice: %s\n", path_volume->mount_point, path_volume->fs_type, path_volume->device);
- }
- else
- {
-   load_volume_table();
- }
- return 0;
-}
-
-
 
  char *
 copy_sideloaded_package (const char *original_path)
@@ -1051,8 +1000,6 @@ int main (int argc, char **argv)
 	      return mkbootfs_main(argc, argv);
 	    if (strstr (argv[0], "mkfs.ext4") != NULL)
 	      return mkfs_ext4_main(argc, argv);
-	    if (strstr (argv[0], "volume_info") != NULL)
-	      return volume_info_main(argc, argv);
 	    if (strstr (argv[0], "reboot_android") != NULL)
 	      return reboot_android();
 	    if (strstr (argv[0], "unyaffs") != NULL)
@@ -1146,9 +1093,9 @@ int main (int argc, char **argv)
 		      update_package = modified_path;
 		    }
 	  }
-  //printf ("\n");
-  //property_list (print_property, NULL);
-  //printf ("\n");
+  printf ("\n");
+  property_list (print_property, NULL);
+  printf ("\n");
    int status = INSTALL_SUCCESS;
 
    if (toggle_secure_fs)

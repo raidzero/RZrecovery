@@ -31,8 +31,8 @@ RECOVERY_API_VERSION := 2
 
 ##generate the recovery version file
 TARGET_DEVICE := $(shell echo $$TARGET_PRODUCT | cut -d '_' -f2)
-RECOVERY_VERSION := "2.1.4"
-VERS_STRING := "$(RECOVERY_VERSION)-$(TARGET_DEVICE) finally"
+RZR_VERSION := "2.1.4"
+VERS_STRING := "$(RZR_VERSION)-$(TARGET_DEVICE) finally"
 
 SOURCE_HOME := "/home/raidzero/android/system/2.3.7/bootable/recovery"
 DEVICE_HOME := ../../device/raidzero/$(TARGET_DEVICE)
@@ -57,11 +57,12 @@ $(foreach board_define,$(BOARD_RECOVERY_DEFINES), \
 )
 
 LOCAL_STATIC_LIBRARIES += libstdc++ libc
+
 LOCAL_C_INCLUDES += system/extras/ext4_utils
 include $(BUILD_EXECUTABLE)
 
 ##recovery symlinks
-RECOVERY_LINKS := flash_image dump_image erase_image format mkfs.ext4 mkbootimg unpack_bootimg mkbootfs volume_info reboot_android unyaffs keytest
+RECOVERY_LINKS := flash_image dump_image erase_image format mkfs.ext4 mkbootimg unpack_bootimg mkbootfs reboot_android unyaffs keytest
 RECOVERY_SYMLINKS := $(addprefix $(TARGET_RECOVERY_ROOT_OUT)/sbin/,$(RECOVERY_LINKS))
 $(RECOVERY_SYMLINKS): RECOVERY_BINARY := $(LOCAL_MODULE)
 $(RECOVERY_SYMLINKS): $(LOCAL_INSTALLED_MODULE)

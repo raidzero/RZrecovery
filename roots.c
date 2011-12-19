@@ -30,13 +30,17 @@
 
 #include "flashutils/flashutils.h"
 
-static int num_volumes = 0;
-static Volume *device_volumes = NULL;
+int num_volumes;
+Volume *device_volumes;
 
-Volume *
-get_device_volumes ()
+Volume* get_device_volumes()
 {
   return device_volumes;
+}
+
+int get_num_volumes()
+{
+  return num_volumes;
 }
 
 static int
@@ -205,7 +209,7 @@ Volume *
 volume_for_path (const char *path)
 {
   int i;
-
+  
   for (i = 0; i < num_volumes; ++i)
 	  {
 	    Volume *v = device_volumes + i;

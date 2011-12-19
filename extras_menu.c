@@ -297,6 +297,58 @@ void show_repeat_scroll_menu()
   }
 }  
 
+void set_usb_fat_only(int fat_only)
+{
+  if (fat_only == 1) 
+  {
+    FILE *fp = fopen("/tmp/usb", "w");
+	fprintf(fp, "fat\0");
+    ui_print("Set FAT-only for USB mass storage.\n");  
+	fclose(fp);
+  }	
+  if (fat_only == 0) 
+  {
+    FILE *fp = fopen("/tmp/usb", "w");  
+	fprintf(fp, "ext\0");
+	ui_print("Set FAT + EXT for USB mass storage\n");
+	fclose(fp);
+  }	 
+}
+   	 
+void show_usb_options_menu()
+{
+  char* headers[] = { "USB Mass Storage Options",
+    "Would you like to be able to mount non-FAT",
+	"filesystems as USB mass storage devices?",
+	"Linux users: say yes, Windows: no",
+	"",
+	NULL
+  };
+  
+  char* items[] = { "No",
+    "Yes",
+	NULL
+  };
+  
+#define ITEM_YES	0
+#define ITEM_NO		1
+
+  int chosen_item = -1;
+  while (chosen_item != ITEM_BACK)
+  {
+    chosen_item = get_menu_selection(headers, items, 0, chosen_item < 0 ? 0: chosen_item);
+	switch (chosen_item)
+	{
+	  case ITEM_NO:
+	    set_usb_fat_only(0);
+		return;
+	  case ITEM_YES:
+	    set_usb_fat_only(1);
+		return;
+	}
+  }
+}  
+
 void show_options_menu()
 {
   static char *headers[] = { "Options",
@@ -309,6 +361,7 @@ void show_options_menu()
 	"Recovery Overclocking",
 	"Nandroid Location",
 	"Repeat-scroll Delay",
+	"USB Storage",
 	NULL
   };
   
@@ -316,6 +369,7 @@ void show_options_menu()
 #define OPT_OVRCLCK	1
 #define OPT_NANDLOC	2
 #define OPT_RPTSCRL	3
+#define OPT_USB		4
 
   int chosen_item = -1;
   while (chosen_item != ITEM_BACK)
@@ -339,6 +393,9 @@ void show_options_menu()
 		    case OPT_RPTSCRL:
 		      show_repeat_scroll_menu();
 		      break;
+			case OPT_USB:
+			  show_usb_options_menu();
+			  break;
 		    }
 	  }
 }  
