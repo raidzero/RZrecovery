@@ -133,10 +133,10 @@ NULL
 	    ui_printf_int ("ERROR: plugin exited with status %d\n",
 			    WEXITSTATUS (status));
 		ui_reset_progress ();
-	    __system("cd /tmp; for files in `find . | grep -v rzrpref_`; do rm -rf $files; done");
+	    __system("cd /tmp; for files in `find . | grep -v rzrpref_ | grep -v recovery\.log`; do rm -rf $files; done");
 	    return WEXITSTATUS (status);
 	  }
-  __system("cd /tmp; for files in `find . | grep -v rzrpref_`; do rm -rf $files; done");	  
+  __system("cd /tmp; for files in `find . | grep -v rzrpref_ | grep -v recovery\.log`; do rm -rf $files; done");	  
   ui_reset_progress ();
   return 0;
 }
