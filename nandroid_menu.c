@@ -22,9 +22,9 @@ char* NANDROID_DIR;
 
 char* get_nandroid_path()
 {
-  if (access("/tmp/nandloc", F_OK) != -1)
+  if (access("/tmp/.rzrpref_nandloc", F_OK) != -1)
   {
-    FILE *fp = fopen("/tmp/nandloc", "r");
+    FILE *fp = fopen("/tmp/.rzrpref_nandloc", "r");
 	backuppath = calloc (40, sizeof(char));
 	
 	fgets(backuppath, 40, fp);

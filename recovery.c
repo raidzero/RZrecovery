@@ -55,12 +55,12 @@ char* STORAGE_ROOT;
 void set_bg_icon()
 {
   int bg_set = 0;
-  if (access("/tmp/icon_rw", F_OK) != -1) 
+  if (access("/tmp/.rzrpref_icon_rw", F_OK) != -1) 
   {  
     ui_set_background(BACKGROUND_ICON_RW);
     bg_set = 1;
   }
-  if (access("/tmp/icon_rz", F_OK) != -1) 
+  if (access("/tmp/.rzrpref_icon_rz", F_OK) != -1) 
   {
     ui_set_background(BACKGROUND_ICON_RZ);
     bg_set = 1;
@@ -387,7 +387,7 @@ write_files ()
   __system(DIR_CMD);
   char DEL_CMD[PATH_MAX];
   sprintf(DEL_CMD, " rm %s/*", RZR_DIR);
-  sprintf(CP_CMD, "cp /tmp/* %s/", RZR_DIR);
+  sprintf(CP_CMD, "cp /tmp/.rzrpref_* %s/", RZR_DIR);
   __system(DEL_CMD);
   __system(CP_CMD);
   }
@@ -398,10 +398,10 @@ write_files ()
 void read_cpufreq ()
 {
    printf("Starting read_cpufreq()...\n");
-   if (access ("/tmp/oc", F_OK) != -1)
+   if (access ("/tmp/.rzrpref_oc", F_OK) != -1)
 	  {
 	    printf("Saved clockspeed detected.\n");
-		FILE * fs = fopen ("/tmp/oc", "r");
+		FILE * fs = fopen ("/tmp/.rzrpref_oc", "r");
 	    char *freq = calloc (9, sizeof (char));
 
 	    fgets (freq, 9, fs);
@@ -432,12 +432,12 @@ void read_files ()
    sprintf(LOG_CMD, "rm %s/recovery.log", RZR_DIR); //remove the log from last run so we can get a new log
    __system(LOG_CMD);
    char CP_CMD[PATH_MAX];
-   sprintf(CP_CMD, "cp %s/* /tmp/", RZR_DIR);
+   sprintf(CP_CMD, "cp %s/.rzrpref_* /tmp/", RZR_DIR);
    __system(CP_CMD);
   }
- if (access("/tmp/nandloc", F_OK) == -1) 
+ if (access("/tmp/.rzrpref_nandloc", F_OK) == -1) 
  {
-   FILE * fp = fopen("/tmp/nandloc", "w");
+   FILE * fp = fopen("/tmp/.rzrpref_nandloc", "w");
    fprintf(fp, "%s\0", get_nandroid_dir());
    fclose(fp);
  }

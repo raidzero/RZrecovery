@@ -188,9 +188,9 @@ int set_backuppath(const char* sdpath)
     printf("Created new directory %s\n", sdpath);
   }  
   
-  __system("rm /tmp/nandloc");
+  __system("rm /tmp/.rzrpref_nandloc");
   FILE *fp;
-  fp = fopen("/tmp/nandloc", "w");
+  fp = fopen("/tmp/.rzrpref_nandloc", "w");
   fprintf(fp, "%s\0", backuppath);
   fclose(fp);
   ensure_path_unmounted(sdpath);
@@ -200,8 +200,8 @@ int set_backuppath(const char* sdpath)
 
 void set_repeat_scroll_delay(char *delay)
 {
-  __system("rm /tmp/scroll");
-  FILE *fp = fopen("/tmp/scroll", "w");
+  __system("rm /tmp/.rzrpref_scroll");
+  FILE *fp = fopen("/tmp/.rzrpref_scroll", "w");
   fprintf(fp, "%s\0", delay);
   fclose(fp);
 }
@@ -210,9 +210,9 @@ char* get_current_delay()
 
 {
   char* delay = calloc(5, sizeof(char));
-  if (access("/tmp/scroll",F_OK) != -1)
+  if (access("/tmp/.rzrpref_scroll",F_OK) != -1)
   {
-    FILE *fp = fopen("/tmp/scroll" ,"r");
+    FILE *fp = fopen("/tmp/.rzrpref_scroll" ,"r");
     fgets(delay, 5, fp);
   }
   else
@@ -303,14 +303,14 @@ void set_usb_fat_only(int fat_only)
 {
   if (fat_only == 1) 
   {
-    FILE *fp = fopen("/tmp/usb", "w");
+    FILE *fp = fopen("/tmp/.rzrpref_usb", "w");
 	fprintf(fp, "fat\0");
     ui_print("Set FAT-only for USB mass storage.\n");  
 	fclose(fp);
   }	
   if (fat_only == 0) 
   {
-    FILE *fp = fopen("/tmp/usb", "w");  
+    FILE *fp = fopen("/tmp/.rzrpref_usb", "w");  
 	fprintf(fp, "ext\0");
 	ui_print("Set FAT + EXT for USB mass storage\n");
 	fclose(fp);
@@ -409,6 +409,7 @@ void
 show_extras_menu ()
 {
   char* PLUGINS_DIR = get_plugins_dir();
+  strcat(PLUGINS_DIR,"/");
   
   ensure_path_mounted(PLUGINS_DIR);
 

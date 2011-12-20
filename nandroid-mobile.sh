@@ -532,10 +532,10 @@ if [ "$RESTORE" == 1 ]; then
 	fi
 	echo "* print Erasing /$image..."
 	[ "$PROGRESS" == "1" ] && echo "* show_indeterminate_progress"
-	if [ "$image" != "data" ]; then
-	  rm -rf /$image/*
-	else 
+	if [ -d /data/media ] && [ "$image" == "data" ]; then
 	  format /$image
+	else 
+	  rm -rf /$image/*
 	fi
 	
 	TAR_OPTS="x"
@@ -680,9 +680,11 @@ if [ "$BACKUP" == 1 ]; then
     fi
     REQBLOCKS=0
     if [ $NODATA != 1 ]; then
-	  mount data;
+	  mount data
       DATABLOCKS=`du -sm /data | awk '{print$1}'`
-      let REQBLOCKS=$REQBLOCKS+$DATABLOCKS
+      MEDBLOCKS=`du -sm /data/media | awk '{print$1}'`
+      [ -z "$MEDBLOCKS" ] && MEDBLOCKS=0
+      let REQBLOCKS=$REQBLOCKS+$DATABLOCKS-$MEDBLOCKS
     fi  
     if [ $NOSYSTEM != 1 ]; then
 	  mount system

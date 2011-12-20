@@ -81,9 +81,9 @@ is_usb_storage_enabled ()
 void show_usb_menu()
 {
   char *mode = calloc(5, sizeof(char));
-  if (access("/tmp/usb", F_OK) != -1)
+  if (access("/tmp/.rzrpref_usb", F_OK) != -1)
   {
-    FILE *fp = fopen("/tmp/usb", "r");	
+    FILE *fp = fopen("/tmp/.rzrpref_usb", "r");	
 	fgets(mode, 4, fp);
   }
   else
