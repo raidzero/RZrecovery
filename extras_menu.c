@@ -77,6 +77,7 @@ int plugins_present(const char* sdpath)
 	{
 	  printf("Failed to close plugin directory.\n");
 	}
+	ensure_path_unmounted(sdpath);
 	if (total > 0) 
 	{
 	  printf("Plugins found.\n");
@@ -192,6 +193,7 @@ int set_backuppath(const char* sdpath)
   fp = fopen("/tmp/nandloc", "w");
   fprintf(fp, "%s\0", backuppath);
   fclose(fp);
+  ensure_path_unmounted(sdpath);
   
   return 0;
 }

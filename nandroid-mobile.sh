@@ -638,7 +638,7 @@ if [ "$BACKUP" == 1 ]; then
     TIMESTAMP="`date +%Y%m%d-%H%M`"
     
     if [ -e /system/build.prop ]; then
-      VERSION=`cat /system/build.prop | grep ro.build.display.id | cut -d '=' -f2 | sed 's/ /_/g'`
+      VERSION=`cat /system/build.prop | grep ro.build.display.id | cut -d '=' -f2 | sed 's/ /_/g;s/(/-/g;s/)/-/g'`
       if [ ! -z "$VERSION" ]; then
         SUBNAME="$VERSION"-"$SUBNAME"
       fi 

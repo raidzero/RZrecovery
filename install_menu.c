@@ -40,12 +40,13 @@ void set_cwipe()
 {
  cwipe ^= 1;
 }
- 
+
+int fail_silently = 0;
+
 void init_list()
 {
   if (position == 0)
   {
-    printf("Allocating memory for the queue...\n");
 	install_list = malloc (50 * sizeof(char*));
     int i;
     for (i=0; i<50; i++)
@@ -302,9 +303,9 @@ choose_file_menu_final (char *sdpath)
 		      if (chosen_item >= 0 && chosen_item != ITEM_BACK)
 			      {
 				 char install_string[PATH_MAX];	//create real path from selection
-
+				
 				strcpy (install_string, sdpath);
-				strcat (install_string, list[chosen_item]);
+				strcat (install_string, list[chosen_item]);				
 				if (opendir (install_string) == NULL)
 					{	//handle selection
 					  return preinstall_menu (install_string);

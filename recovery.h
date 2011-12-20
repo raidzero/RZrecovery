@@ -1,11 +1,9 @@
 FILE *fopen_path (const char *path, const char *mode);
 void check_and_fclose (FILE * fp, const char *name);
 void set_sdcard_update_bootloader_message ();
-void copy_log_file (const char *destination, int append);
 void finish_recovery (const char *send_intent);
 
 int erase_volume (const char *volume);
-char *copy_sideloaded_package (const char *original_path);
 char **prepend_title (const char **headers);
 
 int get_menu_selection (char **headers, char **items, int menu_only,

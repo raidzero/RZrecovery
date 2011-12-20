@@ -148,7 +148,6 @@ static const char *INTENT_FILE = "/cache/recovery/intent";
 static const char *LOG_FILE = "/cache/recovery/log";
 static const char *LAST_LOG_FILE = "/cache/recovery/last_log";
 static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
-static const char *SIDELOAD_TEMP_DIR = "/tmp/sideload";
  
 /*
  * The recovery tool communicates with the main system through /cache files.
@@ -426,9 +425,9 @@ void read_files ()
  char* RZR_DIR = get_rzr_dir();
  if (access(RZR_DIR, F_OK) != -1) 
   {
-   __system("mkdir /cache/recovery");
+   /*__system("mkdir /cache/recovery");
    __system("mv /tmp/log /cache/recovery/log");
-   __system("mv /tmp/last_log /cache/recovery/last_log");	
+   __system("mv /tmp/last_log /cache/recovery/last_log");*/
    char LOG_CMD[PATH_MAX];
    sprintf(LOG_CMD, "rm %s/recovery.log", RZR_DIR); //remove the log from last run so we can get a new log
    __system(LOG_CMD);
@@ -443,6 +442,7 @@ void read_files ()
    fclose(fp);
  }
  ensure_path_unmounted(STORAGE_ROOT);
+ 
  sync ();
 }
 
@@ -566,6 +566,7 @@ get_args (int *argc, char ***argv)
 		       check_and_fclose (fp, COMMAND_FILE);
 		      LOGI ("Got arguments from %s\n", COMMAND_FILE);
 		    }
+			ensure_path_unmounted(COMMAND_FILE);
 	  }
    
     // --> write the arguments we have back into the bootloader control block
@@ -593,44 +594,6 @@ set_sdcard_update_bootloader_message ()
   set_bootloader_message (&boot);
 }
 
- 
-// How much of the temp log we have copied to the copy in cache.
-long tmplog_offset = 0;
- void 
-copy_log_file (const char *destination, int append)
-{
-  FILE * log = fopen_path (destination, append ? "a" : "w");
-  if (log == NULL)
-	  {
-	    LOGE ("Can't open %s\n", destination);
-	  }
-  else
-	  {
-	    FILE * tmplog = fopen (TEMPORARY_LOG_FILE, "r");
-	    if (tmplog == NULL)
-		    {
-		      LOGE ("Can't open %s\n", TEMPORARY_LOG_FILE);
-		    }
-	    else
-		    {
-		      if (append)
-			      {
-				fseek (tmplog, tmplog_offset, SEEK_SET);	// Since last write
-			      }
-		      char buf[4096];
-
-		      while (fgets (buf, sizeof (buf), tmplog))
-			fputs (buf, log);
-		      if (append)
-			      {
-				tmplog_offset = ftell (tmplog);
-			      }
-		      check_and_fclose (tmplog, TEMPORARY_LOG_FILE);
-		    }
-	    check_and_fclose (log, destination);
-	  }
-}
-
   
 // clear the recovery command and prepare to boot a (hopefully working) system,
 // copy our log file to cache as well (for the system to read), and
@@ -653,13 +616,9 @@ finish_recovery (const char *send_intent)
 		      fputs (send_intent, fp);
 		      check_and_fclose (fp, INTENT_FILE);
 		    }
+		ensure_path_unmounted(INTENT_FILE);
 	  }
-   
-    // Copy logs to cache so the system can find out what happened.
-    copy_log_file (LOG_FILE, true);
-  copy_log_file (LAST_LOG_FILE, false);
-  chmod (LAST_LOG_FILE, 0640);
-   
+ 
     // Reset to mormal system boot so recovery won't cycle indefinitely.
   struct bootloader_message boot;
 
@@ -679,15 +638,7 @@ finish_recovery (const char *send_intent)
 erase_volume (const char *volume)
 {
   ui_show_indeterminate_progress ();
-   if (strcmp (volume, "/cache") == 0)
-	  {
-	    
-	      // Any part of the log we'd copied to cache is now gone.
-	      // Reset the pointer so we copy from the beginning of the temp
-	      // log.
-	      tmplog_offset = 0;
-	   }   
-   return format_volume (volume);
+  return format_volume (volume);
 }
 
 int format_main(int argc, char** argv)
@@ -712,112 +663,6 @@ int format_main(int argc, char** argv)
         return status;
     }
     return(status);
-}
-
- char *
-copy_sideloaded_package (const char *original_path)
-{
-  if (ensure_path_mounted (original_path) != 0)
-	  {
-	    LOGE ("Can't mount %s\n", original_path);
-	    return NULL;
-	  }
-   if (ensure_path_mounted (SIDELOAD_TEMP_DIR) != 0)
-	  {
-	    LOGE ("Can't mount %s\n", SIDELOAD_TEMP_DIR);
-	    return NULL;
-	  }
-   if (mkdir (SIDELOAD_TEMP_DIR, 0700) != 0)
-	  {
-	    if (errno != EEXIST)
-		    {
-		      LOGE ("Can't mkdir %s (%s)\n", SIDELOAD_TEMP_DIR,
-			     strerror (errno));
-		      return NULL;
-		    }
-	  }
-   
-    // verify that SIDELOAD_TEMP_DIR is exactly what we expect: a
-    // directory, owned by root, readable and writable only by root.
-  struct stat st;
-
-  if (stat (SIDELOAD_TEMP_DIR, &st) != 0)
-	  {
-	    LOGE ("failed to stat %s (%s)\n", SIDELOAD_TEMP_DIR,
-		   strerror (errno));
-	    return NULL;
-	  }
-  if (!S_ISDIR (st.st_mode))
-	  {
-	    LOGE ("%s isn't a directory\n", SIDELOAD_TEMP_DIR);
-	    return NULL;
-	  }
-  if ((st.st_mode & 0777) != 0700)
-	  {
-	    LOGE ("%s has perms %o\n", SIDELOAD_TEMP_DIR, st.st_mode);
-	    return NULL;
-	  }
-  if (st.st_uid != 0)
-	  {
-	    LOGE ("%s owned by %lu; not root\n", SIDELOAD_TEMP_DIR,
-		   st.st_uid);
-	    return NULL;
-	  }
-   char copy_path[PATH_MAX];
-
-  strcpy (copy_path, SIDELOAD_TEMP_DIR);
-  strcat (copy_path, "/package.zip");
-   char *buffer = malloc (BUFSIZ);
-
-  if (buffer == NULL)
-	  {
-	    LOGE ("Failed to allocate buffer\n");
-	    return NULL;
-	  }
-   size_t read;
-  FILE * fin = fopen (original_path, "rb");
-  if (fin == NULL)
-	  {
-	    LOGE ("Failed to open %s (%s)\n", original_path,
-		   strerror (errno));
-	    return NULL;
-	  }
-  FILE * fout = fopen (copy_path, "wb");
-  if (fout == NULL)
-	  {
-	    LOGE ("Failed to open %s (%s)\n", copy_path, strerror (errno));
-	    return NULL;
-	  }
-   while ((read = fread (buffer, 1, BUFSIZ, fin)) > 0)
-	  {
-	    if (fwrite (buffer, 1, read, fout) != read)
-		    {
-		      LOGE ("Short write of %s (%s)\n", copy_path,
-			     strerror (errno));
-		      return NULL;
-		    }
-	  }
-   free (buffer);
-   if (fclose (fout) != 0)
-	  {
-	    LOGE ("Failed to close %s (%s)\n", copy_path, strerror (errno));
-	    return NULL;
-	  }
-   if (fclose (fin) != 0)
-	  {
-	    LOGE ("Failed to close %s (%s)\n", original_path,
-		   strerror (errno));
-	    return NULL;
-	  }
-   
-    // "adb push" is happy to overwrite read-only files when it's
-    // running as root, but we'll try anyway.
-    if (chmod (copy_path, 0400) != 0)
-	  {
-	    LOGE ("Failed to chmod %s (%s)\n", copy_path, strerror (errno));
-	    return NULL;
-	  }
-   return strdup (copy_path);
 }
 
  char **
@@ -1057,7 +902,6 @@ int main (int argc, char **argv)
   read_files();
   read_cpufreq();
   activateLEDs();
-  if (STORAGE_ROOT != NULL) ensure_path_unmounted(STORAGE_ROOT);
   set_bg_icon();
   ui_reset_progress();
   printf("\n");
