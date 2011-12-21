@@ -248,33 +248,33 @@ get_mount_menu_options (char **items, int ms, int md, int mc, int msd, int mb, i
   int emmc_mountable = is_path_mountable("/emmc");
     
   int i = 0;
-  if (usb_mountable != 3) items[i] = "USB Mass Storage"; i++;
-  if (system_mountable != -1) items1[i] = "Mount /system", i++;
-  if (data_mountable != -1) items1[i] = "Mount /data"; i++;
-  if (cache_mountable != -1) items1[i] = "Mount /cache"; i++;
-  if (sd_mountable != -1) items1[i] = "Mount /sdcard"; i++;
-  if (boot_mountable != -1) items1[i] = "Mount /boot"; i++;
-  if (emmc_mountable != -1) items1[i] = "Mount /emmc"; i++;
+  if (usb_mountable != 3) { items[i] = "USB Mass Storage"; i++; }
+  if (system_mountable != -1) { items1[i] = "Mount /system", i++; }
+  if (data_mountable != -1) { items1[i] = "Mount /data"; i++; }
+  if (cache_mountable != -1) { items1[i] = "Mount /cache"; i++; }
+  if (sd_mountable != -1) { items1[i] = "Mount /sdcard"; i++; }
+  if (boot_mountable != -1) { items1[i] = "Mount /boot"; i++; }
+  if (emmc_mountable != -1) { items1[i] = "Mount /emmc"; i++; }
   items1[i] = NULL;
   
   int j = 0;
-  if (usb_mountable != 3) items[j] = "USB Mass Storage"; j++;
-  if (system_mountable != -1) items2[j] = "Unmount /system"; j++;
-  if (data_mountable != -1) items2[j] = "Unmount /data"; j++;
-  if (cache_mountable != -1) items2[j] = "Unmount /cache"; j++;
-  if (sd_mountable != -1) items2[j] = "Unmount /sdcard"; j++;
-  if (boot_mountable != -1) items2[j] = "Unmount /boot"; j++;
-  if (emmc_mountable != -1) items2[j] = "Unmount /emmc"; j++;
+  if (usb_mountable != 3) { items[j] = "USB Mass Storage"; j++; }
+  if (system_mountable != -1) { items2[j] = "Unmount /system"; j++; }
+  if (data_mountable != -1) { items2[j] = "Unmount /data"; j++; }
+  if (cache_mountable != -1) { items2[j] = "Unmount /cache"; j++; }
+  if (sd_mountable != -1) { items2[j] = "Unmount /sdcard"; j++; }
+  if (boot_mountable != -1) { items2[j] = "Unmount /boot"; j++; }
+  if (emmc_mountable != -1) { items2[j] = "Unmount /emmc"; j++; }
   items2[j] = NULL;
   
   int k = 0;
-  if (usb_mountable != 3) items[k] = "USB Mass Storage"; k++;
-  if (system_mountable != -1) items[k] = ms ? items2[k] : items1[k]; k++;
-  if (data_mountable != -1) items[k] = md ? items2[k] : items1[k]; k++;
-  if (cache_mountable != -1) items[k] = mc ? items2[k] : items1[k]; k++;
-  if (sd_mountable != -1) items[k] = msd ? items2[k] : items1[k]; k++;
-  if (boot_mountable != -1) items[k] = mb ? items2[k] : items1[k]; k++;
-  if (emmc_mountable != -1) items[k] = me ? items2[k] : items1[k]; k++;
+  if (usb_mountable != 3) { items[k] = "USB Mass Storage"; k++; }
+  if (system_mountable != -1) { items[k] = ms ? items2[k] : items1[k]; k++; }
+  if (data_mountable != -1) { items[k] = md ? items2[k] : items1[k]; k++; }
+  if (cache_mountable != -1) { items[k] = mc ? items2[k] : items1[k]; k++; }
+  if (sd_mountable != -1) { items[k] = msd ? items2[k] : items1[k]; k++; }
+  if (boot_mountable != -1) { items[k] = mb ? items2[k] : items1[k]; k++; }
+  if (emmc_mountable != -1) { items[k] = me ? items2[k] : items1[k]; k++; }
   items[k] = NULL;
 }
 
