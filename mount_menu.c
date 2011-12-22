@@ -129,7 +129,7 @@ void show_usb_menu()
 		if (is_path_mountable(v->mount_point) == 1 || is_path_mountable(v->mount_point) ==2)
 		{
 		  printf("%s is USB-mountable.\n", v->mount_point);
-	      usb_volumes[mountable_volumes] = malloc(sizeof(char*));
+	      usb_volumes[mountable_volumes] = malloc(strlen(v->mount_point)+2);
 	      printf("usb_volumes[%d]: %s\n", mountable_volumes, v->mount_point);
 	      sprintf(usb_volumes[mountable_volumes], "%s", v->mount_point);
 	      mountable_volumes++;	
@@ -307,37 +307,45 @@ show_mount_menu ()
 	    chosen_item =
 	      get_menu_selection (headers, main_items, 0,
 				  chosen_item < 0 ? 0 : chosen_item);
-				 		
-		printf("selected: %s\n", main_items[chosen_item]);
-		  
-		if (strcmp(main_items[chosen_item], "USB Mass Storage") ==0)
+		
+		switch (chosen_item)
 		{
-		  show_usb_menu();
-		}
-		else
-		{
-		  char* partition=main_items[chosen_item];
-		  char* strptr = strstr(partition, " ") + 1; //get a pointer to the string beginning 1 position after the space
-		  char* result = calloc(strlen(strptr) + 1, sizeof(char)); // allocate some mem for the new string
-		  strcpy(result, strptr); //copy the pointer's contents into the new string
-		  printf("\npartition: %s\n", result);
+		
+		  case ITEM_BACK:
+		    return;
+			
+		  default:
+		    //printf("selected: %s\n", main_items[chosen_item]);
 		  
-		  int mp = is_path_mounted(result);
-		  printf("%s is mounted: %i\n", result, mp);
-		  char* prefix;
-		  main_items[chosen_item] = NULL;
-		  if (mp)
-		  {
-		    printf("Unmounting %s...\n", result);
-		    ensure_path_unmounted(result);
-		  }
-		  else
-		  {
-		    printf("Mounting %s...\n", result);
-		    ensure_path_mounted(result);
-		  }
-		}
+		    if (strcmp(main_items[chosen_item], "USB Mass Storage") ==0)
+		    {
+		      show_usb_menu();
+		    }
+		    else
+		    {
+		      char* partition=main_items[chosen_item];
+		      char* strptr = strstr(partition, " ") + 1; //get a pointer to the string beginning 1 position after the space
+		      char* result = calloc(strlen(strptr) + 1, sizeof(char)); // allocate some mem for the new string
+		      strcpy(result, strptr); //copy the pointer's contents into the new string
+		      printf("\npartition: %s\n", result);
+		  
+		      int mp = is_path_mounted(result);
+		      printf("%s is mounted: %i\n", result, mp);
+		      char* prefix;
+		      main_items[chosen_item] = NULL;
+		      if (mp)
+		      {
+		        printf("Unmounting %s...\n", result);
+		        ensure_path_unmounted(result);
+		      }
+		      else
+		      {
+		        printf("Mounting %s...\n", result);
+		        ensure_path_mounted(result);
+		      }
+		    }
+	    }
 	    main_items = get_mount_menu_options();
 	  }
-	  return;
+	return;
 }
