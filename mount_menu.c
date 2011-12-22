@@ -11,6 +11,8 @@
 #define BOARD_UMS_LUNFILE	"/sys/devices/platform/usb_mass_storage/lun0/file"
 #endif
 
+int num_volumes;
+
 int is_path_mountable(char* path)
 {
   /*
@@ -28,6 +30,11 @@ int is_path_mountable(char* path)
   {
 	return -1; 
   } 
+  //tmp should not be included, its always mounted
+  if (strcmp(v->mount_point,"/tmp") ==0)
+  {
+    return -1;
+  }	
   //vfat only
   if (strcmp(v->fs_type, "vfat") == 0 && strcmp(v->fs_type, "ext2") != 0 && strcmp(v->fs_type, "ext3") != 0 &&strcmp(v->fs_type, "ext4") != 0) 
   {
@@ -231,139 +238,103 @@ disable_usb_mass_storage ()
   }
 }
 
-void
-get_mount_menu_options (char **items, int ms, int md, int mc, int msd, int mb, int me)
+char** get_mount_menu_options()
 {
- 
-  int num_volumes = get_device_volumes();
-  char **items1 = malloc (num_volumes * sizeof (char *));
-  char **items2 = malloc (num_volumes * sizeof (char *));
+  Volume * device_volumes = get_device_volumes();
+  num_volumes = get_num_volumes();
   
-  int usb_mountable = is_usb_storage_enabled();
-  int system_mountable = is_path_mountable("/system");
-  int data_mountable = is_path_mountable("/data");
-  int cache_mountable = is_path_mountable("/cache");
-  int sd_mountable = is_path_mountable("/sdcard");
-  int boot_mountable = is_path_mountable("/boot");
-  int emmc_mountable = is_path_mountable("/emmc");
-    
-  int i = 0;
-  if (usb_mountable != 3) { items[i] = "USB Mass Storage"; i++; }
-  if (system_mountable != -1) { items1[i] = "Mount /system", i++; }
-  if (data_mountable != -1) { items1[i] = "Mount /data"; i++; }
-  if (cache_mountable != -1) { items1[i] = "Mount /cache"; i++; }
-  if (sd_mountable != -1) { items1[i] = "Mount /sdcard"; i++; }
-  if (boot_mountable != -1) { items1[i] = "Mount /boot"; i++; }
-  if (emmc_mountable != -1) { items1[i] = "Mount /emmc"; i++; }
-  items1[i] = NULL;
+  char** volumes = malloc (num_volumes * sizeof (char *));
+
+  int mountable_volumes = 0;
+  int usb_storage_enabled = is_usb_storage_enabled();
+
+  int i;
+  for (i=0; i<num_volumes; i++)
+  {
+    volumes[i] = "";
+    Volume *v = &device_volumes[i];
+	char* operation;
+	if (is_path_mountable(v->mount_point) != -1)
+	{	  
+	  if (is_path_mounted(v->mount_point)) operation = "Unmount";
+	  else operation = "Mount";
+	  volumes[mountable_volumes] = malloc(sizeof(char*));
+	  //printf("volumes[%i]: %s %s\n", mountable_volumes, operation, v->mount_point);
+	  sprintf(volumes[mountable_volumes], "%s %s", operation, v->mount_point);
+	  mountable_volumes++;
+	}
+  }
   
-  int j = 0;
-  if (usb_mountable != 3) { items[j] = "USB Mass Storage"; j++; }
-  if (system_mountable != -1) { items2[j] = "Unmount /system"; j++; }
-  if (data_mountable != -1) { items2[j] = "Unmount /data"; j++; }
-  if (cache_mountable != -1) { items2[j] = "Unmount /cache"; j++; }
-  if (sd_mountable != -1) { items2[j] = "Unmount /sdcard"; j++; }
-  if (boot_mountable != -1) { items2[j] = "Unmount /boot"; j++; }
-  if (emmc_mountable != -1) { items2[j] = "Unmount /emmc"; j++; }
-  items2[j] = NULL;
+  char **main_items = malloc (num_volumes * sizeof (char *));
   
-  int k = 0;
-  if (usb_mountable != 3) { items[k] = "USB Mass Storage"; k++; }
-  if (system_mountable != -1) { items[k] = ms ? items2[k] : items1[k]; k++; }
-  if (data_mountable != -1) { items[k] = md ? items2[k] : items1[k]; k++; }
-  if (cache_mountable != -1) { items[k] = mc ? items2[k] : items1[k]; k++; }
-  if (sd_mountable != -1) { items[k] = msd ? items2[k] : items1[k]; k++; }
-  if (boot_mountable != -1) { items[k] = mb ? items2[k] : items1[k]; k++; }
-  if (emmc_mountable != -1) { items[k] = me ? items2[k] : items1[k]; k++; }
-  items[k] = NULL;
+  int z;
+  if (usb_storage_enabled != 3) 
+  { 
+    main_items[0] = "USB Mass Storage"; 
+	printf("volumes[0]: %s\n", volumes[0]); 
+	z = 1;
+  }
+  else z = 0;
+  
+  for (z; z<mountable_volumes; z++)
+  {
+	main_items[z] = malloc(strlen(volumes[z])+2);
+	main_items[z] = volumes[z];
+  }
+  main_items[z] = NULL;
+  return main_items;
 }
 
 void
 show_mount_menu ()
 {
+  num_volumes = get_num_volumes(); 
+   
+  char** main_items = get_mount_menu_options();
+  
   static char *headers[] = { "Choose a mount or unmount option",
     "",
     NULL
-  };
-
-  int ms = is_path_mounted ("/system");
-  int md = is_path_mounted ("/data");
-  int mc = is_path_mounted ("/cache");
-  int msd = is_path_mounted ("/sdcard");
-  int mb = is_path_mounted ("/boot");
-  int me = is_path_mounted ("/emmc");
-
-  int num_volumes = get_device_volumes();
-  char **items = malloc (num_volumes * sizeof (char *));
-
-  get_mount_menu_options (items, ms, md, mc, msd, mb, me);
-
-#define ITEM_USB 0
-#define ITEM_S   1
-#define ITEM_D   2
-#define ITEM_C	 3
-#define ITEM_SD  4
-#define ITEM_B   5
-#define ITEM_E   6
-
+  };  
+ 
   int chosen_item = -1;
-
+  char* selected;
+  
   while (chosen_item != ITEM_BACK)
 	  {
 	    chosen_item =
-	      get_menu_selection (headers, items, 0,
+	      get_menu_selection (headers, main_items, 0,
 				  chosen_item < 0 ? 0 : chosen_item);
-
-	    switch (chosen_item)
-		    {
-		    case ITEM_S:
-		      if (ms) { 
-		        if (!ensure_path_unmounted ("/system")) ms ^= 1;
-		      } else {
-		        if (!ensure_path_mounted ("/system")) ms ^= 1;
-		      }
-		      break;
-		    case ITEM_D:
-		      if (md) {
-		        if (!ensure_path_unmounted ("/data")) md ^= 1;
-		      } else {
-		        if (!ensure_path_mounted ("/data")) md ^= 1;
-		      }
-		      
-		      break;
-		    case ITEM_C:
-		      if (mc) {
-		        if (!ensure_path_unmounted ("/cache")) mc ^= 1;
-		      } else {
-		        if (!ensure_path_mounted ("/cache")) mc ^= 1;
-		      }
-		      
-		      break;
-		    case ITEM_SD:
-		      if (msd) {
-		        if (!ensure_path_unmounted ("/sdcard")) msd ^= 1;
-		      } else { 
-		        if (!ensure_path_mounted ("/sdcard")) msd ^= 1;
-		      }
-		      break;
-		    case ITEM_USB:
-		      show_usb_menu();
-		      break;
-		    case ITEM_B:
-		      if (mb) { 
-		        if (!ensure_path_unmounted("/boot")) mb ^= 1;
-		      } else { 
-		        if (!ensure_path_mounted("/boot")) mb ^= 1;
-		      }
-		      break;
-		    case ITEM_E:
-		      if (me) {
-		        if (!ensure_path_unmounted("/emmc")) me ^= 1;
-		      } else { 
-		        if (!ensure_path_mounted("/emmc")) me ^= 1;
-		      }
-		      break;
-		    }
-	    get_mount_menu_options (items, ms, md, mc, msd, mb, me);
+				 		
+		printf("selected: %s\n", main_items[chosen_item]);
+		  
+		if (strcmp(main_items[chosen_item], "USB Mass Storage") ==0)
+		{
+		  show_usb_menu();
+		}
+		else
+		{
+		  char* partition=main_items[chosen_item];
+		  char* strptr = strstr(partition, " ") + 1; //get a pointer to the string beginning 1 position after the space
+		  char* result = calloc(strlen(strptr) + 1, sizeof(char)); // allocate some mem for the new string
+		  strcpy(result, strptr); //copy the pointer's contents into the new string
+		  printf("\npartition: %s\n", result);
+		  
+		  int mp = is_path_mounted(result);
+		  printf("%s is mounted: %i\n", result, mp);
+		  char* prefix;
+		  main_items[chosen_item] = NULL;
+		  if (mp)
+		  {
+		    printf("Unmounting %s...\n", result);
+		    ensure_path_unmounted(result);
+		  }
+		  else
+		  {
+		    printf("Mounting %s...\n", result);
+		    ensure_path_mounted(result);
+		  }
+		}
+	    main_items = get_mount_menu_options();
 	  }
 }
