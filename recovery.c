@@ -769,12 +769,30 @@ int compare_string (const void *a, const void *b)
 
 void prompt_and_wait ()
 {
+  char *MENU_HEADERS[] = { "Welcome to RZRecovery",
+  "by raidzero",
+  "",
+  NULL
+  };
+
+  char *MENU_ITEMS[] = { "Reboot android",
+  "Reboot recovery",
+  "Power off",
+  "Bootloader",
+  "Wipe menu",
+  "Mount menu",
+  "Nandroid menu",
+  "Install menu",
+  "Options menu",
+  "Extras menu",
+  NULL
+  };
+  
   char **headers = prepend_title ((const char **) MENU_HEADERS);
    for (;;)
 	  {
 	    finish_recovery (NULL);
-	    //ui_reset_progress ();
-	     int chosen_item =
+	    	     int chosen_item =
 	      get_menu_selection (headers, MENU_ITEMS, 1,
 				  chosen_item < 0 ? 0 : chosen_item);
 	    
@@ -817,6 +835,7 @@ void prompt_and_wait ()
 		    }
 	  }
 }
+
 
  void 
 print_property (const char *key, const char *name, void *cookie)

@@ -264,28 +264,6 @@ void show_repeat_scroll_menu()
     NULL
   };
 
-#define SPD_255	0
-#define SPD_245 1
-#define SPD_235 3
-#define SPD_225 4
-#define SPD_215 5
-#define SPD_205 6
-#define SPD_195 7
-#define SPD_185 8
-#define SPD_175 9
-#define SPD_165 10
-#define SPD_155 11
-#define SPD_145 12
-#define SPD_135 13
-#define SPD_125 14
-#define SPD_115 15
-#define SPD_105 16
-#define SPD_95	17
-#define SPD_85  18
-#define SPD_75	19
-#define SPD_65	20
-#define SPD_55	21
-
   char *delay;
   int chosen_item = -1;
 

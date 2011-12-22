@@ -19,27 +19,6 @@
 #include "recovery_ui.h"
 #include "common.h"
 
-
-char *MENU_HEADERS[] = { "Welcome to RZRecovery",
-  "by raidzero",
-  "",
-  NULL
-};
-
-char *MENU_ITEMS[] = { "Reboot android",
-  "Reboot recovery",
-  "Power off",
-  "Bootloader",
-  "Wipe menu",
-  "Mount menu",
-  "Nandroid menu",
-  "Install menu",
-  "Options menu",
-  "Extras menu",
-  NULL
-};
-
-
 int
 device_recovery_start ()
 {

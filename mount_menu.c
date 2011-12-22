@@ -258,7 +258,7 @@ char** get_mount_menu_options()
 	{	  
 	  if (is_path_mounted(v->mount_point)) operation = "Unmount";
 	  else operation = "Mount";
-	  volumes[mountable_volumes] = malloc(sizeof(char*));
+	  volumes[mountable_volumes] = malloc(strlen(operation)+strlen(v->mount_point)+2);
 	  //printf("volumes[%i]: %s %s\n", mountable_volumes, operation, v->mount_point);
 	  sprintf(volumes[mountable_volumes], "%s %s", operation, v->mount_point);
 	  mountable_volumes++;
