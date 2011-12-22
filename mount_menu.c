@@ -174,6 +174,7 @@ void show_usb_menu()
 void show_usb_storage_enabled_screen(char* selection)
 {
   enable_usb_mass_storage(selection);
+  
   char *headers[] = { "",
     "is in USB mass storage mode",
 	"Go back to disable",
@@ -247,9 +248,17 @@ char** get_mount_menu_options()
 
   int mountable_volumes = 0;
   int usb_storage_enabled = is_usb_storage_enabled();
-
-  int i;
-  for (i=0; i<num_volumes; i++)
+  int i = 0;
+ 
+  if (usb_storage_enabled != 3)
+  {
+	volumes[mountable_volumes] = "USB Mass Storage";
+	printf("volumes[%i]: %s\n", mountable_volumes, volumes[mountable_volumes]);
+	mountable_volumes++;
+	i = 1;
+  }  
+ 
+  for (i; i<num_volumes; i++)
   {
     volumes[i] = "";
     Volume *v = &device_volumes[i];
@@ -258,8 +267,8 @@ char** get_mount_menu_options()
 	{	  
 	  if (is_path_mounted(v->mount_point)) operation = "Unmount";
 	  else operation = "Mount";
+	  printf("volumes[%i]: %s %s\n", mountable_volumes, operation, v->mount_point);
 	  volumes[mountable_volumes] = malloc(strlen(operation)+strlen(v->mount_point)+2);
-	  //printf("volumes[%i]: %s %s\n", mountable_volumes, operation, v->mount_point);
 	  sprintf(volumes[mountable_volumes], "%s %s", operation, v->mount_point);
 	  mountable_volumes++;
 	}
@@ -267,21 +276,14 @@ char** get_mount_menu_options()
   
   char **main_items = malloc (num_volumes * sizeof (char *));
   
-  int z;
-  if (usb_storage_enabled != 3) 
-  { 
-    main_items[0] = "USB Mass Storage"; 
-	printf("volumes[0]: %s\n", volumes[0]); 
-	z = 1;
-  }
-  else z = 0;
-  
+  int z = 0;
   for (z; z<mountable_volumes; z++)
   {
 	main_items[z] = malloc(strlen(volumes[z])+2);
 	main_items[z] = volumes[z];
   }
   main_items[z] = NULL;
+ 
   return main_items;
 }
 
@@ -337,4 +339,5 @@ show_mount_menu ()
 		}
 	    main_items = get_mount_menu_options();
 	  }
+	  return;
 }
