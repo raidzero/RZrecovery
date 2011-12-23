@@ -18,6 +18,7 @@ int is_path_mountable(char* path)
   /*
   this function will return:
   -1 if volume does not exist/not mountable,
+  3 for yaffs/bml
   2 if it is not mtd, is vfat or ext
   1 if it is not mtd, is vfat
   0 if it is not mtd
@@ -36,7 +37,7 @@ int is_path_mountable(char* path)
     return -1;
   }	
   //vfat only
-  if (strcmp(v->fs_type, "vfat") == 0 && strcmp(v->fs_type, "ext2") != 0 && strcmp(v->fs_type, "ext3") != 0 &&strcmp(v->fs_type, "ext4") != 0) 
+  else if (strcmp(v->fs_type, "vfat") == 0 && strcmp(v->fs_type, "ext2") != 0 && strcmp(v->fs_type, "ext3") != 0 &&strcmp(v->fs_type, "ext4") != 0) 
   {
 	return 1;
   }	  
@@ -50,8 +51,12 @@ int is_path_mountable(char* path)
   {
 	return -1;
   }
-  else
-  //not mtd
+  //yaffs/bml
+  else if (strcmp(v->fs_type, "yaffs2") == 0 || strcmp(v->fs_type, "bml") ==0) 
+  {
+	return 3;
+  }
+  else if (strcmp(v->fs_type, "mtd") == 0 && strcmp(v->fs_type, "yaffs2") == 0 && strcmp(v->fs_type, "bml") ==0) 
   {
     return 0;
   }
@@ -87,53 +92,47 @@ is_usb_storage_enabled ()
 
 void show_usb_menu()
 {
-  char *mode = calloc(5, sizeof(char));
-  if (access("/tmp/.rzrpref_usb", F_OK) != -1)
-  {
-    FILE *fp = fopen("/tmp/.rzrpref_usb", "r");	
-	fgets(mode, 4, fp);
-  }
-  else
-  {
-    mode = "fat";
-  }
-  printf("USB Mode: %s\n", mode);
+  char *mode = calloc(5, sizeof(char)+1);
+  int ext;
+  if (access("/tmp/.rzrpref_usb", F_OK) != -1) ext = 1;
+  else ext = 0;
+  
+  printf("ext UMS enabled: %i\n", ext);
   
   int num_volumes = get_num_volumes();
   Volume* device_volumes;
   device_volumes = get_device_volumes();
   
   int i;
+  int valid = 0;
   char** usb_volumes = malloc (num_volumes * sizeof (char *));
   
   int mountable_volumes = 0;
+  
   for (i=0; i<num_volumes; i++)
-  {
+  {  
     usb_volumes[i] = "";
     Volume *v = &device_volumes[i];
+	usb_volumes[i] = malloc(strlen(v->mount_point)+2);
+	valid = 0;
 	if (is_path_mountable(v->mount_point) != -1)
 	{	  
-	  if (strcmp(mode, "fat") == 0)
+	  
+	  if (strcmp(v->fs_type, "vfat") == 0) 
 	  {
-	    if (is_path_mountable(v->mount_point) == 1)
-		{
-		  printf("%s is USB-mountable.\n", v->mount_point);
-	      usb_volumes[mountable_volumes] = malloc(sizeof(char*));
-	      printf("usb_volumes[%d]: %s\n", mountable_volumes, v->mount_point);
-	      sprintf(usb_volumes[mountable_volumes], "%s", v->mount_point);
-	      mountable_volumes++;
-		}
-	  }
-	  else
+	    printf("%s is windows-mountable.\n", v->mount_point);
+		valid = 1;
+	  } 
+	  if (ext && (strstr(v->fs_type, "ext"))) 
 	  {
-		if (is_path_mountable(v->mount_point) == 1 || is_path_mountable(v->mount_point) ==2)
-		{
-		  printf("%s is USB-mountable.\n", v->mount_point);
-	      usb_volumes[mountable_volumes] = malloc(strlen(v->mount_point)+2);
-	      printf("usb_volumes[%d]: %s\n", mountable_volumes, v->mount_point);
-	      sprintf(usb_volumes[mountable_volumes], "%s", v->mount_point);
-	      mountable_volumes++;	
-		}
+	    printf("%s is linux-mountable.\n", v->mount_point);
+		valid = 1;
+	  }	
+	  if (valid)
+	  {	  
+	    printf("usb_volumes[%d]: %s\n", mountable_volumes, v->mount_point);
+	    sprintf(usb_volumes[mountable_volumes], "%s", v->mount_point);
+	    mountable_volumes++;
 	  }
 	}  
   }

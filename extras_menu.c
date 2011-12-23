@@ -281,17 +281,13 @@ void set_usb_fat_only(int fat_only)
 {
   if (fat_only == 1) 
   {
-    FILE *fp = fopen("/tmp/.rzrpref_usb", "w");
-	fprintf(fp, "fat\0");
+    __system("rm /tmp/.rzrpref_usb");
     ui_print("Set FAT-only for USB mass storage.\n");  
-	fclose(fp);
   }	
   if (fat_only == 0) 
   {
-    FILE *fp = fopen("/tmp/.rzrpref_usb", "w");  
-	fprintf(fp, "ext\0");
+    __system("echo > /tmp/.rzrpref_usb");
 	ui_print("Set FAT + EXT for USB mass storage\n");
-	fclose(fp);
   }	 
 }
    	 
