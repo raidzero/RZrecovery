@@ -386,9 +386,9 @@ write_files ()
   sprintf(DIR_CMD, "[ ! -d %s ] && mkdir -p %s", RZR_DIR, RZR_DIR);
   __system(DIR_CMD);
   char DEL_CMD[PATH_MAX];
-  sprintf(DEL_CMD, " rm %s/*", RZR_DIR);
-  sprintf(CP_CMD, "cp /tmp/.rzrpref_* %s/", RZR_DIR);
+  sprintf(DEL_CMD, "rm %s/.rzrpref_*", RZR_DIR);
   __system(DEL_CMD);
+  sprintf(CP_CMD, "cp /tmp/.rzrpref_* %s/", RZR_DIR);
   __system(CP_CMD);
   }
   ensure_path_unmounted(STORAGE_ROOT);

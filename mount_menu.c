@@ -93,8 +93,17 @@ is_usb_storage_enabled ()
 void show_usb_menu()
 {
   char *mode = calloc(5, sizeof(char)+1);
+ 
+  if (access("/tmp/.rzrpref_usb", F_OK) != -1) 
+  {
+    FILE* fp = fopen("/tmp/.rzrpref_usb", "r");
+	fgets(mode, 5, fp);
+	fclose(fp);
+  }
+  else mode = "fat";
+  
   int ext;
-  if (access("/tmp/.rzrpref_usb", F_OK) != -1) ext = 1;
+  if (strcmp(mode,"ext") == 0) ext = 1;
   else ext = 0;
   
   printf("ext UMS enabled: %i\n", ext);
@@ -116,8 +125,7 @@ void show_usb_menu()
 	usb_volumes[i] = malloc(strlen(v->mount_point)+2);
 	valid = 0;
 	if (is_path_mountable(v->mount_point) != -1)
-	{	  
-	  
+	{	  	  
 	  if (strcmp(v->fs_type, "vfat") == 0) 
 	  {
 	    printf("%s is windows-mountable.\n", v->mount_point);

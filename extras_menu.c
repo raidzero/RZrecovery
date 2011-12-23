@@ -281,20 +281,24 @@ void set_usb_fat_only(int fat_only)
 {
   if (fat_only == 1) 
   {
-    __system("rm /tmp/.rzrpref_usb");
+    FILE* fp = fopen ("/tmp/.rzrpref_usb" ,"w");
+	fprintf(fp, "fat\0\n");
     ui_print("Set FAT-only for USB mass storage.\n");  
+	fclose(fp);
   }	
   if (fat_only == 0) 
   {
-    __system("echo > /tmp/.rzrpref_usb");
+    FILE* fp = fopen("/tmp/.rzrpref_usb", "w");
+	fprintf(fp, "ext\0\n");
 	ui_print("Set FAT + EXT for USB mass storage\n");
+	fclose(fp);
   }	 
 }
    	 
 void show_usb_options_menu()
 {
   char* headers[] = { "USB Mass Storage Options",
-    "Would you like to be able to mount non-FAT",
+    "Would you like to be able to mount ext",
 	"filesystems as USB mass storage devices?",
 	"Linux users: say yes, Windows: no",
 	"",
