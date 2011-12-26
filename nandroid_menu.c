@@ -561,6 +561,65 @@ show_nandroid_adv_r_menu ()
 	}		
 }
 
+void convert_backup(char* filename)
+{
+  char* STORAGE_ROOT = get_storage_root();
+  
+  char *argv[] =
+    { "/sbin/cwm-convert.sh", filename, STORAGE_ROOT, NULL };
+  char *envp[] = { NULL };
+  int status = runve ("/sbin/cwm-convert.sh", argv, envp, 1);
+  
+  if (status != 0) ui_print("Failure!\n");
+  else ui_print("Success!\n");
+}
+  
+void
+show_cwm_menu ()
+{
+  char *headers[] = { "Choose a backup to convert",
+    "Backup:",
+    "",
+    "",
+    NULL,
+    NULL
+  };
+
+  char *items[] = { "Choose backup",
+    "Perform conversion",
+    NULL,
+  };
+
+#define ITEM_CHOOSE  0
+#define ITEM_CONVERT 1 
+  char* STORAGE_ROOT = get_storage_root();
+  char cwmpath[254];
+  strcpy(cwmpath, STORAGE_ROOT);
+  strcat(cwmpath, "/clockworkmod/backup");
+  
+  char* prefix;
+  char filename[PATH_MAX];
+
+  filename[0] = NULL;
+  int chosen_item = -1;
+
+  while (chosen_item != ITEM_BACK)
+  {
+	chosen_item = get_menu_selection (headers, items, 0, chosen_item < 0 ? 0 : chosen_item);
+
+	switch (chosen_item)
+	{
+	  case ITEM_CHOOSE:
+		nandroid_adv_r_choose_file (filename, cwmpath);
+		headers[2] = filename;		  
+		break;
+	  case ITEM_CONVERT:
+		convert_backup(filename);
+		break;			  
+	}
+  }		
+}
+
 void
 show_delete_menu() 
 {
@@ -844,6 +903,7 @@ show_nandroid_menu ()
     "Nandroid Restore",
     "Compress existing backup",
     "Delete backup",
+	"Convert Clockwork backup",
     NULL
   };
 
@@ -851,6 +911,7 @@ show_nandroid_menu ()
 #define ITEM_ADV_RESTORE 1
 #define ITEM_COMPRESS    2
 #define ITEM_DELETE	 	 3
+#define ITEM_CWM		 4
 
   int chosen_item = -1;
 
@@ -874,6 +935,9 @@ show_nandroid_menu ()
 		    case ITEM_DELETE:
 		      show_delete_menu();
 		      break;
+			case ITEM_CWM:
+			  show_cwm_menu();
+			  break;
 		    }
 	  }
 }

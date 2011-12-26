@@ -91,6 +91,7 @@ int read_chunk()
 		ret = 0;
 	} else {
 		fprintf(stderr, "broken image file\n");
+		ret = 1;
 	}
 	return ret;
 }
