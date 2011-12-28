@@ -275,7 +275,7 @@ int restore_partition(const char* partition, const char* PREFIX)
 
 void nandroid_native(const char* operation, char* subname, char partitions, int show_progress, int compress)
 {
-  //time_t starttime, endtime;
+  time_t starttime, endtime, elapsed;
   char* STORAGE_ROOT = get_storage_root();
   printf("STORAGE_ROOT: %s\n", STORAGE_ROOT);
   
@@ -293,8 +293,8 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
   
   if (strcmp(operation, "backup") == 0)
   {
-    //starttime = time();
-	//printf("START: %ld\n", starttime);
+    starttime = time(NULL);
+	printf("START: %ld\n", starttime);
     get_prefix(partitions);
 	ui_print("%s\n", PREFIX);
     char tmp[PATH_MAX];
@@ -332,12 +332,12 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
   {
     char PREFIX[PATH_MAX];
 	char* NANDROID_DIR = get_nandroid_dir();
-	//starttime = time();
+	starttime = time(NULL);
 	strcpy(PREFIX, NANDROID_DIR);
 	strcat(PREFIX, "/");
 	strcat(PREFIX, subname);
 	printf("backup path: %s\n", PREFIX);
-	//printf("START: %ld\n", starttime);
+	printf("START: %ld\n", starttime);
 	
     if (boot) 
 	{
@@ -366,10 +366,11 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
 	}
   }
   printf("%s finished.\n", operation);
-  //endtime = time();
-  //printf("END: %ld\n", endtime);
-  //long elapsed = endtime - starttime;
-  //printf("ELAPSED: %ld\n", elapsed);
+  endtime = time(NULL);
+  printf("END: %ld\n", endtime);
+  elapsed = endtime - starttime;
+
+  printf("ELAPSED: %ld\n", elapsed);
   if (failed != 1) if (reboot) reboot_android();
-  //ui_print("%s took %ld seconds.\n", operation, elapsed);
+  ui_print("%s took %ld seconds.\n", operation, elapsed);
 }
