@@ -241,14 +241,22 @@ int restore_partition(const char* partition, const char* PREFIX)
   else //must be mtd, bml, or emmc - restore raw
   {
     printf("must be raw...\n");
-    char rawimg[PATH_MAX];
+    
+	//must pull the / off the partition name for flash_img...
+	char* strptr = strstr(partition, "/") +  1;
+	char* result = calloc(strlen(strptr) + 1, sizeof(char));
+	strcpy(result, strptr);  
+	
+
+	char rawimg[PATH_MAX];
 	char flash_cmd[PATH_MAX];
 	strcpy(rawimg, PREFIX);
 	strcat(rawimg, partition);
 	strcat(rawimg, ".img");
 	printf("restoring %s to %s...\n", rawimg, partition);
-	sprintf(flash_cmd, "flash_img %s %s", partition, rawimg);
-    if (__system(flash_cmd))
+	sprintf(flash_cmd, "flash_img %s %s", result, rawimg);
+	printf("flash_cmd: %s\n", flash_cmd);
+    if (!__system(flash_cmd))
 	{
 	  ui_print("Failed!\n");
 	  ensure_path_unmounted(partition);
