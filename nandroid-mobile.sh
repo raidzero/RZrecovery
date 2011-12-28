@@ -14,6 +14,9 @@ COMPRESS=0
 INSTALL_ROM=0
 PLUGIN=0
 
+#free up some ram first, cant hurt...
+sync
+echo 3 > /proc/sys/vm/drop_caches
 
 # Boot, Data, System, Android-secure
 # Enables the user to figure at a glance what is in the backup
@@ -27,6 +30,13 @@ ASSUMEDEFAULTUSERINPUT=0
 data_mounted=`mount | grep "/data" | wc -l`
 system_mounted=`mount | grep "/system" | wc -l`
 cache_mounted=`mount | grep "/cache" | wc -l`
+
+quit()
+{
+	sync
+	echo 3 > /proc/sys/vm/drop_caches
+	exit $1
+}
 	
 echo2log()
 {
@@ -56,7 +66,7 @@ batteryAtLeast()
 	if [ "$action" != "continue" ]; then
 	  echo "* print Error: not enough battery power, need at least $REQUIREDLEVEL%."
 	  echo "* print Connect charger or USB power and try again."
-	  exit 101
+	  quit 101
 	fi
     fi
 }
@@ -237,7 +247,7 @@ if [ "$INSTALL_ROM" == 1 ]; then
 
     if [ -z "$(mount | grep $ROOT_BACKUPDEVICE)" ]; then
 	[ "$PLUGIN" == "0" ] && echo "* print error: unable to mount $ROOT_BACKUPDEVICE, aborting"
-	exit 13
+	quit 13
     fi
     
     if [ ! -f "$ROM_FILE" ]; then
@@ -247,7 +257,7 @@ if [ "$INSTALL_ROM" == 1 ]; then
 		ROM_FILE=`echo $OLD_FILE | sed 's#$#.tar#'`
 		if [ ! -f $ROM_FILE ]; then
 			[ "$PLUGIN" == "0" ] && echo "* print error: specified ROM file does not exist"
-			exit 14
+			quit 14
 		fi
 	fi
     fi
@@ -330,7 +340,7 @@ if [ "$INSTALL_ROM" == 1 ]; then
 	
 	if [ "$(mount | grep $image)" == "" ]; then
 	    [ "$PLUGIN" == "0" ] && echo "* print error: unable to mount /$image"
-	    exit 16
+	    quit 16
 	fi
 
 	if cat metadata/* | grep "^clobber_${image}=" | grep "true" > /dev/null; then
@@ -362,7 +372,7 @@ if [ "$INSTALL_ROM" == 1 ]; then
     [ "$PLUGIN" == "0" ] && echo "* print Installed ROM from $ROM_FILE"
     umount /system 2>/dev/null
     umount /data 2>/dev/null
-    exit 0
+    quit 0
 fi
 
 if [ "$RESTORE" == 1 ]; then
@@ -374,7 +384,7 @@ if [ "$RESTORE" == 1 ]; then
 	
 	if [ "$(mount | grep $ROOT_BACKUPDEVICE)" == "" ]; then
 	    echo "* print error: unable to mount $ROOT_BACKUPDEVICE"
-	    exit 16
+	    quit 16
 	fi
 
 
@@ -382,7 +392,7 @@ if [ "$RESTORE" == 1 ]; then
 
     if [ "$RESTOREPATH" = "" ]; then
 		echo "* print Error: no backups found"
-		exit 21
+		quit 21
     else
         RECENT=`ls -lt $ROOT_BACKUPDEVICE/nandroid | head -n 1`
 	BACKUPNAME=`basename $RESTOREPATH`
@@ -410,7 +420,7 @@ if [ "$RESTORE" == 1 ]; then
         fi
         if [ "$RESTOREPATH" = "" ]; then
             echo "* print Error: no matching backups found, aborting"
-            exit 22
+            quit 22
         fi
     fi
     
@@ -433,15 +443,15 @@ if [ "$RESTORE" == 1 ]; then
 	mount $EXT_DEVICE /sd-ext 2> /dev/null
     if [ -z "$(mount | grep data | grep -v "/data/data")" ]; then
 		echo "* print error: unable to mount /data, aborting"	
-		exit 23
+		quit 23
     fi
     if [ -z "$(mount | grep system)" ]; then
 		echo "* print error: unable to mount /system, aborting"	
-		exit 24
+		quit 24
     fi
     if [ -z "$(mount | grep cache)" ]; then
     		echo "*print error: unable to mount /cache, aborting"
-		exit 25
+		quit 25
     fi	
     
     CWD=$PWD
@@ -574,7 +584,7 @@ if [ "$RESTORE" == 1 ]; then
     ELAPSED_SECS=$(( $R_END - $R_START))
     echo "* print Restore operation took $ELAPSED_SECS seconds."
     echo "* print Thanks for using RZRecovery."
-    exit 0
+    quit 0
 fi
 
 
@@ -658,7 +668,7 @@ if [ "$BACKUP" == 1 ]; then
 		umount /data/data
 		umount /sd-ext
 		umount $ROOT_BACKUPDEVICE 2>/dev/null
-	    exit 32
+	    quit 32
     else
 		touch $DESTDIR/.nandroidwritable
 		if [ ! -e $DESTDIR/.nandroidwritable ]; then
@@ -666,7 +676,7 @@ if [ "$BACKUP" == 1 ]; then
 				umount /system 2>/dev/null
 				umount /data 2>/dev/null
 				umount $ROOT_BACKUPDEVICE 2>/dev/null
-			exit 33
+			quit 33
 		fi
 		rm $DESTDIR/.nandroidwritable
         fi
@@ -714,7 +724,7 @@ if [ "$BACKUP" == 1 ]; then
 	umount /data 2>/dev/null
 	rm -rf $DESTDIR
 	umount $ROOT_BACKUPDEVICE 2>/dev/null
-	exit 34
+	quit 34
     fi
 	
 
@@ -752,7 +762,7 @@ if [ "$BACKUP" == 1 ]; then
 			umount /system 2>/dev/null
 			umount /data 2>/dev/null
 			umount $ROOT_BACKUPDEVICE 2>/dev/null
-			exit 35
+			quit 35
 	    	fi
 	done
 	echo " complete!"
@@ -833,5 +843,5 @@ if [ "$BACKUP" == 1 ]; then
     echo "* print Backup operation took $ELAPSED_SECS seconds."
     echo "* print Total size of backup: $TOTALSIZE MB."
     echo "* print Thanks for using RZRecovery."
-    exit 0
+    quit 0
 fi

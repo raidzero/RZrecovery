@@ -1,5 +1,5 @@
 #!/sbin/sh
-#cwm nandroid conversion tool, should work on tar and img nandroids
+#cwm nandroid restore tool, should work on tar and img nandroids
 . /ui_commands.sh
 
 NAND_NAME=$1
@@ -20,11 +20,6 @@ boot=`find . -name "*boot*"`
 secure=`find . -name "*android_secure*"`
 cache=`find . -name "*cache*"`
 
-RZR_NAME="$STORAGE_ROOT/nandroid/CWM-`date +%Y%m%d-%H%M`"
-[ ! -d $RZR_NAME ] && mkdir -p $RZR_NAME
-RZRTMP=$STORAGE_ROOT/RZR/tmp
-[ ! -d $RZRTMP ] && mkdir $RZRTMP 
-
 for image in system data boot secure cache; do
 image_dir=$image
 dest_dir=$image
@@ -40,28 +35,28 @@ if [ ! -z "$image" ]; then
   if [ $IMAGE_IS_TAR -ne 0 ]; then
     ui_print "Unpacking..."
     PTOTAL=$(($(tar tf $image | wc -l)-2))
-    tar xvf $NAND_DIR/$image -C $RZRTMP | pipeline $PTOTAL
-    cd $RZRTMP/$dest_dir
-    ui_print "Converting..."
-    PTOTAL=`find . | wc -l`
-    tar cvf $RZR_NAME/$dest_dir.tar . | pipeline $PTOTAL
-  else
-    cd $RZRTMP
-    imgtmp="${image}tmp"
-    mkdir $imgtmp
-    cd $imgtmp
+	if [ "$image_dir" == "secure" ]; then
+	  dest_dir=$STORAGE_ROOT/.android_secure
+	else
+	  dest_dir="/$dest_dir"
+    fi
+	rm -rf $dest_dir/*
+	tar xvf $NAND_DIR/$image -C $dest_dir | pipeline $PTOTAL
+  else	  
+    dest_dir="/$dest_dir"
+	format $dest_dir
+	cd $dest_dir
     unyaffs $NAND_DIR/$image
     RTN=`find . | grep -v "$image" | wc -l`
     if [ $RTN -le 1 ]; then
-      cp $NAND_DIR/$image $RZR_NAME/$dest_dir.img
-    else
-      PTOTAL=`find . | wc -l`
-      tar cvf $RZR_NAME/$dest_dir.tar . | pipeline $PTOTAL
+      flash_img $dest_dir $image
     fi
   fi
 fi
 cd $NAND_DIR
+#reclaim any cached ram and write all changes to disk
+sync
+echo 3 > /proc/sys/vm/drop_caches
 done
-rm -rf $RZRTMP
-ui_print "All done! RZR Nandroid dir:"
-ui_print $RZR_NAME
+ui_print "Restore complete!"
+

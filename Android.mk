@@ -18,6 +18,7 @@ LOCAL_SRC_FILES := \
     mount_menu.c \
     wipe_menu.c \
     install_menu.c \
+    nandroid.c \
     nandroid_menu.c \
     overclock_menu.c \
     mkbootimg.c \
@@ -105,7 +106,7 @@ LOCAL_SRC_FILES := $(LOCAL_MODULE)
 include $(BUILD_PREBUILT)
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := cwm-convert.sh
+LOCAL_MODULE := cwm-restore.sh
 LOCAL_MODULE_TAGS := eng
 LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
 LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin

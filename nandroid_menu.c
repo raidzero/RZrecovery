@@ -43,8 +43,13 @@ void set_reboot_nandroid()
   reboot_nandroid ^= 1;
 }
 
+int get_reboot_after()
+{
+  return reboot_nandroid;
+}
+
 void
-nandroid ( const char* operation, char *subname, char partitions, int show_progress, int compress)
+nandroid(const char* operation, char *subname, char partitions, int show_progress, int compress)
 {
   ui_print ("Starting Nandroid %s.\n", operation);
 
@@ -487,7 +492,7 @@ show_nandroid_adv_r_menu ()
 	      switch (chosen_item)
 		    {
 		    case 0:
-		      nandroid("restore", filename, partitions, show_progress, compress);
+		      nandroid_native("restore", filename, partitions, show_progress, compress);
 		      break;
 		    case 1:
 		      nandroid_adv_r_choose_file (filename, backuppath);
@@ -529,7 +534,7 @@ show_nandroid_adv_r_menu ()
 	      switch (chosen_item)
 		    {
 		    case 0:
-		      nandroid("restore", filename, partitions, show_progress, compress);
+		      nandroid_native("restore", filename, partitions, show_progress, compress);
 		      break;
 		    case 1:
 		      nandroid_adv_r_choose_file (filename, backuppath);
@@ -561,14 +566,14 @@ show_nandroid_adv_r_menu ()
 	}		
 }
 
-void convert_backup(char* filename)
+void restore_cwm_backup(char* filename)
 {
   char* STORAGE_ROOT = get_storage_root();
   
   char *argv[] =
-    { "/sbin/cwm-convert.sh", filename, STORAGE_ROOT, NULL };
+    { "/sbin/cwm-restore.sh", filename, STORAGE_ROOT, NULL };
   char *envp[] = { NULL };
-  int status = runve ("/sbin/cwm-convert.sh", argv, envp, 1);
+  int status = runve ("/sbin/cwm-restore.sh", argv, envp, 1);
   
   if (status != 0) ui_print("Failure!\n");
   else ui_print("Success!\n");
@@ -577,7 +582,7 @@ void convert_backup(char* filename)
 void
 show_cwm_menu ()
 {
-  char *headers[] = { "Choose a backup to convert",
+  char *headers[] = { "Choose a backup to restore",
     "Backup:",
     "",
     "",
@@ -586,12 +591,12 @@ show_cwm_menu ()
   };
 
   char *items[] = { "Choose backup",
-    "Perform conversion",
+    "Perform restore",
     NULL,
   };
 
 #define ITEM_CHOOSE  0
-#define ITEM_CONVERT 1 
+#define ITEM_RESTORE 1 
   char* STORAGE_ROOT = get_storage_root();
   char cwmpath[254];
   strcpy(cwmpath, STORAGE_ROOT);
@@ -613,8 +618,8 @@ show_cwm_menu ()
 		nandroid_adv_r_choose_file (filename, cwmpath);
 		headers[2] = filename;		  
 		break;
-	  case ITEM_CONVERT:
-		convert_backup(filename);
+	  case ITEM_RESTORE:
+		restore_cwm_backup(filename);
 		break;			  
 	}
   }		
@@ -814,7 +819,7 @@ show_nandroid_adv_b_menu ()
 	      switch (chosen_item)
 		    {
 		    case 0:
-		      nandroid("backup", filename, partitions, show_progress, compress);
+		      nandroid_native("backup", filename, partitions, show_progress, compress);
 		      break;
 		    case 1:
 		      partitions ^= BOOT;
@@ -854,7 +859,7 @@ show_nandroid_adv_b_menu ()
 				  	      switch (chosen_item)
 		    {
 		    case 0:
-		      nandroid("backup", filename, partitions, show_progress, compress);
+		      nandroid_native("backup", filename, partitions, show_progress, compress);
 		      break;
 		    case 1:
 		      partitions ^= BOOT;
@@ -903,7 +908,7 @@ show_nandroid_menu ()
     "Nandroid Restore",
     "Compress existing backup",
     "Delete backup",
-	"Convert Clockwork backup",
+    "Restore Clockwork backup",
     NULL
   };
 
