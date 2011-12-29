@@ -106,12 +106,24 @@ void get_prefix(char partitions)
 }
   
   
-int backup_partition(const char* partition, const char* PREFIX)
+int backup_partition(const char* partition, const char* PREFIX, int compress, int progress)
 {
   Volume *v = volume_for_path(partition);
   char* NANDROID_DIR = get_nandroid_dir();
-  char* TAR_OPTS="cvf";
+  char TAR_OPTS[5]="c";
+  if (progress) strcat(TAR_OPTS, "v");
+  char* EXTENSION = NULL;
+  if (compress) {
+    strcat(TAR_OPTS, "z");
+	EXTENSION = "tar.gz";
+  }
+  if (!compress) 
+  {
+    EXTENSION = "tar";
+  }
+  strcat(TAR_OPTS, "f");
   int status;
+  
   
   ui_print("Backing up %s... ", partition);
   
@@ -119,7 +131,7 @@ int backup_partition(const char* partition, const char* PREFIX)
   {
     char* STORAGE_ROOT = get_storage_root();
 	char tar_cmd[1024];
-	sprintf(tar_cmd, "cd %s/.android_secure && tar %s %s/secure.tar .", STORAGE_ROOT, TAR_OPTS, PREFIX, STORAGE_ROOT);
+	sprintf(tar_cmd, "cd %s/.android_secure && tar %s %s/secure.%s .", STORAGE_ROOT, TAR_OPTS, PREFIX, EXTENSION);
 	printf("tar_cmd: %s\n", tar_cmd);
 	if (__system(tar_cmd))
 	{
@@ -140,11 +152,11 @@ int backup_partition(const char* partition, const char* PREFIX)
     char tar_cmd[1024];
 	if (strcmp(partition, "/data") == 0)
 	{
-	  sprintf(tar_cmd, "cd %s && tar %s %s%s.tar --exclude 'media' .", partition, TAR_OPTS, PREFIX, partition, partition);
+	  sprintf(tar_cmd, "cd %s && tar %s %s%s.%s --exclude 'media' .", partition, TAR_OPTS, PREFIX, partition, EXTENSION, partition);
 	}
 	else
 	{
-	  sprintf(tar_cmd, "cd %s && tar %s %s%s.tar .", partition, TAR_OPTS, PREFIX, partition, partition);
+	  sprintf(tar_cmd, "cd %s && tar %s %s%s.%s .", partition, TAR_OPTS, PREFIX, partition, EXTENSION, partition);
 	}
 	printf("tar_cmd: %s\n", tar_cmd);
 	if (__system(tar_cmd))
@@ -186,12 +198,32 @@ int backup_partition(const char* partition, const char* PREFIX)
   return status;
 }  
 
-int restore_partition(const char* partition, const char* PREFIX)
+int restore_partition(const char* partition, const char* PREFIX, int progress)
 {
   char* STORAGE_ROOT = get_storage_root();
   Volume *v = volume_for_path(partition);
   
-  char* TAR_OPTS="xvf";
+  char TAR_OPTS[5]="x";
+  if (progress) strcat(TAR_OPTS, "v");
+  char* EXTENSION = NULL;
+  int compress;
+  char tarfilename[PATH_MAX];
+  char tgzfilename[PATH_MAX];
+  sprintf(tarfilename, "%s%s.tar", PREFIX, partition);
+  sprintf(tgzfilename, "%s%s.tar.gz", PREFIX, partition);
+  printf("tgz: %s\ntar: %s\n", tgzfilename, tarfilename);
+  
+  if (access(tgzfilename, F_OK) != -1 && access(tarfilename, F_OK) == -1) compress = 1;
+  if (access(tarfilename, F_OK) != -1 && access(tgzfilename, F_OK) == -1) compress = 0;
+  if (compress) {
+    strcat(TAR_OPTS, "z");
+	EXTENSION = "tar.gz";
+  }
+  else
+  {
+    EXTENSION = "tar";
+  }
+  strcat(TAR_OPTS, "f");
   int status;
   
   ui_print("Restoring %s... ", partition);
@@ -202,7 +234,7 @@ int restore_partition(const char* partition, const char* PREFIX)
 	sprintf(rm_cmd, "rm -rf %s/.android_secure/*", STORAGE_ROOT);
 	__system(rm_cmd);
 	char tar_cmd[PATH_MAX];	
-	sprintf(tar_cmd, "tar %s %s/secure.tar -C %s/.android_secure", TAR_OPTS, PREFIX, STORAGE_ROOT);
+	sprintf(tar_cmd, "tar %s %s/secure.%s -C %s/.android_secure", TAR_OPTS, PREFIX, EXTENSION, STORAGE_ROOT);
 	printf("tar_cmd: %s\n", tar_cmd);
 	if (__system(tar_cmd))
 	{
@@ -223,7 +255,7 @@ int restore_partition(const char* partition, const char* PREFIX)
     format_volume(partition);
 	ensure_path_mounted(partition);
     char tar_cmd[1024];
-	sprintf(tar_cmd, "tar %s %s%s.tar -C %s", TAR_OPTS, PREFIX, partition, partition);
+	sprintf(tar_cmd, "tar %s %s%s.%s -C %s", TAR_OPTS, PREFIX, partition, EXTENSION, partition);
 	printf("tar_cmd: %s\n", tar_cmd);
 	if (__system(tar_cmd))
 	{
@@ -279,6 +311,28 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
   char* STORAGE_ROOT = get_storage_root();
   printf("STORAGE_ROOT: %s\n", STORAGE_ROOT);
   
+  int ENERGY;
+  
+  FILE *fs = fopen ("/sys/class/power_supply/battery/status", "r");
+  char *bstat = calloc (14, sizeof (char));
+  fgets (bstat, 14, fs);
+  
+  if (strcmp(bstat, "Charging") == 0) ENERGY = 100;
+ 
+  FILE *fc = fopen ("/sys/class/power_supply/battery/capacity", "r");
+  char *bcap = calloc (14, sizeof (char));
+  fgets (bcap, 4, fc);
+  
+  ENERGY = atoi(bcap);
+  
+  if (ENERGY < 20)
+  {
+    if (!ask_question("Insufficient battery power. Continue?")) return;
+  }
+  fclose(fc);
+  fclose(fs);
+  
+
   ui_print ("\nStarting Nandroid %s.\n", operation);
   
   int reboot = get_reboot_after();
@@ -301,31 +355,38 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
     sprintf(tmp, "mkdir -p %s", PREFIX);
     __system(tmp);
 	
+	if (compress)
+	{
+	  ui_print("\nCompression activated. Go make a sandwich.\n");
+	  ui_print("This will take forever, but your\n");
+	  ui_print("SD Card will thank you :)\n\n");
+	}
+	
     if (boot) 
 	{
-	  if (backup_partition("/boot", PREFIX)) failed = 1;
+	  if (backup_partition("/boot", PREFIX, compress, show_progress)) failed = 1;
 	}
 	if (system) 
 	{
-	  if (backup_partition("/system", PREFIX)) failed = 1;
+	  if (backup_partition("/system", PREFIX, compress, show_progress)) failed = 1;
 	}
     if (data) 
 	{
-	  if (backup_partition("/data", PREFIX)) failed = 1;
+	  if (backup_partition("/data", PREFIX, compress, show_progress)) failed = 1;
 	}
     if (cache) 
 	{
-	  if (backup_partition("/cache", PREFIX)) failed = 1;
+	  if (backup_partition("/cache", PREFIX, compress, show_progress)) failed = 1;
 	}
     if (asecure) 
     {
 	  printf("About to back up .android_secure...\n");
-	  if (backup_partition(".android_secure", PREFIX)) failed = 1;
+	  if (backup_partition(".android_secure", PREFIX, compress, show_progress)) failed = 1;
     }
 
     if (sdext) 
 	{
-	  if (backup_partition("/sd-ext", PREFIX)) failed = 1;
+	  if (backup_partition("/sd-ext", PREFIX, compress, show_progress)) failed = 1;
 	}
   }
   if (strcmp(operation, "restore") == 0)
@@ -341,28 +402,28 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
 	
     if (boot) 
 	{
-	  if (restore_partition("/boot", PREFIX)) failed = 1;
+	  if (restore_partition("/boot", PREFIX, show_progress)) failed = 1;
 	}    
 	if (system) 
 	{
-	  if (restore_partition("/system", PREFIX)) failed = 1;
+	  if (restore_partition("/system", PREFIX, show_progress)) failed = 1;
 	}
     if (data) 
 	{
-	  if (restore_partition("/data", PREFIX)) failed = 1;
+	  if (restore_partition("/data", PREFIX, show_progress)) failed = 1;
 	}
     if (cache) 
 	{
-	  if (restore_partition("/cache", PREFIX)) failed = 1;
+	  if (restore_partition("/cache", PREFIX, show_progress)) failed = 1;
 	}
     if (asecure) 
     {
 	  printf("About to restore .android_secure...\n");
-	  if (restore_partition(".android_secure", PREFIX)) failed = 1;
+	  if (restore_partition(".android_secure", PREFIX, show_progress)) failed = 1;
     }
     if (sdext) 
 	{
-	  if (restore_partition("/sd-ext", PREFIX)) failed = 1;
+	  if (restore_partition("/sd-ext", PREFIX, show_progress)) failed = 1;
 	}
   }
   printf("%s finished.\n", operation);
