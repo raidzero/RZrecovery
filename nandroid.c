@@ -82,6 +82,7 @@ void get_prefix(char partitions)
   gettimeofday(&tv, NULL);
   if((tm = localtime(&tv.tv_sec)) != NULL)
   {
+    //timestamp format 20111228-1444
     strftime(fmt, sizeof fmt, "%Y%m%d-%H%M", tm);
     snprintf(timestamp, sizeof timestamp, fmt, tv.tv_usec);
   }
@@ -93,13 +94,7 @@ void get_prefix(char partitions)
   
   //build the prefix string
   char prefix[1024];
-  strcpy(prefix, NANDROID_DIR);
-  strcat(prefix, "/");
-  strcat(prefix, ANDROID_VERSION);
-  strcat(prefix, "-");
-  strcat(prefix, PARTITIONS);
-  strcat(prefix, "-");
-  strcat(prefix, timestamp);
+  sprintf(prefix, "%s/%s-%s-%s", NANDROID_DIR, ANDROID_VERSION, PARTITIONS, timestamp);
   
   strcpy(PREFIX, prefix);
   printf("internal prefix: %s\n", PREFIX); 
@@ -152,7 +147,7 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
     char tar_cmd[1024];
 	if (strcmp(partition, "/data") == 0)
 	{
-	  sprintf(tar_cmd, "cd %s && tar %s %s%s.%s --exclude 'media' .", partition, TAR_OPTS, PREFIX, partition, EXTENSION, partition);
+	  sprintf(tar_cmd, "cd %s && tar %s %s%s.%s . --exclude './media'", partition, TAR_OPTS, PREFIX, partition, EXTENSION, partition);
 	}
 	else
 	{
@@ -181,7 +176,7 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
 	strcat(rawimg, ".img");
 	
 	printf("backing up %s to %s\n", partition, rawimg);
-	//sprintf(rawimg, "%s/%s.img", PREFIX, partition);
+
     if (backup_raw_partition(v->fs_type, v->device, rawimg))
 	{
 	  ui_print("Failed!\n");
@@ -209,9 +204,16 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
   int compress;
   char tarfilename[PATH_MAX];
   char tgzfilename[PATH_MAX];
-  sprintf(tarfilename, "%s%s.tar", PREFIX, partition);
-  sprintf(tgzfilename, "%s%s.tar.gz", PREFIX, partition);
-  printf("tgz: %s\ntar: %s\n", tgzfilename, tarfilename);
+  if (strstr(partition, ".android_secure"))
+  {
+    sprintf(tarfilename, "%s/secure.tar", PREFIX, partition);
+    sprintf(tgzfilename, "%s/secure.tar.gz", PREFIX, partition);
+  }
+  else
+  {
+    sprintf(tarfilename, "%s%s.tar", PREFIX, partition);
+    sprintf(tgzfilename, "%s%s.tar.gz", PREFIX, partition);
+  }
   
   if (access(tgzfilename, F_OK) != -1 && access(tarfilename, F_OK) == -1) compress = 1;
   if (access(tarfilename, F_OK) != -1 && access(tgzfilename, F_OK) == -1) compress = 0;
@@ -373,6 +375,10 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
     if (data) 
 	{
 	  if (backup_partition("/data", PREFIX, compress, show_progress)) failed = 1;
+	  if (volume_present("/datadata"))
+	  {
+	    if (backup_partition("/datadata", PREFIX, compress, show_progress)) failed = 1;
+	  }
 	}
     if (cache) 
 	{
@@ -411,6 +417,10 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
     if (data) 
 	{
 	  if (restore_partition("/data", PREFIX, show_progress)) failed = 1;
+	  if (volume_present("/datadata"))
+	  {
+	    if (restore_partition("/datadata", PREFIX, show_progress)) failed = 1;
+	  }
 	}
     if (cache) 
 	{
