@@ -870,6 +870,8 @@ int main (int argc, char **argv)
 	      return unyaffs_main(argc, argv);
 	    if (strstr (argv[0], "keytest") != NULL)
 	      return ui_key_test();
+	    if (strstr (argv[0], "dirsize") != NULL)
+	      return dirsize_main(argc, argv);
 	    //we dont need to keep executing stuff past this point if an embedded function was called 
 	    return 0;
 	  }

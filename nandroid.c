@@ -1,7 +1,13 @@
 #include <stdio.h>
+#include <errno.h>
 #include <linux/input.h>
 #include <sys/wait.h>
 #include <sys/limits.h>
+#include <sys/statfs.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <sys/vfs.h>
 #include <dirent.h>
 #include <fcntl.h>
 
@@ -306,7 +312,7 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
   ui_reset_progress();
   return status;
 } 
-
+  
 void nandroid_native(const char* operation, char* subname, char partitions, int show_progress, int compress)
 {
   time_t starttime, endtime, elapsed;
@@ -353,6 +359,56 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
 	printf("START: %ld\n", starttime);
     get_prefix(partitions);
 	ui_print("%s\n", PREFIX);
+	
+	struct statfs s;
+	//sd space
+	Volume * storage_volume = volume_for_path(PREFIX);
+	statfs(storage_volume->mount_point, &s);
+	uint64_t sd_bsize = s.f_bsize;
+	uint64_t sd_freeblocks = s.f_bavail;
+	long available_mb = sd_bsize * sd_freeblocks / (long) (1024*1024);
+	
+	long bytesrequired = 0;
+	ensure_path_mounted(STORAGE_ROOT);
+	if (system) 
+	{
+	  ensure_path_mounted("/system");
+	  bytesrequired += compute_size("/system", 0);
+	}
+	if (data)
+	{	
+	  ensure_path_mounted("/data");
+	  bytesrequired += compute_size("/data", 0);  
+	  if (volume_present("/datadata")) 
+	  {
+	    ensure_path_mounted("/datadata");
+		bytesrequired += compute_size("/datadata");
+	  }
+	  //subtract data/media
+	  bytesrequired -= compute_size("/data/media");
+	}
+	if (cache) 
+	{
+	  ensure_path_mounted("/cache");
+	  bytesrequired += compute_size("/cache");
+	}
+	if (asecure) 
+	{
+	  char SECURE_PATH[1024];
+	  sprintf(SECURE_PATH, "%s/.android_secure", STORAGE_ROOT);
+	  ensure_path_mounted(STORAGE_ROOT);
+	  bytesrequired += compute_size(SECURE_PATH);
+	}
+	if (sdext) 
+	{
+	  ensure_path_mounted("/sd-ext");
+	  bytesrequired += compute_size("/sd-ext");
+	}
+		
+	long mb_required =  bytesrequired / 1024 / 1024;
+	ui_print("%ld MB required\n", mb_required);
+	ui_print("%ld MB available\n", available_mb);
+	  
     char tmp[PATH_MAX];
     sprintf(tmp, "mkdir -p %s", PREFIX);
     __system(tmp);
