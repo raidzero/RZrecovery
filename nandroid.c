@@ -141,7 +141,8 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
 	} 
 	else
 	{
-	  ui_print("Success!\n");
+	  ui_print("Success!");
+	  ui_reset_text_col();
 	  status = 0;
 	}
 	return status;
@@ -168,7 +169,8 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
 	} 
 	else
 	{
-	  ui_print("Success!\n");
+	  ui_print("Success!");
+	  ui_reset_text_col();
 	  ensure_path_unmounted(partition);
 	  status = 0;
 	}
@@ -191,7 +193,8 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
 	}
 	else
 	{
-	  ui_print("Success!\n");
+	  ui_print("Success!");
+	  ui_reset_text_col();
 	  ensure_path_unmounted(partition);
 	  status = 0;
 	}
@@ -251,7 +254,8 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
 	} 
 	else
 	{
-	  ui_print("Success!\n");
+	  ui_print("Success!");
+	  ui_reset_text_col();
 	  status = 0;
 	}
 	ui_reset_progress();
@@ -273,7 +277,8 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
 	} 
 	else
 	{
-	  ui_print("Success!\n");
+	  ui_print("Success!");
+	  ui_reset_text_col();
 	  ensure_path_unmounted(partition);
 	  status = 0;
 	}
@@ -304,7 +309,8 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
 	}
 	else
 	{
-	  ui_print("Success!\n");
+	  ui_print("Success!");
+	  ui_reset_text_col();
 	  ensure_path_unmounted(partition);
 	  status = 0;
 	}
@@ -359,7 +365,8 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
 	printf("START: %ld\n", starttime);
     get_prefix(partitions);
 	ui_print("%s\n", PREFIX);
-	
+	ui_print("Calculating space requirements...");
+	ui_reset_text_col();
 	struct statfs s;
 	//sd space
 	Volume * storage_volume = volume_for_path(PREFIX);
@@ -369,40 +376,62 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
 	long available_mb = sd_bsize * sd_freeblocks / (long) (1024*1024);
 	
 	long bytesrequired = 0;
+	long totalbytes = 0;
 	ensure_path_mounted(STORAGE_ROOT);
 	if (system) 
 	{
+	  ui_print("/system...");
 	  ensure_path_mounted("/system");
-	  bytesrequired += compute_size("/system", 0);
+	  bytesrequired = compute_size("/system", 0);
+	  totalbytes += bytesrequired;
+	  ui_reset_text_col();
 	}
 	if (data)
 	{	
+	  ui_print("/data...");
 	  ensure_path_mounted("/data");
-	  bytesrequired += compute_size("/data", 0);  
+	  bytesrequired = compute_size("/data", 0);  
+	  totalbytes += bytesrequired;
+	  ui_reset_text_col();
 	  if (volume_present("/datadata")) 
 	  {
+	    ui_print("/datadata...");
 	    ensure_path_mounted("/datadata");
-		bytesrequired += compute_size("/datadata");
+		bytesrequired = compute_size("/datadata", 0);
+		totalbytes += bytesrequired;
+		ui_reset_text_col();
 	  }
 	  //subtract data/media
-	  bytesrequired -= compute_size("/data/media");
+	  ui_print("/data/media...");
+	  bytesrequired -= compute_size("/data/media", 0);
+	  totalbytes += bytesrequired;
+	  ui_reset_text_col();
 	}
 	if (cache) 
 	{
+	  ui_print("/cache...");
 	  ensure_path_mounted("/cache");
-	  bytesrequired += compute_size("/cache");
+	  bytesrequired = compute_size("/cache", 0);
+	  totalbytes += bytesrequired;
+	  ui_reset_text_col();
 	}
 	if (asecure) 
 	{
+	  ui_print("android_secure...");
 	  char SECURE_PATH[1024];
 	  sprintf(SECURE_PATH, "%s/.android_secure", STORAGE_ROOT);
 	  ensure_path_mounted(STORAGE_ROOT);
-	  bytesrequired += compute_size(SECURE_PATH);
+	  bytesrequired += compute_size(SECURE_PATH, 0);
+	  totalbytes += bytesrequired;
+	  ui_reset_text_col();
 	}
 	if (sdext) 
 	{
+	  ui_print("/sdext...");
 	  ensure_path_mounted("/sd-ext");
-	  bytesrequired += compute_size("/sd-ext");
+	  bytesrequired = compute_size("/sd-ext", 0);
+	  totalbytes += bytesrequired;
+	  ui_reset_text_col();
 	}
 		
 	long mb_required =  bytesrequired / 1024 / 1024;
@@ -453,13 +482,15 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
   }
   if (strcmp(operation, "restore") == 0)
   {
+    printf("SUBNAME: %s\n", subname);
     char PREFIX[PATH_MAX];
 	char* NANDROID_DIR = get_nandroid_dir();
 	starttime = time(NULL);
-	strcpy(PREFIX, NANDROID_DIR);
+	/*strcpy(PREFIX, NANDROID_DIR);
 	strcat(PREFIX, "/");
-	strcat(PREFIX, subname);
-	printf("backup path: %s\n", PREFIX);
+	strcat(PREFIX, subname);*/
+	sprintf(PREFIX, "%s/%s", NANDROID_DIR, subname);
+	printf("PREFIX: %s\n", PREFIX);
 	printf("START: %ld\n", starttime);
 	
     if (boot) 
@@ -498,6 +529,14 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
   elapsed = endtime - starttime;
 
   printf("ELAPSED: %ld\n", elapsed);
+  
   if (failed != 1) if (reboot) reboot_android();
-  ui_print("%s took %ld seconds.\n", operation, elapsed);
+  ui_print("\n%s took %ld seconds.\n", operation, elapsed);
+  if (strcmp(operation, "backup") == 0) 
+  {
+    ensure_path_mounted(STORAGE_ROOT);
+	printf("PREFIX: %s\n", PREFIX);
+	long totalspace = compute_size(PREFIX, 0);
+    ui_print("Size of backup: %ld MB\n", totalspace/1024/1024);
+  }
 }

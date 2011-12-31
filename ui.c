@@ -634,41 +634,11 @@ ui_print (const char *fmt, ...)
   pthread_mutex_unlock (&gUpdateMutex);
 }
 
-void
-ui_print_n (const char *fmt, ...) 
+void ui_reset_text_col()
 {
-  char buf[256];
-
-  va_list ap;
-  va_start (ap, fmt);
-  vsnprintf (buf, (text_cols -1), fmt, ap);
-  va_end (ap);
-   if (ui_log_stdout) fputs (buf, stdout);
-   text_col = 0;
-   
-    // This can get called before ui_init(), so be careful.
-    pthread_mutex_lock (&gUpdateMutex);
-  if (text_rows > 0 && text_cols > 0)
-	  {
-	    char *ptr;
-
-	    for (ptr = buf; *ptr != '\0'; ++ptr)
-		    {
-		      if (*ptr == '\n' || text_col >= text_cols)
-			      {
-				text[text_row][text_col] = '\0';
-				text_col = 0;
-				text_row = (text_row + 1) % text_rows;
-				if (text_row == text_top)
-				  text_top = (text_top + 1) % text_rows;
-			      }
-		      if (*ptr != '\n')
-			text[text_row][text_col++] = *ptr;
-		    }
-	    text[text_row][text_col] = '\0';
-	    update_screen_locked ();
-	  }
-  pthread_mutex_unlock (&gUpdateMutex);
+  pthread_mutex_lock(&gUpdateMutex);
+  text_col = 0;
+  pthread_mutex_unlock(&gUpdateMutex);
 }
 
 void view_log()
