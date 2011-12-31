@@ -128,9 +128,16 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
   
   ui_print("Backing up %s... ", partition);
   
+  
   if (strstr(partition, ".android_secure"))
   {
     char* STORAGE_ROOT = get_storage_root();
+
+    ensure_path_mounted(STORAGE_ROOT);
+	printf("Calculating files in %s: ", partition);
+	long totalfiles = compute_files(partition);
+	printf("%ld files present.\n");
+	
 	char tar_cmd[1024];
 	sprintf(tar_cmd, "cd %s/.android_secure && tar %s %s/secure.%s .", STORAGE_ROOT, TAR_OPTS, PREFIX, EXTENSION);
 	printf("tar_cmd: %s\n", tar_cmd);
@@ -151,7 +158,12 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
   if (strcmp(v->fs_type, "mtd") != 0 && strcmp(v->fs_type, "emmc") != 0 && strcmp(v->fs_type, "bml"))
   {
     ensure_path_mounted(partition);
-    char tar_cmd[1024];
+	
+	printf("Calculating files in %s: ", partition);
+	long totalfiles = compute_files(partition);
+	printf("%ld files present.\n");
+    
+	char tar_cmd[1024];
 	if (strcmp(partition, "/data") == 0)
 	{
 	  sprintf(tar_cmd, "cd %s && tar %s %s%s.%s . --exclude './media'", partition, TAR_OPTS, PREFIX, partition, EXTENSION, partition);
@@ -532,11 +544,13 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
   
   if (failed != 1) if (reboot) reboot_android();
   ui_print("\n%s took %ld seconds.\n", operation, elapsed);
+  
+  //this part isnt quite working yet
   if (strcmp(operation, "backup") == 0) 
   {
     ensure_path_mounted(STORAGE_ROOT);
 	printf("PREFIX: %s\n", PREFIX);
-	long totalspace = compute_size(PREFIX, 0);
+	long totalspace = compute_size(PREFIX, 1);
     ui_print("Size of backup: %ld MB\n", totalspace/1024/1024);
   }
 }

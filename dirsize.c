@@ -5,6 +5,8 @@
 #include <string.h>
 
 long totalbytes = 0;
+long totalfiles = 0;
+
 #define PATH_MAX 4096
 
 long dirsize(const char* directory, int verbose)
@@ -51,13 +53,48 @@ long dirsize(const char* directory, int verbose)
   return totalbytes;
 }
 	
+long dirfiles(const char* directory)
+{
+  struct dirent *de;
+  char pathname[PATH_MAX];
+  DIR * dir; 
+
+  dir = opendir(directory);
+  if (dir == NULL)
+  {
+    printf("Failed to open %s.\n", directory);
+	return 0;
+  }
+  
+  while ((de = readdir (dir)) != NULL)
+  {
+	if (de->d_type == DT_REG)
+	{
+	  totalfiles += 1; //increment totalfiles
+	}
+	if (de->d_type == DT_DIR && strcmp(de->d_name, ".") != 0 && strcmp(de->d_name, "..") != 0)
+	{
+	  sprintf(pathname, "%s/%s", directory, de->d_name);
+	  dirfiles(pathname); //recursion: keep looping until no more subdirs remain
+	}
+  }
+  closedir(dir);
+  return totalfiles;
+}
+
 long compute_size(const char* directory, int verbose)
 {
   long space = dirsize(directory, verbose);
   return space;
 }
-  
-int dirsize_main(int argc, char* argv[])
+ 
+long compute_files(const char* directory)
+{
+  long files = dirfiles(directory);
+  return files;
+}
+
+int compute_size_main(int argc, char* argv[])
 {
   if (argc != 2)
   {
@@ -76,3 +113,17 @@ int dirsize_main(int argc, char* argv[])
   }
   return 0;
 }
+
+int compute_files_main(int argc, char* argv[])
+{
+  if (argc != 2)
+  {
+    printf("Usage: compute_files DIRECTORY\n");
+	return -1;
+  }
+
+  long files = compute_files(argv[1]);
+  printf("%ld files in %s\n", files, argv[1]);
+  return 0;
+}
+
