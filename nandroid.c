@@ -20,6 +20,7 @@
 #include "nandroid_menu.h"
 #include "nandroid.h"
 #include "install_menu.h"
+#include "dirsize.h"
 
 int reboot_afterwards;
 char timestamp[64];
@@ -128,15 +129,14 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
   
   ui_print("Backing up %s... ", partition);
   
+  long totalfiles = 0;
   
   if (strstr(partition, ".android_secure"))
   {
     char* STORAGE_ROOT = get_storage_root();
 
     ensure_path_mounted(STORAGE_ROOT);
-	printf("Calculating files in %s: ", partition);
-	long totalfiles = compute_files(partition);
-	printf("%ld files present.\n");
+	//totalfiles = compute_files(partition);
 	
 	char tar_cmd[1024];
 	sprintf(tar_cmd, "cd %s/.android_secure && tar %s %s/secure.%s .", STORAGE_ROOT, TAR_OPTS, PREFIX, EXTENSION);
@@ -154,14 +154,13 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
 	}
 	return status;
   }	
-	 
+  
+  
   if (strcmp(v->fs_type, "mtd") != 0 && strcmp(v->fs_type, "emmc") != 0 && strcmp(v->fs_type, "bml"))
   {
     ensure_path_mounted(partition);
 	
-	printf("Calculating files in %s: ", partition);
-	long totalfiles = compute_files(partition);
-	printf("%ld files present.\n");
+	//totalfiles = compute_files(partition);
     
 	char tar_cmd[1024];
 	if (strcmp(partition, "/data") == 0)
@@ -398,6 +397,25 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
 	  totalbytes += bytesrequired;
 	  ui_reset_text_col();
 	}
+	if (asecure) 
+	{
+	  ui_print("android_secure...");
+	  char SECURE_PATH[1024];
+	  sprintf(SECURE_PATH, "%s/.android_secure", get_storage_root());
+	  ensure_path_mounted(STORAGE_ROOT);
+	  printf("SECURE_PATH: %s\n", SECURE_PATH);
+	  bytesrequired += compute_size(SECURE_PATH, 0);
+	  totalbytes += bytesrequired;
+	  ui_reset_text_col();
+	}
+	if (sdext) 
+	{
+	  ui_print("/sdext...");
+	  ensure_path_mounted("/sd-ext");
+	  bytesrequired = compute_size("/sd-ext", 0);
+	  totalbytes += bytesrequired;
+	  ui_reset_text_col();
+	}	
 	if (data)
 	{	
 	  ui_print("/data...");
@@ -424,24 +442,6 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
 	  ui_print("/cache...");
 	  ensure_path_mounted("/cache");
 	  bytesrequired = compute_size("/cache", 0);
-	  totalbytes += bytesrequired;
-	  ui_reset_text_col();
-	}
-	if (asecure) 
-	{
-	  ui_print("android_secure...");
-	  char SECURE_PATH[1024];
-	  sprintf(SECURE_PATH, "%s/.android_secure", STORAGE_ROOT);
-	  ensure_path_mounted(STORAGE_ROOT);
-	  bytesrequired += compute_size(SECURE_PATH, 0);
-	  totalbytes += bytesrequired;
-	  ui_reset_text_col();
-	}
-	if (sdext) 
-	{
-	  ui_print("/sdext...");
-	  ensure_path_mounted("/sd-ext");
-	  bytesrequired = compute_size("/sd-ext", 0);
 	  totalbytes += bytesrequired;
 	  ui_reset_text_col();
 	}
@@ -539,18 +539,17 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
   endtime = time(NULL);
   printf("END: %ld\n", endtime);
   elapsed = endtime - starttime;
-
   printf("ELAPSED: %ld\n", elapsed);
   
+  
   if (failed != 1) if (reboot) reboot_android();
-  ui_print("\n%s took %ld seconds.\n", operation, elapsed);
   
   //this part isnt quite working yet
   if (strcmp(operation, "backup") == 0) 
   {
     ensure_path_mounted(STORAGE_ROOT);
 	printf("PREFIX: %s\n", PREFIX);
-	long totalspace = compute_size(PREFIX, 1);
-    ui_print("Size of backup: %ld MB\n", totalspace/1024/1024);
+    ui_print("Space used: %ld MB\n", compute_size(PREFIX, 1)/1024/1024);
   }
+  ui_print("Elapsed time: %ld seconds\n", elapsed);
 }
