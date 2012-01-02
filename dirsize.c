@@ -6,11 +6,28 @@
 
 long totalbytes = 0;
 long totalfiles = 0;
+int clearTotal = 0;
 
 #define PATH_MAX 4096
 
+int get_clearTotal_intent()
+{
+   return clearTotal;
+}
+
+void set_clearTotal_intent(int value)
+{
+   clearTotal = value;
+}
+
 long dirsize(const char* directory, int verbose)
 {
+  if (clearTotal) 
+  {
+    printf("Clear total intent received.\n");
+	totalbytes = 0;
+  }
+  
   struct dirent *de;
   struct stat s;
   char pathname[PATH_MAX];
@@ -38,7 +55,7 @@ long dirsize(const char* directory, int verbose)
 	  }
 	  if (verbose) 
 	  {
-	    printf("%s/%s : %ld bytes\n", directory, de->d_name, s.st_size);
+	    printf("%s/%s : %lld bytes\n", directory, de->d_name, s.st_size);
 	  }
 	  filesize = s.st_size; //put file size into filesize variable
 	  totalbytes += filesize; //increment totalbytes
@@ -85,11 +102,13 @@ long dirfiles(const char* directory)
 long compute_size(const char* directory, int verbose)
 {
   long space = dirsize(directory, verbose);
+  printf("RETURNING: %ld\n", space);
   return space;
 }
  
 long compute_files(const char* directory)
 {
+  clearTotal = get_clearTotal_intent();
   long files = dirfiles(directory);
   return files;
 }

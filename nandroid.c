@@ -329,7 +329,7 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
   ui_reset_progress();
   return status;
 } 
-  
+
 void nandroid_native(const char* operation, char* subname, char partitions, int show_progress, int compress)
 {
   time_t starttime, endtime, elapsed;
@@ -434,7 +434,6 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
 	  //subtract data/media
 	  ui_print("/data/media...");
 	  bytesrequired -= compute_size("/data/media", 0);
-	  totalbytes += bytesrequired;
 	  ui_reset_text_col();
 	}
 	if (cache) 
@@ -447,7 +446,7 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
 	}
 		
 	long mb_required =  bytesrequired / 1024 / 1024;
-	ui_print("%ld MB required\n", mb_required);
+	ui_print("~%ld MB required\n", mb_required);
 	ui_print("%ld MB available\n", available_mb);
 	  
     char tmp[PATH_MAX];
@@ -544,11 +543,12 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
   
   if (failed != 1) if (reboot) reboot_android();
   
-  //this part isnt quite working yet
+  //this part isnt quite working yet - gets 0 byte filesizes in PREFIX?
   if (strcmp(operation, "backup") == 0) 
   {
     ensure_path_mounted(STORAGE_ROOT);
 	printf("PREFIX: %s\n", PREFIX);
+	set_clearTotal_intent(1); //clear the previous running total so it doesnt get added to the backup total
     ui_print("Space used: %ld MB\n", compute_size(PREFIX, 1)/1024/1024);
   }
   ui_print("Elapsed time: %ld seconds\n", elapsed);
