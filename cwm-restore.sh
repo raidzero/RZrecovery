@@ -49,7 +49,7 @@ if [ ! -z "$image" ]; then
     unyaffs $NAND_DIR/$image
     RTN=`find . | grep -v "$image" | wc -l`
     if [ $RTN -le 1 ]; then
-      flash_img $dest_dir $NAND_DIR/$image
+      flash_img $dest_dir $image
     fi
   fi
 fi
