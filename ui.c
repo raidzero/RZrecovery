@@ -85,6 +85,8 @@ static gr_surface gProgressBarFill;
   {
   &gBackgroundIcon[BACKGROUND_ICON_RW], "icon_rw"},
   {
+  &gBackgroundIcon[BACKGROUND_ICON_GM], "galmin"},
+  {
   &gBackgroundIcon[LOADING], "icon_loading"},
   {
   &gProgressBarIndeterminate[0], "indeterminate1"}, 
@@ -171,10 +173,14 @@ draw_progress_locked ()
   {
     iconHeight = gr_get_height (gBackgroundIcon[BACKGROUND_ICON_RZ]);
   }
-  else
+  else if (access("/tmp/.rzrpref_icon_rw", F_OK) != -1)
   {
     iconHeight = gr_get_height (gBackgroundIcon[BACKGROUND_ICON_RW]);
   }  
+  else
+  {
+    iconHeight = gr_get_height (gBackgroundIcon[BACKGROUND_ICON_GM]);
+  }
   int width = gr_get_width (gProgressBarEmpty);
   int height = gr_get_height (gProgressBarEmpty);
   int dx = (gr_fb_width () - width) / 2;

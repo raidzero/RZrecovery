@@ -120,7 +120,7 @@ show_overclock_menu ()
 
   sprintf(freqstring,"%i",freqMHz);
 
-  strcpy(max_string,"Current Max Speed: ");
+  strcpy(max_string,"Curr Max Speed: ");
   strcat(max_string, freqstring);
   strcat(max_string," MHz");
 

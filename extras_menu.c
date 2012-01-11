@@ -116,7 +116,8 @@ int plugins_present(const char* sdpath)
 
 void show_nandroid_dir_menu()
 {
-  char *headers[] = { "Choose a nandroid directory",
+  char *headers[] = { "Choose a",
+    "nandroid directory",
     "Current directory:",
     "",
     "",
@@ -251,7 +252,8 @@ void show_repeat_scroll_menu()
   strcat(delay_string, keyhold_delay);
   strcat(delay_string, " ms");
   
-  char* headers[] = { "Repeat-scroll delay (lower is faster)", 
+  char* headers[] = { "Repeat-scroll delay",
+    "(lower is faster)",
     delay_string,
     "",
     NULL
@@ -316,9 +318,12 @@ void set_usb_fat_only(int fat_only)
 void show_usb_options_menu()
 {
   char* headers[] = { "USB Mass Storage Options",
-    "Would you like to be able to mount ext",
-	"filesystems as USB mass storage devices?",
-	"Linux users: say yes, Windows: no",
+    "Would you like to be",
+        "able to mount ext",
+	"filesystems as USB",
+        "mass storage devices?",
+	"Linux users: say yes",
+        "Windows: no",
 	"",
 	NULL
   };
