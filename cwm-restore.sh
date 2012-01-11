@@ -43,13 +43,12 @@ if [ ! -z "$image" ]; then
 	rm -rf $dest_dir/*
 	tar xvf $NAND_DIR/$image -C $dest_dir | pipeline $PTOTAL
   else	  
-    dest_dir="/$dest_dir"
+    dest_dir="/boot"
 	format $dest_dir
 	cd $dest_dir
-    unyaffs $NAND_DIR/$image
-    RTN=`find . | grep -v "$image" | wc -l`
+    RTN=`find . | grep -v "boot.img" | wc -l`
     if [ $RTN -le 1 ]; then
-      flash_img $dest_dir $image
+      flash_img $dest_dir $NAND_DIR/boot.img
     fi
   fi
 fi

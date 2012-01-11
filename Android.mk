@@ -34,10 +34,10 @@ RECOVERY_API_VERSION := 2
 ##generate the recovery version file
 TARGET_DEVICE := $(shell echo $$TARGET_PRODUCT | cut -d '_' -f2)
 RZR_VERSION := "2.1.4"
-VERS_STRING := "$(RZR_VERSION)-$(TARGET_DEVICE) finally"
+VERS_STRING := "$(RZR_VERSION)"
 
-SOURCE_HOME := "/home/raidzero/android/system/2.3.7/bootable/recovery"
-DEVICE_HOME := ../../device/raidzero/$(TARGET_DEVICE)
+SOURCE_HOME := "../../android/system/bootable/recovery"
+DEVICE_HOME := ../../../../$(TARGET_DEVICE)
 
 ##build the main recovery module
 LOCAL_MODULE := recovery

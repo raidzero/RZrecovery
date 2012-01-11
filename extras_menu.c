@@ -40,14 +40,32 @@ void show_battstat ()
 	  {
 	    ui_print ("Charge Level: ");
 	    ui_print ("%s\n", bcap);
-	    if (!access ("/sys/class/power_supply/battery/temp", F_OK)) {
+	    if (!access ("/sys/class/power_supply/battery/batt_temp", F_OK)) {
 		ui_print ("Temperature: ");
-		FILE *ft = fopen ("/sys/class/power_supply/battery/temp", "r");
+		FILE *ft = fopen ("/sys/class/power_supply/battery/batt_temp", "r");
 		char *btemp = calloc (13, sizeof (char));
 		fgets (btemp, 3, ft);
 		btemp = strcat (btemp, " C");
 	    	ui_print ("%s\n", btemp);
 		fclose(ft);
+	    }
+	    if (!access ("/sys/class/power_supply/battery/voltage_now", F_OK)) {
+		ui_print ("Current Voltage: ");
+		FILE *fx = fopen ("/sys/class/power_supply/battery/voltage_now", "r");
+		char *bvol = calloc (15, sizeof (char));
+		fgets (bvol, 5, fx);
+		bvol = strcat (bvol, " mV");
+	    	ui_print ("%s\n", bvol);
+		fclose(fx);
+	    }
+	    if (!access ("/sys/class/power_supply/battery/batt_vol", F_OK)) {
+		ui_print ("Battery Voltage: ");
+		FILE *fl = fopen ("/sys/class/power_supply/battery/batt_vol", "r");
+		char *bvolb = calloc (15, sizeof (char));
+		fgets (bvolb, 5, fl);
+		bvolb = strcat (bvolb, " mV");
+	    	ui_print ("%s\n", bvolb);
+		fclose(fl);
 	    }
 	   }
   fclose (fc);
@@ -98,7 +116,8 @@ int plugins_present(const char* sdpath)
 
 void show_nandroid_dir_menu()
 {
-  char *headers[] = { "Choose a nandroid directory",
+  char *headers[] = { "Choose a",
+    "nandroid directory",
     "Current directory:",
     "",
     "",
@@ -233,7 +252,8 @@ void show_repeat_scroll_menu()
   strcat(delay_string, keyhold_delay);
   strcat(delay_string, " ms");
   
-  char* headers[] = { "Repeat-scroll delay (lower is faster)", 
+  char* headers[] = { "Repeat-scroll delay",
+    "(lower is faster)",
     delay_string,
     "",
     NULL
@@ -298,9 +318,12 @@ void set_usb_fat_only(int fat_only)
 void show_usb_options_menu()
 {
   char* headers[] = { "USB Mass Storage Options",
-    "Would you like to be able to mount ext",
-	"filesystems as USB mass storage devices?",
-	"Linux users: say yes, Windows: no",
+    "Would you like to be",
+        "able to mount ext",
+	"filesystems as USB",
+        "mass storage devices?",
+	"Linux users: say yes",
+        "Windows: no",
 	"",
 	NULL
   };

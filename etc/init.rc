@@ -12,7 +12,11 @@ on init
     mkdir /system/bin
     symlink /sbin /system/bin
 
+    mkdir /boot
     mkdir /sdcard
+    mkdir /sd-ext
+    mkdir /datadata
+    mkdir /emmc
     mkdir /system
     mkdir /data
     mkdir /cache
@@ -32,10 +36,10 @@ service ueventd /sbin/ueventd
 service symlinksbin /sbin/symlink_sbin
    oneshot
 
-
 service recovery /sbin/recovery
 
 service adbd /sbin/adbd recovery
+    disabled
 
 on property:persist.service.adb.enable=1
     start adbd

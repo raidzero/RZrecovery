@@ -40,6 +40,12 @@ void set_icon (char* icon) {
     sprintf(RW_CMD, "echo > /tmp/.rzrpref_icon_rw");
     __system(RW_CMD);
   }
+  if (strcmp(icon,"gm")==0) { 
+    ui_set_background(BACKGROUND_ICON_GM);
+    char RW_CMD[PATH_MAX];
+    sprintf(RW_CMD, "echo > /tmp/.rzrpref_icon_gm");
+    __system(RW_CMD);
+  }
 }
 
 
@@ -91,6 +97,7 @@ show_colors_menu ()
     "Grey",
     "RootzWiki",
     "Rave mode",
+    "Galmin",
     NULL
   };
 
@@ -109,6 +116,7 @@ show_colors_menu ()
 #define GREY			12
 #define ROOTZ			13
 #define RAVE			14
+#define GALM			15
 
   int chosen_item = -1;
 
@@ -179,6 +187,10 @@ show_colors_menu ()
 		    case RAVE:
 		      set_icon("rz");
 		      set_random (1);
+		      break;
+		    case GALM:
+		      set_icon("gm");
+		      set_color (154, 166, 154);
 		      break;
 		    }
 	  }

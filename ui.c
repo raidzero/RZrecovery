@@ -46,7 +46,7 @@
 #ifdef BOARD_HAS_NO_SELECT_BUTTON
 static int virtualBack = 1;
 #else
-static int virtualBack = 0;
+static int virtualBack = 1;
 #endif
         
 #ifdef BOARD_HAS_INVERTED_VOLUME
@@ -84,6 +84,8 @@ static gr_surface gProgressBarFill;
   &gBackgroundIcon[BACKGROUND_ICON_RZ], "icon_rz"}, 
   {
   &gBackgroundIcon[BACKGROUND_ICON_RW], "icon_rw"},
+  {
+  &gBackgroundIcon[BACKGROUND_ICON_GM], "galmin"},
   {
   &gBackgroundIcon[LOADING], "icon_loading"},
   {
@@ -171,10 +173,14 @@ draw_progress_locked ()
   {
     iconHeight = gr_get_height (gBackgroundIcon[BACKGROUND_ICON_RZ]);
   }
-  else
+  else if (access("/tmp/.rzrpref_icon_rw", F_OK) != -1)
   {
     iconHeight = gr_get_height (gBackgroundIcon[BACKGROUND_ICON_RW]);
   }  
+  else
+  {
+    iconHeight = gr_get_height (gBackgroundIcon[BACKGROUND_ICON_GM]);
+  }
   int width = gr_get_width (gProgressBarEmpty);
   int height = gr_get_height (gProgressBarEmpty);
   int dx = (gr_fb_width () - width) / 2;

@@ -139,9 +139,11 @@ int wipe_partition(char* partition, int autoaccept)
 void
 show_wipe_menu ()
 {
-  static char *headers[] = { "Choose a partition to wipe",
+  static char *headers[] = { "Choose",
+    "a partition to wipe",
     "USE CAUTION:",
-    "These operations *CANNOT BE UNDONE*",
+    "These operations",
+    "*CANNOT BE UNDONE*",
     "",
     NULL
   };
