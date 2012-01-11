@@ -33,11 +33,11 @@ RECOVERY_API_VERSION := 2
 
 ##generate the recovery version file
 TARGET_DEVICE := $(shell echo $$TARGET_PRODUCT | cut -d '_' -f2)
-RZR_VERSION := "2.1.4-Lilg"
+RZR_VERSION := "2.1.4"
 VERS_STRING := "$(RZR_VERSION)"
 
-SOURCE_HOME := "/home/squadzone/android/system/bootable/recovery"
-DEVICE_HOME := ../../device/samsung/$(TARGET_DEVICE)
+SOURCE_HOME := "../../android/system/bootable/recovery"
+DEVICE_HOME := ../../../../$(TARGET_DEVICE)
 
 ##build the main recovery module
 LOCAL_MODULE := recovery

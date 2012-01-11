@@ -770,7 +770,7 @@ int compare_string (const void *a, const void *b)
 void prompt_and_wait ()
 {
   char *MENU_HEADERS[] = { "RZRecovery",
-  "",
+  "by raidzero",
   "Port by Squadzone",
   "",
   NULL
