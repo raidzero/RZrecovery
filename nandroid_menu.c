@@ -908,7 +908,7 @@ show_nandroid_menu ()
     "Nandroid Restore",
     "Compress existing backup",
     "Delete backup",
-    "Restore Clockwork backup",
+   // "Restore Clockwork backup",
     NULL
   };
 
@@ -916,7 +916,7 @@ show_nandroid_menu ()
 #define ITEM_ADV_RESTORE 1
 #define ITEM_COMPRESS    2
 #define ITEM_DELETE	 	 3
-#define ITEM_CWM		 4
+//#define ITEM_CWM		 4
 
   int chosen_item = -1;
 
@@ -940,9 +940,9 @@ show_nandroid_menu ()
 		    case ITEM_DELETE:
 		      show_delete_menu();
 		      break;
-			case ITEM_CWM:
+			/*case ITEM_CWM:
 			  show_cwm_menu();
-			  break;
+			  break;*/
 		    }
 	  }
 }
