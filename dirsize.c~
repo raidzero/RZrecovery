@@ -160,12 +160,12 @@ long compute_files(const char* directory)
 long freespace(const char* PATH)
 {
 	struct statfs s;
+	//sd space
 	Volume * storage_volume = volume_for_path(PATH);
 	statfs(storage_volume->mount_point, &s);
 	uint64_t sd_bsize = s.f_bsize;
 	uint64_t sd_freeblocks = s.f_bavail;
 	long available_mb = sd_bsize * sd_freeblocks / (long) (1024*1024);
-	printf("free space: %ld\n", available_mb);
 	return available_mb;
 }  
 
