@@ -46,7 +46,7 @@
 #ifdef BOARD_HAS_NO_SELECT_BUTTON
 static int virtualBack = 1;
 #else
-static int virtualBack = 0;
+static int virtualBack = 1;
 #endif
         
 #ifdef BOARD_HAS_INVERTED_VOLUME

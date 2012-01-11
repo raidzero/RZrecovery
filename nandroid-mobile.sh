@@ -598,9 +598,9 @@ if [ "$BACKUP" == 1 ]; then
     TAR_OPTS="c"
     if [ "$COMPRESS" == "1" ]; then
      TAR_OPTS="${TAR_OPTS}z"
-     echo "* print Compression activated. Go make a sandwich."
-     echo "* print This will take forever, but your"
-     echo "* print SD Card will thank you :)"
+     echo "* print Compression activated."
+     echo "* print This will take long."
+     echo "* print Be patient :)"
      echo "* print "
     fi 
     [ "$PROGRESS" == "1" ] && TAR_OPTS="${TAR_OPTS}v"
@@ -648,7 +648,7 @@ if [ "$BACKUP" == 1 ]; then
     TIMESTAMP="`date +%Y%m%d-%H%M`"
     
     if [ -e /system/build.prop ]; then
-      VERSION=`cat /system/build.prop | grep ro.build.display.id | cut -d '=' -f2 | sed 's/ /_/g;s/(/-/g;s/)/-/g'`
+      VERSION=`cat /system/build.prop | grep ro.product.device | cut -d '=' -f2 | sed 's/ /_/g;s/(/-/g;s/)/-/g'`
       if [ ! -z "$VERSION" ]; then
         SUBNAME="$VERSION"-"$SUBNAME"
       fi 
@@ -719,7 +719,9 @@ if [ "$BACKUP" == 1 ]; then
     echo "* print $REQBLOCKSSTRING MB Required!"
     echo "* print $FREEBLOCKSSTRING MB Available!"
     if [ "$FREEBLOCKS" -le "$REQBLOCKS" ]; then
-	echo "* print Error: not enough free space available on $ROOT_BACKUPDEVICE, aborting."
+	echo "* print Error: not enough free space"
+	echo "* print        available on $ROOT_BACKUPDEVICE"
+	echo "* print        aborting."
 	umount /system 2>/dev/null
 	umount /data 2>/dev/null
 	rm -rf $DESTDIR
@@ -842,6 +844,5 @@ if [ "$BACKUP" == 1 ]; then
     [ "$PROGRESS" == "1" ] && echo "* reset_progress"
     echo "* print Backup operation took $ELAPSED_SECS seconds."
     echo "* print Total size of backup: $TOTALSIZE MB."
-    echo "* print Thanks for using RZRecovery."
     quit 0
 fi

@@ -40,14 +40,32 @@ void show_battstat ()
 	  {
 	    ui_print ("Charge Level: ");
 	    ui_print ("%s\n", bcap);
-	    if (!access ("/sys/class/power_supply/battery/temp", F_OK)) {
+	    if (!access ("/sys/class/power_supply/battery/batt_temp", F_OK)) {
 		ui_print ("Temperature: ");
-		FILE *ft = fopen ("/sys/class/power_supply/battery/temp", "r");
+		FILE *ft = fopen ("/sys/class/power_supply/battery/batt_temp", "r");
 		char *btemp = calloc (13, sizeof (char));
 		fgets (btemp, 3, ft);
 		btemp = strcat (btemp, " C");
 	    	ui_print ("%s\n", btemp);
 		fclose(ft);
+	    }
+	    if (!access ("/sys/class/power_supply/battery/voltage_now", F_OK)) {
+		ui_print ("Current Voltage: ");
+		FILE *fx = fopen ("/sys/class/power_supply/battery/voltage_now", "r");
+		char *bvol = calloc (15, sizeof (char));
+		fgets (bvol, 5, fx);
+		bvol = strcat (bvol, " mV");
+	    	ui_print ("%s\n", bvol);
+		fclose(fx);
+	    }
+	    if (!access ("/sys/class/power_supply/battery/batt_vol", F_OK)) {
+		ui_print ("Battery Voltage: ");
+		FILE *fl = fopen ("/sys/class/power_supply/battery/batt_vol", "r");
+		char *bvolb = calloc (15, sizeof (char));
+		fgets (bvolb, 5, fl);
+		bvolb = strcat (bvolb, " mV");
+	    	ui_print ("%s\n", bvolb);
+		fclose(fl);
 	    }
 	   }
   fclose (fc);
