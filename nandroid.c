@@ -109,7 +109,7 @@ void get_prefix(char partitions)
   
   
 int backup_partition(const char* partition, const char* PREFIX, int compress, int progress)
-{
+{ 
   Volume *v = volume_for_path(partition);
   char* NANDROID_DIR = get_nandroid_dir();
   char TAR_OPTS[5]="c";
@@ -172,12 +172,16 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
 	  totalfiles = compute_files(partition_path) + 1;
 	  printf("totalfiles: %ld\n", totalfiles);
 	  sprintf(totalfiles_string, "%ld", totalfiles);
+	  set_clearFilesTotal_intent(1);
 	}
 	
 	int status = 0;
+	char* EXCLUSION;	
+	if (strcmp(partition,"/data") ==0) EXCLUSION="--exclude ./media";
+	else EXCLUSION = "";
 	
 	char tar_cmd[1024];
-	sprintf(tar_cmd, "cd %s && tar %s %s/%s.%s .", partition_path, TAR_OPTS, PREFIX, partition_name, EXTENSION);
+	sprintf(tar_cmd, "cd %s && tar %s %s/%s.%s %s .", partition_path, TAR_OPTS, PREFIX, partition_name, EXTENSION, EXCLUSION);
 	printf("tar_cmd: %s\n", tar_cmd);
 	
 	//use popen to capture output from system call and act on it
@@ -246,6 +250,8 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
   Volume *v = volume_for_path(partition);
   char* PREFIX2 = calloc(strlen(PREFIX) + 1, sizeof(char));
   strcpy(PREFIX2, PREFIX);
+  printf("PREFIX: %s\nPREFIX2: %s\n", PREFIX, PREFIX2);
+  
   
   char TAR_OPTS[5]="x";
   if (progress) strcat(TAR_OPTS, "v");
@@ -314,7 +320,7 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
 	 else partition_name="secure";
 		
 	if (progress) 
-	{
+	{  
 	  printf("Progress bar enabled. Computing number of items in %s.%s...\n", partition_name, EXTENSION);
 	  if (progress) ui_show_indeterminate_progress();
 	  char TAR_TVF[1024] = { NULL };
@@ -332,6 +338,7 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
      printf("totalfiles: %s\n", totalfiles_string);
      totalfiles = atoi(totalfiles_string);	  
      TVF_OPTS=NULL;
+     set_clearFilesTotal_intent(1);
 	}
 	
 	printf("TAR_OPTS: %s\nPREFIX: %s\npartition_name: %s\nEXTENSION: %s\npartition_path: %s\n", TAR_OPTS, PREFIX2, partition_name, EXTENSION, partition_path);
@@ -574,12 +581,14 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
   if (strcmp(operation, "restore") == 0)
   {
     printf("SUBNAME: %s\n", subname);
+    if (strcmp(subname, "") == 0) 
+    {
+      ui_print("No backup selected. Exiting.\n");
+      return;
+    }
     char PREFIX[PATH_MAX];
 	char* NANDROID_DIR = get_nandroid_dir();
 	starttime = time(NULL);
-	/*strcpy(PREFIX, NANDROID_DIR);
-	strcat(PREFIX, "/");
-	strcat(PREFIX, subname);*/
 	sprintf(PREFIX, "%s/%s", NANDROID_DIR, subname);
 	printf("PREFIX: %s\n", PREFIX);
 	printf("START: %ld\n", starttime);

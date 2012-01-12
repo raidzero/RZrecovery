@@ -10,6 +10,7 @@
 long totalbytes = 0;
 long totalfiles = 0;
 int clearTotal = 0;
+int clearFilesTotal = 0;
 
 char** files_list;
 long list_position = 0;
@@ -26,12 +27,23 @@ void set_clearTotal_intent(int value)
    clearTotal = value;
 }
 
+int get_clearFilesTotal_intent()
+{
+   return clearFilesTotal;
+}
+
+void set_clearFilesTotal_intent(int value)
+{
+   clearFilesTotal = value;
+}
+
 long dirsize(const char* directory, int verbose)
 {
   if (clearTotal) 
   {
     printf("Clear total intent received.\n");
 	totalbytes = 0;
+	clearTotal = 0;
   }
   
   struct dirent *de;
@@ -79,6 +91,13 @@ long dirsize(const char* directory, int verbose)
 	
 long dirfiles(const char* directory)
 {
+  if (clearFilesTotal) 
+  {
+    printf("Clear total files intent received.\n");
+	 totalfiles = 0;
+	 clearFilesTotal = 0;
+  }  
+  
   struct dirent *de;
   char pathname[PATH_MAX];
   DIR * dir; 
