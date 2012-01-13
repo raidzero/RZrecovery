@@ -30,7 +30,7 @@ char PREFIX[PATH_MAX];
 char* get_android_version()
 {
   char* result;
-  char ANDROID_VERSION[8];
+  char* ANDROID_VERSION;
   ensure_path_mounted("/system");
   FILE * vers = fopen("/system/build.prop", "r");
   if (vers == NULL) 
@@ -70,6 +70,7 @@ char* get_android_version()
   }	
   if (found)
   {
+    ANDROID_VERSION = calloc(strlen(result) + 1, sizeof(char)); //allocate the length of result plus 1 for null-terminator
 	 int n = 0;	     
     for(i-=1; i<=k; i++)
     {		     
@@ -82,7 +83,7 @@ char* get_android_version()
   {
     return NULL;
   }
-  
+  printf("Memory Address: %d\n", &ANDROID_VERSION);
   printf("ANDROID VERSION: %s\n", ANDROID_VERSION);
   return ANDROID_VERSION;
 } 
@@ -90,7 +91,7 @@ char* get_android_version()
 void get_prefix(char partitions)
 {
   const char* NANDROID_DIR = get_nandroid_dir();
-  const char* ANDROID_VERSION = get_android_version();
+  char* ANDROID_VERSION = get_android_version();
   const char PARTITIONS[6] = "";
   
   //identify directory with what partitions are going to be backed up:
@@ -122,14 +123,23 @@ void get_prefix(char partitions)
   }
 	
   printf("NANDROID_DIR: %s\n", NANDROID_DIR);
+  printf("Memory Address: %d\n", &ANDROID_VERSION);
   printf("ANDROID_VERSION: %s\n", ANDROID_VERSION);
   printf("PARTITIONS: %s\n", PARTITIONS);
   printf("TIMESTAMP: %s\n", timestamp);
+ 
   
-  if (strcmp(ANDROID_VERSION, "") != 0)
+  int vers_length = strlen(ANDROID_VERSION);
+  int i;
+  for (i=0; i<vers_length; i++)
+  {
+    if (ANDROID_VERSION[i] == '\n') ANDROID_VERSION[i] = NULL; // no newline please
+  }
+  
+  if (ANDROID_VERSION)
   {
     strcat(ANDROID_VERSION, "-");
-  }
+  }  
   
   //build the prefix string
   char prefix[1024];
