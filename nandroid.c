@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <ctype.h> //needed for isalpha, etc
 #include <errno.h>
 #include <linux/input.h>
 #include <sys/wait.h>
@@ -29,6 +30,7 @@ char PREFIX[PATH_MAX];
 char* get_android_version()
 {
   char* result;
+  char ANDROID_VERSION[8];
   ensure_path_mounted("/system");
   FILE * vers = fopen("/system/build.prop", "r");
   if (vers == NULL) 
@@ -47,17 +49,42 @@ char* get_android_version()
 	  break; //leave the loop, we found what we're after
 	}
   }
-  //replace spaces with _
-  int count;
-  for (count=0; count<strlen(result); count++)
-  {
-	if (result[count] == ' ') result[count] = '_';  
-	if (result[count] == '(' || result[count] == ')') result[count] = '.';
-	if (result[count] == '\n') result[count] = NULL; //dont want a newline...
-  }
   fclose(vers); 
   ensure_path_unmounted("/system");
-  return result;
+  
+  //strip only the android version from it
+  printf("RAW VERSION: %s\n", result);
+  int LENGTH = strlen(result);
+  printf("LENGTH: %d\n", LENGTH);  
+  int i, k, found;
+  for (i=0; i<LENGTH; i++)
+  {
+	 k = i;	
+	 //Android versions follow this scheme: AAADD, A=A-Z, D=0-9, ICS has an extra digit at the end
+	 if (isalpha(result[k]) && isalpha(result[k++]) && isalpha(result[k++]) && isdigit(result[k++]) && isdigit(result[k++]))
+	 {
+		printf("version number found at positions %d through %d:\n", i, k);
+		found = 1;		
+		break;
+	 }
+  }	
+  if (found)
+  {
+	 int n = 0;	     
+    for(i-=1; i<=k; i++)
+    {		     
+	   ANDROID_VERSION[n] = result[i];
+		n++;  
+    }	
+    ANDROID_VERSION[n] = '\0'; //dont forget the almighty null-terminator!
+  }
+  else 
+  {
+    return NULL;
+  }
+  
+  printf("ANDROID VERSION: %s\n", ANDROID_VERSION);
+  return ANDROID_VERSION;
 } 
 
 void get_prefix(char partitions)
@@ -99,9 +126,14 @@ void get_prefix(char partitions)
   printf("PARTITIONS: %s\n", PARTITIONS);
   printf("TIMESTAMP: %s\n", timestamp);
   
+  if (strcmp(ANDROID_VERSION, "") != 0)
+  {
+    strcat(ANDROID_VERSION, "-");
+  }
+  
   //build the prefix string
   char prefix[1024];
-  sprintf(prefix, "%s/%s-%s-%s", NANDROID_DIR, ANDROID_VERSION, PARTITIONS, timestamp);
+  sprintf(prefix, "%s/%s%s-%s", NANDROID_DIR, ANDROID_VERSION, PARTITIONS, timestamp);
   
   strcpy(PREFIX, prefix);
   printf("internal prefix: %s\n", PREFIX); 
@@ -200,8 +232,9 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
 	  }	
 	}
 	if (progress) ui_reset_progress();
+   int retstatus = pclose(in);	
 	
-	if (in == NULL)
+	if (retstatus != 0)
 	{
 	  ui_print("Failed!\n");
 	  ensure_path_unmounted(partition_path);
@@ -209,6 +242,7 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
 	} 
 	else
 	{
+	  
 	  ui_print("Success!");
 	  ui_reset_text_col();
 	  ensure_path_unmounted(partition_path);
@@ -338,6 +372,8 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
      printf("totalfiles: %s\n", totalfiles_string);
      totalfiles = atoi(totalfiles_string);	  
      TVF_OPTS=NULL;
+	  int filesretstatus = pclose(in);     
+     printf("File pclose exit code: %d\n", filesretstatus);
      set_clearFilesTotal_intent(1);
 	}
 	
@@ -363,8 +399,9 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
 	  }	
 	}
 	if (progress) ui_reset_progress();   
+	int retstatus = pclose(in);
 	
-	if (in == NULL)
+	if (retstatus != 0)
 	{
 	  ui_print("Failed!\n");
 	  ensure_path_unmounted(partition_path);
@@ -372,6 +409,7 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
 	} 
 	else
 	{
+	  
 	  ui_print("Success!");
 	  ui_reset_text_col();
 	  ensure_path_unmounted(partition_path);
