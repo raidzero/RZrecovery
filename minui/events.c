@@ -272,9 +272,7 @@ static int vk_tp_to_screen(struct position *p, int *x, int *y)
 /* Returns non-zero when the event should be consumed */
 static int vk_modify(struct ev *e, struct input_event *ev)
 {
-    int i;
-    int x, y, change;
-    static int count = 0;
+    int i, x, y;
 
     if (ev->type == EV_KEY) {
         if (ev->code == BTN_TOUCH && !ev->value)
@@ -300,32 +298,8 @@ static int vk_modify(struct ev *e, struct input_event *ev)
         case ABS_MT_POSITION_Y:
             if (e->mt_p.synced & 2) return 1;
             e->mt_p.synced = 1;
-            change = e->mt_p.y - ev->value;
             e->mt_p.y = ev->value;
-            if (!vk_inside_display(e->mt_p.y, &e->mt_p.yi, gr_fb_height()))
-                return 0;
-            else {
-                int code = -1;
-                if (change > -10 && change < 0) {
-                    code = KEY_VOLUMEDOWN;
-		    printf("\nFake Down\n");
-                    count++;
-                }
-                else if (change > 0 && change < 10) {
-                    code = KEY_VOLUMEUP;
-		    printf("\nFake Up\n");
-                    count++;
-                }
-
-                if (code == -1) {
-                    return 1;
-                } else if (count == 15) {
-                    ev->code = code;
-                    ev->value = 1;
-                    count = 0;
-                    return 0;
-                }
-            }
+            return !vk_inside_display(e->mt_p.y, &e->mt_p.yi, gr_fb_height());
         case ABS_MT_TOUCH_MAJOR:
             if (e->mt_p.synced & 2) return 1;
             if (!ev->value) e->down = DOWN_RELEASED;

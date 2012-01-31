@@ -269,8 +269,13 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
 	strcat(rawimg, ".img");
 	
 	printf("backing up %s to %s\n", partition, rawimg);
+	
+	char dump_cmd[512] = { NULL };
+	sprintf(dump_cmd, "dump_img %s %s", partition, rawimg);
+	printf("dump_cmd: %s\n", dump_cmd);
 
-   if (backup_raw_partition(v->fs_type, v->device, rawimg))
+   //if (backup_raw_partition(v->fs_type, v->device, rawimg))
+   if (!__system(dump_cmd))
 	{
 	  ui_print("Failed!\n");
 	  ensure_path_unmounted(partition_path);

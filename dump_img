@@ -1,0 +1,42 @@
+#!/sbin/sh
+
+PARTITION=`echo $1 | sed 's/^\///g'`
+IMAGE=$2
+
+if [ "$PARTITION" == "boot" ]; then
+  if [ `cat /etc/recovery.fstab | grep boot | egrep -v "("fota"|"bootloader")" | awk '{print$2}'` == "mtd" ]; then
+    BOOT_DEVICE="/dev/mtd/"`cat /proc/mtd | grep boot | egrep -v "("fota"|"bootloader")" | awk '{print$1}' | sed 's/://g'`
+  else
+    BOOT_DEVICE=`cat /etc/recovery.fstab | grep boot | egrep -v "("bootloader"|"fota_boot")" | awk '{print$3}'`
+  fi
+
+  dump_image $PARTITION $IMAGE
+  DI_RET=$?
+  if [ $DI_RET -eq 0  ]; then
+    exit 101
+  else
+    dd of=$BOOT_DEVICE of=$IMAGE
+    DD_RET=$?
+    [ $DD_RET -ne 0 ] && exit 102 
+    [ $DD_RET -eq 0 ] && exit 103
+  fi
+fi
+
+if [ "$PARTITION" == "recovery" ]; then
+  if [ `cat /etc/recovery.fstab | grep recovery | awk '{print$2}'` == "mtd" ]; then
+    RECOVERY_DEVICE="/dev/mtd/"`cat /proc/mtd | grep recovery | awk '{print$1}' | sed 's/://g'`
+  else
+    RECOVERY_DEVICE=`cat /etc/recovery.fstab | grep recovery | awk '{print$3}'`
+  fi
+
+  dump_image $PARTITION $IMAGE
+  DI_RET=$?
+  if [ $DI_RET -eq 0 ]; then
+    exit 201
+  else
+    dd if=$RECOVERY_DEVICE of=$IMAGE
+    DD_RET=$?
+    [ $DD_RET -ne 0 ] && exit 202
+    [ $DD_RET -eq 0 ] && exit 203
+  fi
+fi
