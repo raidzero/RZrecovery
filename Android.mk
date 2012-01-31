@@ -1,3 +1,4 @@
+#RZRecovery version 2.1.4
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
