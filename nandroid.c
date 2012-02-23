@@ -182,7 +182,7 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
   
 	if (strcmp(partition, ".android_secure") == 0)
 	{
-	  partition_path = calloc(strlen(get_storage_root()) + 1, sizeof(char));	  
+	  partition_path = calloc(strlen(get_storage_root()) + 1, sizeof(char) + strlen(".android_secure"));	  
 	  sprintf(partition_path, "%s/.android_secure", get_storage_root());
 	  valid = 1;
 	}
@@ -342,7 +342,7 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
   
 	if (strcmp(partition, ".android_secure") == 0)
 	{
-	  restore_path = calloc(strlen(get_storage_root()) + 1, sizeof(char));	  
+	  restore_path = calloc(strlen(get_storage_root()) + 1, sizeof(char) + strlen(".android_secure"));	  
 	  sprintf(restore_path, "%s/.android_secure", get_storage_root());
 	  valid = 1;
 	}
@@ -423,8 +423,7 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
 	  status = -1;
 	} 
 	else
-	{
-	  
+	{  
 	  ui_print("Success!");
 	  ui_reset_text_col();
 	  ensure_path_unmounted(restore_path);
