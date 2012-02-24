@@ -193,7 +193,7 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
   if (valid == 1 || (strcmp(v->fs_type, "mtd") != 0 && strcmp(v->fs_type, "emmc") != 0 && strcmp(v->fs_type, "bml")))
   {
     printf("not mtd, emmc, or bml!\n");
-    if (ensure_path_mounted(partition))
+    if (ensure_path_mounted(partition) && strcmp(partition, ".android_secure") != 0)
     {
       printf("Error mounting %s!\n", partition);
       return -1;
@@ -356,17 +356,13 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
 	strcpy(restore_path2, restore_path); 
 	
 	printf("restore_path: %s\n", restore_path);
+	
   
   if (valid == 1 || (strcmp(v->fs_type, "mtd") != 0 && strcmp(v->fs_type, "emmc") != 0 && strcmp(v->fs_type, "bml")))
   {
     printf("not mtd, emmc, or bml!\n");
 	 if (strcmp(partition, ".android_secure") != 0) 
-	 {	 
-	   //wipe first! 
-	   ensure_path_unmounted(partition);   
-		printf("Wiping %s...\n", partition);      
-      erase_volume(partition);
-      
+	 {	       
       printf("Mounting %s...\n", partition);
 		ensure_path_mounted(partition);
     }
@@ -383,16 +379,32 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
 	   printf("partition_name: %s\n", partition_name);
 	 }
 	 else partition_name="secure";
-	
-	 ensure_path_mounted(partition);
-		      
+	 
+	 //check to be sure the filename is there, so it doesnt just error out	
+	 char* FILENAME = calloc(strlen(PREFIX2) + strlen(partition_name) + strlen(EXTENSION) + 1, sizeof(char));
+	 sprintf(FILENAME, "%s/%s.%s", PREFIX2, partition_name, EXTENSION);
+	 if (access(FILENAME, F_OK) == -1)
+	 {
+	   printf("%s does not exist. skipping.\n", FILENAME);
+	   return 0;
+ 	 }
+		 
     if (strcmp(partition, ".android_secure") != 0 && !is_path_mounted(partition))
 	 {  
 	   printf("Error mounting %s!\n", partition);
 		printf("Mount status: %d\n", is_path_mounted(partition));	     
 	   ui_print("Failed!\n");
 	   return -1;
-	 }  	
+	 }
+	   	 
+	 if (strcmp(partition, ".android_secure") != 0)	
+	 {	
+	   //wipe first! 
+	   ensure_path_unmounted(partition);   
+		printf("Wiping %s...\n", partition);      
+      erase_volume(partition);	 
+	   ensure_path_mounted(partition);
+	 }	
 	 
    long totalfiles = 0;
 	if (progress) 
@@ -409,6 +421,7 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
 
 	
 	const char tar_cmd[1024] = { NULL };
+	
 	sprintf(tar_cmd, "tar %s %s/%s.%s -C %s", TAR_OPTS, PREFIX2, partition_name, EXTENSION, restore_path2); 
 	printf("tar_cmd: %s\n", tar_cmd);
 
@@ -691,6 +704,8 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
 	  if (restore_partition("/sd-ext", PREFIX, show_progress)) failed = 1;
 	}
   }
+  ui_reset_text_col();
+  ui_print("Finished.\n");
   printf("%s finished.\n", operation);
   endtime = time(NULL);
   printf("END: %ld\n", endtime);
@@ -700,7 +715,6 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
   
   if (failed != 1) if (reboot) reboot_android();
   
-  //this part isnt quite working yet - gets 0 byte filesizes in PREFIX?
   if (strcmp(operation, "backup") == 0) 
   {
     ensure_path_mounted(STORAGE_ROOT);
