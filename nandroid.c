@@ -193,7 +193,11 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
   if (valid == 1 || (strcmp(v->fs_type, "mtd") != 0 && strcmp(v->fs_type, "emmc") != 0 && strcmp(v->fs_type, "bml")))
   {
     printf("not mtd, emmc, or bml!\n");
-    ensure_path_mounted(partition);
+    if (ensure_path_mounted(partition))
+    {
+      printf("Error mounting %s!\n", partition);
+      return -1;
+    }
     char* partition_name;
     
 	 if (strcmp(partition, ".android_secure") != 0)	 
@@ -232,7 +236,8 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
 	
 	char temp[PATH_MAX];
 	long counter = 0;
-	if (progress) ui_show_progress(1.0, 0);	
+	if (progress) ui_show_progress(1.0, 0);
+	else ui_show_indeterminate_progress();	
 	while (fgets(temp, PATH_MAX-1, in) != NULL)
 	{	    
 	  if (progress)
@@ -242,7 +247,7 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
 	    counter++;
 	  }	
 	}
-	if (progress) ui_reset_progress();
+	ui_reset_progress();
    int retstatus = pclose(in);	
 	
 	if (retstatus != 0)
@@ -261,7 +266,7 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
   }
   else //must be mtd, bml, or emmc - dump raw
   {
-   if (progress) ui_show_indeterminate_progress();
+   ui_show_indeterminate_progress();
    printf("Must be raw...\n");
    char rawimg[PATH_MAX];
 	strcpy(rawimg, PREFIX);
@@ -274,7 +279,6 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
 	sprintf(dump_cmd, "dump_img %s %s", partition, rawimg);
 	printf("dump_cmd: %s\n", dump_cmd);
 
-   //if (backup_raw_partition(v->fs_type, v->device, rawimg))
    if (!__system(dump_cmd))
 	{
 	  ui_print("Failed!\n");
@@ -289,7 +293,7 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
 	  status = 0;
 	}
   }
-  if (progress) ui_reset_progress();
+  ui_reset_progress();
   return status;
 }  
 
@@ -358,13 +362,18 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
     printf("not mtd, emmc, or bml!\n");
 	 if (strcmp(partition, ".android_secure") != 0) 
 	 {	 
-	   ensure_path_mounted(partition);
-	   //wipe first!    
+	   //wipe first! 
+	   ensure_path_unmounted(partition);   
+		printf("Wiping %s...\n", partition);      
       erase_volume(partition);
+      
+      printf("Mounting %s...\n", partition);
+		ensure_path_mounted(partition);
     }
-    
+     
 	 if (strcmp(partition, ".android_secure") != 0)	 
 	 {	 
+	   ensure_path_mounted(get_storage_root());
 	   char* strptr = strstr(partition, "/") + 1; 
 	   if (strptr)
 	   {
@@ -374,7 +383,17 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
 	   printf("partition_name: %s\n", partition_name);
 	 }
 	 else partition_name="secure";
-		
+	
+	 ensure_path_mounted(partition);
+		      
+    if (strcmp(partition, ".android_secure") != 0 && !is_path_mounted(partition))
+	 {  
+	   printf("Error mounting %s!\n", partition);
+		printf("Mount status: %d\n", is_path_mounted(partition));	     
+	   ui_print("Failed!\n");
+	   return -1;
+	 }  	
+	 
    long totalfiles = 0;
 	if (progress) 
 	{  
@@ -398,6 +417,7 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
 	char temp[PATH_MAX];
 	long counter = 0;
 	if (progress) ui_show_progress(1.0, 0);
+	else ui_show_indeterminate_progress();
 	while (fgets(temp, PATH_MAX-1, in) != NULL)
 	{	    
 	  if (progress)
@@ -407,8 +427,9 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
 	    counter++;
 	  }	
 	}
-	if (progress) ui_reset_progress();   
-	int retstatus = pclose(in);
+	ui_reset_progress();   
+	int retstatus = pclose(in); 
+   printf("TAR return status: %d\n", retstatus);
 	
 	if (retstatus != 0)
 	{
@@ -427,7 +448,7 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
   else //must be mtd, bml, or emmc - restore raw
   {
     printf("must be raw...\n");
-   if (progress) ui_show_indeterminate_progress(); 
+   ui_show_indeterminate_progress(); 
 	//must pull the / off the partition name for flash_img...
 	char* strptr = strstr(partition, "/") +  1;
 	char* result = calloc(strlen(strptr) + 1, sizeof(char));
@@ -457,7 +478,7 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
 	}
   }
   printf("restore_path: %s\n", restore_path);
-  if (progress) ui_reset_progress();
+  ui_reset_progress();
   return status;
 } 
 
@@ -579,7 +600,7 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
 	}
 		
 	long mb_required =  bytesrequired / 1024 / 1024;
-	if (show_progress) ui_reset_progress();
+	ui_reset_progress();
 	ui_print("~%ld MB required\n", mb_required);
 	ui_print("%ld MB available\n", available_mb);
 	  
@@ -643,11 +664,11 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
     if (boot) 
 	{
 	  if (restore_partition("/boot", PREFIX, show_progress)) failed = 1;
-	}    
+	}  
 	if (system) 
 	{
 	  if (restore_partition("/system", PREFIX, show_progress)) failed = 1;
-	}
+	}	  
     if (data) 
 	{
 	  if (restore_partition("/data", PREFIX, show_progress)) failed = 1;

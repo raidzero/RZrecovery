@@ -176,10 +176,10 @@ long tarsize(const char* PREFIX, const char* FILENAME, const char* EXTENSION, co
   
   FILE* in=popen(TAR_TVF, "r"); //use popen to execute the command
   fgets(files_in_tar, PATH_MAX-1, in); // fgets to grab the output
-  result = (long) files_in_tar;
+  result = atol(files_in_tar);
   int filesretstatus = pclose(in);     
   printf("File pclose exit code: %d\n", filesretstatus);
-  printf("Number of files in tar: %s\n", result);  
+  printf("Number of files in tar: %ld\n", result);  
   return result;
 }
 
