@@ -140,14 +140,14 @@ void get_prefix(char partitions)
     }
     if (ANDROID_VERSION)
     {
-      strcat("-", ANDROID_VERSION);
+      strcat(PARTITIONS,"-");
     }
   } 
   else ANDROID_VERSION = "";
   
   //build the prefix string
   char prefix[1024];
-  sprintf(prefix, "%s/%s%s-%s", NANDROID_DIR, timestamp, ANDROID_VERSION, PARTITIONS);
+  sprintf(prefix, "%s/%s-%s%s", NANDROID_DIR, timestamp, PARTITIONS, ANDROID_VERSION);
   
   strcpy(PREFIX, prefix);
   printf("internal prefix: %s\n", PREFIX); 
@@ -182,7 +182,7 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
   
 	if (strcmp(partition, ".android_secure") == 0)
 	{
-	  partition_path = calloc(strlen(get_storage_root()) + 1, sizeof(char) + strlen(".android_secure"));	  
+	  partition_path = calloc(strlen(get_storage_root()) + strlen(".android_secure") + 1, sizeof(char));	  
 	  sprintf(partition_path, "%s/.android_secure", get_storage_root());
 	  valid = 1;
 	}
@@ -304,7 +304,7 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
   
   char TAR_OPTS[5]="x";
   if (progress) strcat(TAR_OPTS, "v");
-  char* EXTENSION = NULL;
+  char* EXTENSION = calloc(strlen(".tar.gz") + 1, sizeof(char));
   int compress;
   char tarfilename[PATH_MAX];
   char tgzfilename[PATH_MAX];
@@ -332,29 +332,36 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
   strcat(TAR_OPTS, "f");
   int status;
   int valid = 0;
-  long totalfiles = 0;
-  char totalfiles_string[PATH_MAX] = { NULL };
   
   ui_print("Restoring %s... ", partition);
   
   const char* restore_path = NULL;
+  const char* restore_path2 = NULL;
   const char* partition_name = NULL;
   
+  restore_path = calloc(strlen(get_storage_root()) + strlen(".android_secure") + 1, sizeof(char));
+  restore_path2 = calloc(strlen(get_storage_root()) + strlen(".android_secure") + 1, sizeof(char)); 
+  
 	if (strcmp(partition, ".android_secure") == 0)
-	{
-	  restore_path = calloc(strlen(get_storage_root()) + 1, sizeof(char) + strlen(".android_secure"));	  
+	{	  
 	  sprintf(restore_path, "%s/.android_secure", get_storage_root());
 	  valid = 1;
 	}
 	else restore_path = partition;
+	
+	strcpy(restore_path2, restore_path); 
+	
 	printf("restore_path: %s\n", restore_path);
   
   if (valid == 1 || (strcmp(v->fs_type, "mtd") != 0 && strcmp(v->fs_type, "emmc") != 0 && strcmp(v->fs_type, "bml")))
   {
     printf("not mtd, emmc, or bml!\n");
-    ensure_path_mounted(partition);
-	 //wipe first!    
-    erase_volume(partition);
+	 if (strcmp(partition, ".android_secure") != 0) 
+	 {	 
+	   ensure_path_mounted(partition);
+	   //wipe first!    
+      erase_volume(partition);
+    }
     
 	 if (strcmp(partition, ".android_secure") != 0)	 
 	 {	 
@@ -368,35 +375,22 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
 	 }
 	 else partition_name="secure";
 		
+   long totalfiles = 0;
 	if (progress) 
 	{  
 	  printf("Progress bar enabled. Computing number of items in %s.%s...\n", partition_name, EXTENSION);
-	  if (progress) ui_show_indeterminate_progress();
-	  char TAR_TVF[1024] = { NULL };
-	  char *TVF_OPTS = NULL;
-	  if (compress) TVF_OPTS = "tvzf";
-	  else TVF_OPTS="tvf";
-	  
-	  sprintf(TAR_TVF, "tar %s %s/%s.%s | wc -l", TVF_OPTS, PREFIX, partition_name, EXTENSION); 
-	  printf("partition_name: %s\n", partition_name);	  
-	  printf("TAR_TVF: %s\n", TAR_TVF);	  
-     char temp[PATH_MAX] = { NULL };
-     
-     FILE* in=popen(TAR_TVF, "r"); //use popen to execute the command
-     fgets(totalfiles_string, PATH_MAX-1, in); // fgets to grab the output
-     printf("totalfiles: %s\n", totalfiles_string);
-     totalfiles = atoi(totalfiles_string);	  
-     TVF_OPTS=NULL;
-	  int filesretstatus = pclose(in);     
-     printf("File pclose exit code: %d\n", filesretstatus);
+	  ui_show_indeterminate_progress();	  	  
+     totalfiles = tarsize(PREFIX, partition_name, EXTENSION, compress);
+     printf("totalfiles received from tarsize(): %ld\n", totalfiles);  
+	  ui_reset_progress();	  
      set_clearFilesTotal_intent(1);
 	}
 	
-	printf("TAR_OPTS: %s\nPREFIX: %s\npartition_name: %s\nEXTENSION: %s\nrestore_path: %s\n", TAR_OPTS, PREFIX2, partition_name, EXTENSION, restore_path);
+	printf("TAR_OPTS: %s\nPREFIX: %s\npartition_name: %s\nEXTENSION: %s\nrestore_path: %s\n", TAR_OPTS, PREFIX2, partition_name, EXTENSION, restore_path2);
 
 	
 	const char tar_cmd[1024] = { NULL };
-	sprintf(tar_cmd, "tar %s %s/%s.%s -C %s", TAR_OPTS, PREFIX2, partition_name, EXTENSION, restore_path); 
+	sprintf(tar_cmd, "tar %s %s/%s.%s -C %s", TAR_OPTS, PREFIX2, partition_name, EXTENSION, restore_path2); 
 	printf("tar_cmd: %s\n", tar_cmd);
 
 	//use popen to capture output from system call and act on it
@@ -419,14 +413,14 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
 	if (retstatus != 0)
 	{
 	  ui_print("Failed!\n");
-	  ensure_path_unmounted(restore_path);
+	  if (strcmp(partition, ".android_secure") != 0) ensure_path_unmounted(restore_path);
 	  status = -1;
 	} 
 	else
 	{  
 	  ui_print("Success!");
 	  ui_reset_text_col();
-	  ensure_path_unmounted(restore_path);
+	  if (strcmp(partition, ".android_secure") != 0) ensure_path_unmounted(restore_path);
 	  status = 0;
 	}
   }

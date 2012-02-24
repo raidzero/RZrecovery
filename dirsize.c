@@ -162,6 +162,27 @@ void listfiles(const char* directory)
   closedir(dir);
 }
 
+long tarsize(const char* PREFIX, const char* FILENAME, const char* EXTENSION, const int COMPRESSED)
+{
+  char TAR_TVF[1024] = { NULL };
+  char *TVF_OPTS = NULL;
+  char files_in_tar[10] = { NULL };  
+  long result = NULL;  
+  if (COMPRESSED) TVF_OPTS = "tvzf";
+  else TVF_OPTS="tvf";
+	  
+  sprintf(TAR_TVF, "tar %s %s/%s.%s | wc -l", TVF_OPTS, PREFIX, FILENAME, EXTENSION);  
+  printf("TAR_TVF: %s\n", TAR_TVF);	  
+  
+  FILE* in=popen(TAR_TVF, "r"); //use popen to execute the command
+  fgets(files_in_tar, PATH_MAX-1, in); // fgets to grab the output
+  result = (long) files_in_tar;
+  int filesretstatus = pclose(in);     
+  printf("File pclose exit code: %d\n", filesretstatus);
+  printf("Number of files in tar: %s\n", result);  
+  return result;
+}
+
 long compute_size(const char* directory, int verbose)
 {
   long space = dirsize(directory, verbose);
