@@ -323,11 +323,29 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
     sprintf(tgzfilename, "%s%s.tar.gz", PREFIX, partition);
   }
   
-  if (access(tgzfilename, F_OK) != -1 && access(tarfilename, F_OK) == -1) compress = 1;
-  if (access(tarfilename, F_OK) != -1 && access(tgzfilename, F_OK) == -1) compress = 0;
-  if (compress) {
+  //log the names for debugging purposes
+  printf("tarfilename: %s\ntgzfilename: %s\n", tarfilename, tgzfilename);
+  
+  if (access(tgzfilename, F_OK) != -1 && access(tarfilename, F_OK) == -1) 
+  {
+	 printf("%s exists.\n%s does not.\n", tgzfilename, tarfilename);    
+    compress = 1;
+  }  
+  if (access(tarfilename, F_OK) != -1 && access(tgzfilename, F_OK) == -1) 
+  {
+	 printf("%s exists.\n%s does not.\n", tarfilename, tgzfilename);      
+    compress = 0;
+  }
+    if (access(tgzfilename, F_OK) == -1 && access(tarfilename, F_OK) == -1) 
+  {
+	 printf("%s backup does not exist. skipping.\n", partition);
+	 return 0;
+  }  
+  
+  if (compress) 
+  {
     strcat(TAR_OPTS, "z");
-	EXTENSION = "tar.gz";
+	 EXTENSION = "tar.gz";
   }
   else
   {
@@ -380,7 +398,8 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
 	 }
 	 else partition_name="secure";
 	 
-	 //check to be sure the filename is there, so it doesnt just error out	
+	 //commented out because I handle this up there ^
+/*	 //check to be sure the filename is there, so it doesnt just error out	
 	 char* FILENAME = calloc(strlen(PREFIX2) + strlen(partition_name) + strlen(EXTENSION) + 1, sizeof(char));
 	 sprintf(FILENAME, "%s/%s.%s", PREFIX2, partition_name, EXTENSION);
 	 if (access(FILENAME, F_OK) == -1)
@@ -388,6 +407,7 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
 	   printf("%s does not exist. skipping.\n", FILENAME);
 	   return 0;
  	 }
+*/
 		 
     if (strcmp(partition, ".android_secure") != 0 && !is_path_mounted(partition))
 	 {  
