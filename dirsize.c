@@ -8,13 +8,13 @@
 #include "roots.h"
 #include "popen.h"
 
-long totalbytes = 0;
-long totalfiles = 0;
+uint64_t totalbytes = 0;
+uint64_t totalfiles = 0;
 int clearTotal = 0;
 int clearFilesTotal = 0;
 
 char** files_list;
-long list_position = 0;
+uint64_t list_position = 0;
 
 #define PATH_MAX 4096
 
@@ -38,7 +38,7 @@ void set_clearFilesTotal_intent(int value)
    clearFilesTotal = value;
 }
 
-long dirsize(const char* directory, int verbose)
+uint64_t dirsize(const char* directory, int verbose)
 {
   if (clearTotal) 
   {
@@ -52,7 +52,7 @@ long dirsize(const char* directory, int verbose)
   char pathname[PATH_MAX];
   DIR * dir; 
   //long total_items = 0;
-  long filesize = 0;
+  uint64_t filesize = 0;
   
   dir = opendir(directory);
   if (dir == NULL)
@@ -74,7 +74,7 @@ long dirsize(const char* directory, int verbose)
 	  }
 	  if (verbose) 
 	  {
-	    printf("%s/%s : %lld bytes\n", directory, de->d_name, s.st_size);
+	    printf("%s/%s : %llu bytes\n", directory, de->d_name, s.st_size);
 	  }
 	  filesize = s.st_size; //put file size into filesize variable
 	  totalbytes += filesize; //increment totalbytes
@@ -194,10 +194,10 @@ long tarsize(const char* PREFIX, const char* FILENAME, const char* EXTENSION, co
   else return -1;
 }
 
-long compute_size(const char* directory, int verbose)
+uint64_t compute_size(const char* directory, int verbose)
 {
-  long space = dirsize(directory, verbose);
-  printf("RETURNING: %ld\n", space);
+  uint64_t space = dirsize(directory, verbose);
+  printf("RETURNING: %llu\n", space);
   return space;
 }
 
@@ -230,11 +230,11 @@ int compute_size_main(int argc, char* argv[])
 
   int verbose = 0; //show or hide individual computations
 
-  long space = compute_size(argv[1], verbose);
+  uint64_t space = compute_size(argv[1], verbose);
   if (space != -1)
   {
     float space_mb = (float) space / 1024 / 1024;
-    printf("space occupied: %ld bytes\n", space);
+    printf("space occupied: %llu bytes\n", space);
     printf("(%.2f MB)\n", space_mb);
   }
   return 0;
