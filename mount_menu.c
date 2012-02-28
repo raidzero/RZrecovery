@@ -64,22 +64,27 @@ int is_path_mountable(char* path)
 }
 
 static int
-is_usb_storage_enabled ()
+is_usb_storage_enabled()
 {
+  printf("Start is_isb_storage_enabled().\n");
   if (access(BOARD_UMS_LUNFILE,F_OK) != -1) 
   {
-    printf("LUN file present.\n");
+    printf("LUN file present ");
     FILE *fp = fopen (BOARD_UMS_LUNFILE, "r");
-    char *buf = malloc (11 * sizeof (char));
+    char *buf = malloc (40 * sizeof (char));
 
-    fgets (buf, 11, fp);
+    fgets (buf, 40, fp);
     fclose (fp);
     if (strcmp (buf, "/dev/block") == 0)
 	  {
+		 free(buf);	  
+		 printf("but not acceptable!\n"); 
 	    return (1);
 	  }
     else
 	  {
+ 	    free(buf);
+ 	    printf("and acceptable.\n");
 	    return (0);
 	  }
   }
@@ -92,6 +97,7 @@ is_usb_storage_enabled ()
 
 void show_usb_menu()
 {
+  printf("Start show_usb_menu().\n");  
   char *mode = calloc(5, sizeof(char)+1);
  
   if (access("/tmp/.rzrpref_usb", F_OK) != -1) 
@@ -129,12 +135,12 @@ void show_usb_menu()
 	  if (strcmp(v->fs_type, "vfat") == 0) 
 	  {
 	    printf("%s is windows-mountable.\n", v->mount_point);
-		valid = 1;
+		 valid = 1;
 	  } 
 	  if (ext && (strstr(v->fs_type, "ext"))) 
 	  {
 	    printf("%s is linux-mountable.\n", v->mount_point);
-		valid = 1;
+		 valid = 1;
 	  }	
 	  if (valid)
 	  {	  
@@ -155,31 +161,30 @@ void show_usb_menu()
   for (z=0; z<mountable_volumes; z++)
   {
     items[z] = usb_volumes[z];
-	printf("items[%d]: %s\n", z, items[z]);
-	items[z+1] = NULL;
-  }
-  
-	  	
+	 items[z+1] = NULL; 
+  }  
+  printf("mountable_volumes: %d\n", mountable_volumes);	
   int chosen_item = -1;
 	
   while (chosen_item != ITEM_BACK)
   {	
     chosen_item = get_menu_selection (headers, items, 0, chosen_item < 0 ? 0 : chosen_item);
-	char* selection = usb_volumes[chosen_item];
+	 char* selection = usb_volumes[chosen_item];
     switch(chosen_item)
-	{
-	  case ITEM_BACK:
-	    return;
-	  default:	     
-	    show_usb_storage_enabled_screen(selection);
-	    return;
+	 {
+	   case ITEM_BACK:
+	     printf("Back button.\n");
+	     return;
+	   default:	     
+	     show_usb_storage_enabled_screen(selection);
+	     return;
     }
-	return;
   }	
 } 
 
 void show_usb_storage_enabled_screen(char* selection)
 {
+  printf("Start show_usb_storage_enabled_screen().\n");  
   enable_usb_mass_storage(selection);
   
   char *headers[] = { "",
@@ -215,6 +220,7 @@ void show_usb_storage_enabled_screen(char* selection)
 void
 enable_usb_mass_storage (char* volume)
 {
+  printf("Start enable_usb_mass_storage().\n");  
   int fd;
   Volume *vol = volume_for_path (volume);
    
@@ -236,6 +242,7 @@ enable_usb_mass_storage (char* volume)
 void
 disable_usb_mass_storage ()
 {
+  printf("Start disable_usb_mass_storage().\n");
   printf("Disabling USB Mass storage...\n");
   if (access(BOARD_UMS_LUNFILE, F_OK) != -1)
   {
@@ -248,6 +255,7 @@ disable_usb_mass_storage ()
 
 char** get_mount_menu_options()
 {
+  printf("Start get_mount_menu_items().\n");
   Volume * device_volumes = get_device_volumes();
   num_volumes = get_num_volumes();
   
@@ -297,6 +305,7 @@ char** get_mount_menu_options()
 void
 show_mount_menu ()
 {
+  printf("Start show_mount_menu().\n");
   num_volumes = get_num_volumes(); 
    
   char** main_items = get_mount_menu_options();
@@ -350,8 +359,9 @@ show_mount_menu ()
 		        printf("Mounting %s...\n", result);
 		        ensure_path_mounted(result);
 		      }
+		      free(result);	  
 		    }
-	    }
+	    }  
 	    main_items = get_mount_menu_options();
 	  }
 	return;
