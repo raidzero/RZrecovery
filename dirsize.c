@@ -179,8 +179,12 @@ long tarsize(const char* PREFIX, const char* FILENAME, const char* EXTENSION, co
   result = atol(files_in_tar);
   int filesretstatus = pclose(in);     
   printf("File pclose exit code: %d\n", filesretstatus);
-  printf("Number of files in tar: %ld\n", result);  
-  return result;
+  if (filesretstatus == 0)
+  {
+    printf("Number of files in tar: %ld\n", result);  
+    return result;
+  }
+  else return -1;
 }
 
 long compute_size(const char* directory, int verbose)
