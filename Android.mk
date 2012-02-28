@@ -27,7 +27,8 @@ LOCAL_SRC_FILES := \
     unpackbootimg.c \
     mkbootfs.c \
     unyaffs.c \
-    mounts.c 
+    mounts.c \
+    popen.c 
 
 ##the world just isnt ready for API level 3 yet
 RECOVERY_API_VERSION := 2 

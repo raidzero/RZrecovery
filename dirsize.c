@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "roots.h"
+#include "popen.h"
 
 long totalbytes = 0;
 long totalfiles = 0;
@@ -174,10 +175,16 @@ long tarsize(const char* PREFIX, const char* FILENAME, const char* EXTENSION, co
   sprintf(TAR_TVF, "tar %s %s/%s.%s | wc -l", TVF_OPTS, PREFIX, FILENAME, EXTENSION);  
   printf("TAR_TVF: %s\n", TAR_TVF);	  
   
-  FILE* in=popen(TAR_TVF, "r"); //use popen to execute the command
+  FILE* in=__popen(TAR_TVF, "r"); //use popen to execute the command
+  //check to be sure the operation succeeded
+  if (in == NULL)
+  {
+    printf("Null pointer! :(\n");
+    return -1;
+  }
   fgets(files_in_tar, PATH_MAX-1, in); // fgets to grab the output
   result = atol(files_in_tar);
-  int filesretstatus = pclose(in);     
+  int filesretstatus = __pclose(in);     
   printf("File pclose exit code: %d\n", filesretstatus);
   if (filesretstatus == 0)
   {

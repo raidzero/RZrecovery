@@ -22,6 +22,7 @@
 #include "nandroid.h"
 #include "install_menu.h"
 #include "dirsize.h"
+#include "popen.h"
 
 int reboot_afterwards;
 char timestamp[64];
@@ -232,7 +233,7 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
 	printf("tar_cmd: %s\n", tar_cmd);
 	
 	//use popen to capture output from system call and act on it
-	FILE* in=popen(tar_cmd, "r");
+	FILE* in=__popen(tar_cmd, "r");
 	
 	char temp[PATH_MAX];
 	long counter = 0;
@@ -248,7 +249,7 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
 	  }	
 	}
 	ui_reset_progress();
-   int retstatus = pclose(in);	
+   int retstatus = __pclose(in);	
 	
 	if (retstatus != 0)
 	{
@@ -447,7 +448,13 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
 	printf("tar_cmd: %s\n", tar_cmd);
 
 	//use popen to capture output from system call and act on it
-	FILE* in=popen(tar_cmd, "r");
+	FILE* in=__popen(tar_cmd, "r");
+	if (in == NULL)
+   {
+     printf("Null pointer! :(\n");
+	  ui_print("Failed!\n");     
+     return -1;
+   }
 	char temp[PATH_MAX];
 	long counter = 0;
 	if (progress) ui_show_progress(1.0, 0);
@@ -462,7 +469,7 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
 	  }	
 	}
 	ui_reset_progress();   
-	int retstatus = pclose(in); 
+	int retstatus = __pclose(in); 
    printf("TAR return status: %d\n", retstatus);
 	
 	if (retstatus != 0)
