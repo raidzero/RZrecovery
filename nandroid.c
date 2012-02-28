@@ -335,12 +335,7 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
   {
 	 printf("%s exists.\n%s does not.\n", tarfilename, tgzfilename);      
     compress = 0;
-  }
-    if (access(tgzfilename, F_OK) == -1 && access(tarfilename, F_OK) == -1) 
-  {
-	 printf("%s backup does not exist. skipping.\n", partition);
-	 return 0;
-  }  
+  } 
   
   if (compress) 
   {
@@ -376,6 +371,11 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
   
   if (valid == 1 || (strcmp(v->fs_type, "mtd") != 0 && strcmp(v->fs_type, "emmc") != 0 && strcmp(v->fs_type, "bml")))
   {
+    if (access(tgzfilename, F_OK) == -1 && access(tarfilename, F_OK) == -1) 
+    {
+	   printf("%s backup does not exist. skipping.\n", partition);
+	   return 0;
+    } 
     printf("not mtd, emmc, or bml!\n");
 /*	 if (strcmp(partition, ".android_secure") != 0) 
 	 {	       
@@ -643,6 +643,13 @@ void nandroid_native(const char* operation, char* subname, char partitions, int 
 	ui_reset_progress();
 	ui_print("~%ld MB required\n", mb_required);
 	ui_print("%ld MB available\n", available_mb);
+	
+	if (available_mb < mb_required)
+	{
+	  ui_print("Insufficient space to create backup.\n Aborting.\n");
+	  set_clearTotal_intent(1); //don't want it to double up on the estimate next run!
+	  return;
+	}	
 	  
     char tmp[PATH_MAX];
     sprintf(tmp, "mkdir -p %s", PREFIX);
