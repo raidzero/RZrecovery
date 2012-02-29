@@ -248,7 +248,7 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
 	{	    
 	  if (progress)
 	  { 
-	    printf("COUNTER: %ld / %ld\n", counter, totalfiles);	      
+	    printf(" %ld / %ld ", counter, totalfiles);	      
 	    ui_set_progress((float)counter / (float)totalfiles);
 	    counter++;
 	  }	
@@ -462,7 +462,7 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
 	{	    
 	  if (progress)
 	  { 
-	    printf("COUNTER: %ld / %ld\n", counter, totalfiles);	      
+	    printf(" %ld / %ld ", counter, totalfiles);     
 	    ui_set_progress((float)counter / (float)totalfiles);
 	    counter++;
 	  }	

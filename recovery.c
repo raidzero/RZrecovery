@@ -383,6 +383,7 @@ write_files ()
   char* RZR_DIR = get_rzr_dir();
   char CP_CMD[PATH_MAX];
   char DIR_CMD[PATH_MAX];
+  char LOG_CMD[PATH_MAX];
   sprintf(DIR_CMD, "[ ! -d %s ] && mkdir -p %s", RZR_DIR, RZR_DIR);
   __system(DIR_CMD);
   char DEL_CMD[PATH_MAX];
@@ -390,6 +391,8 @@ write_files ()
   __system(DEL_CMD);
   sprintf(CP_CMD, "cp /tmp/.rzrpref_* %s/", RZR_DIR);
   __system(CP_CMD);
+  sprintf(LOG_CMD, "cp /tmp/recovery.log %s/last_log", RZR_DIR);
+  __system(LOG_CMD);  
   }
   ensure_path_unmounted(STORAGE_ROOT);
   sync ();
