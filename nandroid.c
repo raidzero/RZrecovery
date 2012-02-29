@@ -217,7 +217,12 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
 	{
 	  ui_show_indeterminate_progress();
 	  printf("Progress bar enabled. Computing number of items in %s...\n", partition_path);
-	  totalfiles = compute_files(partition_path) + 1;
+	  totalfiles = compute_files(partition_path) + 1;	  
+	  if (strcmp(partition,"/data") == 0 && strcmp(get_storage_root(),"/data/media") == 0)
+	  {	  
+		 printf("/data/media is sdcard - do not include in the count.\n");	    
+	    totalfiles -= compute_files("/data/media");
+	  }
 	  printf("totalfiles: %ld\n", totalfiles);
 	  sprintf(totalfiles_string, "%ld", totalfiles);
 	  set_clearFilesTotal_intent(1);
@@ -225,7 +230,7 @@ int backup_partition(const char* partition, const char* PREFIX, int compress, in
 	
 	int status = 0;
 	char* EXCLUSION;	
-	if (strcmp(partition,"/data") ==0) EXCLUSION="--exclude ./media";
+	if (strcmp(partition,"/data") == 0 && strcmp(get_storage_root(),"/data/media") == 0) EXCLUSION="--exclude ./media";
 	else EXCLUSION = "";
 	
 	char tar_cmd[1024];
@@ -377,12 +382,6 @@ int restore_partition(const char* partition, const char* PREFIX, int progress)
 	   return 0;
     } 
     printf("not mtd, emmc, or bml!\n");
-/*	 if (strcmp(partition, ".android_secure") != 0) 
-	 {	       
-      printf("Mounting %s...\n", partition);
-		ensure_path_mounted(partition);
-    }
-*/
      
 	 if (strcmp(partition, ".android_secure") != 0)	 
 	 {	 
