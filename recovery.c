@@ -510,12 +510,6 @@ get_args (int *argc, char ***argv)
 	    LOGI ("Boot command: %.*s\n", sizeof (boot.command),
 		   boot.command);
 	  }
-  get_bootloader_message (&boot);	// this may fail, leaving a zeroed structure
-  if (boot.command[0] != 0 && boot.command[0] != 255)
-	  {
-	    LOGI ("Boot command: %.*s\n", sizeof (boot.command),
-		   boot.command);
-	  }
    if (boot.status[0] != 0 && boot.status[0] != 255)
 	  {
 	    LOGI ("Boot status: %.*s\n", sizeof (boot.status), boot.status);
@@ -566,7 +560,6 @@ get_args (int *argc, char ***argv)
 		       check_and_fclose (fp, COMMAND_FILE);
 		      LOGI ("Got arguments from %s\n", COMMAND_FILE);
 		    }
-			ensure_path_unmounted(COMMAND_FILE);
 	  }
    
     // --> write the arguments we have back into the bootloader control block
@@ -651,7 +644,6 @@ finish_recovery (const char *send_intent)
 		      fputs (send_intent, fp);
 		      check_and_fclose (fp, INTENT_FILE);
 		    }
-//		ensure_path_unmounted(INTENT_FILE);
 	  }
  
   // Copy logs to cache so the system can find out what happened.
@@ -947,7 +939,6 @@ int main (int argc, char **argv)
   time_t start = time (NULL);
   printf ("Starting recovery on %s", ctime (&start));
   ui_init();
-  gr_color (0, 0, 0, 0);
   ui_show_indeterminate_progress();
   ui_set_background(LOADING);
   load_volume_table ();
@@ -1024,6 +1015,7 @@ int main (int argc, char **argv)
   printf ("\n");
   property_list (print_property, NULL);
   printf ("\n");
+   
    int status = INSTALL_SUCCESS;
 
    if (toggle_secure_fs)
@@ -1093,12 +1085,12 @@ int main (int argc, char **argv)
 	    status = INSTALL_ERROR;	// No command specified
 	  }
    if (status != INSTALL_SUCCESS)
-  if (status != INSTALL_SUCCESS /*|| ui_text_visible() */ )
+   if (status != INSTALL_SUCCESS || ui_text_visible())
 	  {
 	    prompt_and_wait ();
 	  }
    
-    // Otherwise, get ready to boot the main system...
+  // Otherwise, get ready to boot the main system...
   finish_recovery (send_intent);
   ui_print ("Rebooting...\n");
   sync ();
