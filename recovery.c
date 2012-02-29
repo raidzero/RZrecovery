@@ -44,7 +44,7 @@
 
 #include "mounts.h"
 static const struct option OPTIONS[] = { 
-    {"send_intent", required_argument, NULL, 's'}, 
+  {"send_intent", required_argument, NULL, 's'}, 
   {"update_package", required_argument, NULL, 'u'}, 
   {"set_encrypted_filesystems", required_argument, NULL, 'e'}, 
   {NULL, 0, NULL, 0}, 
@@ -428,9 +428,6 @@ void read_files ()
  char* RZR_DIR = get_rzr_dir();
  if (access(RZR_DIR, F_OK) != -1) 
   {
-   /*__system("mkdir /cache/recovery");
-   __system("mv /tmp/log /cache/recovery/log");
-   __system("mv /tmp/last_log /cache/recovery/last_log");*/
    char LOG_CMD[PATH_MAX];
    sprintf(LOG_CMD, "rm %s/recovery.log", RZR_DIR); //remove the log from last run so we can get a new log
    __system(LOG_CMD);
@@ -597,6 +594,41 @@ set_sdcard_update_bootloader_message ()
   set_bootloader_message (&boot);
 }
 
+// How much of the temp log we have copied to the copy in cache.
+long tmplog_offset = 0;
+void copy_log_file (const char *destination, int append)
+{
+  FILE * log = fopen_path (destination, append ? "a" : "w");
+  if (log == NULL)
+	  {
+	    LOGE ("Can't open %s\n", destination);
+	  }
+  else
+	  {
+	    FILE * tmplog = fopen (TEMPORARY_LOG_FILE, "r");
+	    if (tmplog == NULL)
+		    {
+		      LOGE ("Can't open %s\n", TEMPORARY_LOG_FILE);
+		    }
+	    else
+		    {
+		      if (append)
+			      {
+				fseek (tmplog, tmplog_offset, SEEK_SET);	// Since last write
+			      }
+		      char buf[4096];
+
+		      while (fgets (buf, sizeof (buf), tmplog))
+			fputs (buf, log);
+		      if (append)
+			      {
+				tmplog_offset = ftell (tmplog);
+			      }
+		      check_and_fclose (tmplog, TEMPORARY_LOG_FILE);
+		    }
+	    check_and_fclose (log, destination);
+	  }
+}
   
 // clear the recovery command and prepare to boot a (hopefully working) system,
 // copy our log file to cache as well (for the system to read), and
@@ -619,10 +651,14 @@ finish_recovery (const char *send_intent)
 		      fputs (send_intent, fp);
 		      check_and_fclose (fp, INTENT_FILE);
 		    }
-		ensure_path_unmounted(INTENT_FILE);
+//		ensure_path_unmounted(INTENT_FILE);
 	  }
  
-    // Reset to mormal system boot so recovery won't cycle indefinitely.
+  // Copy logs to cache so the system can find out what happened.
+  copy_log_file (LOG_FILE, true);
+  copy_log_file (LAST_LOG_FILE, false);
+  chmod (LAST_LOG_FILE, 0640); 
+  // Reset to mormal system boot so recovery won't cycle indefinitely.
   struct bootloader_message boot;
 
   memset (&boot, 0, sizeof (boot));
@@ -641,6 +677,13 @@ finish_recovery (const char *send_intent)
 erase_volume (const char *volume)
 {
   ui_show_indeterminate_progress ();
+  if (strcmp (volume, "/cache") == 0)
+  {
+    // Any part of the log we'd copied to cache is now gone. 
+    //Reset the pointer to the copy to copy from the beginning of the temp
+    //log.
+    tmplog_offset = 0;
+  }
   return format_volume (volume);
 }
 
@@ -846,9 +889,20 @@ print_property (const char *key, const char *name, void *cookie)
   printf ("%s=%s\n", key, name);
 }  
 
-int main (int argc, char **argv)
+int file_from_std(const char* filename, const char* text)
 {
+  printf("Will try to print %s to %s\n", text, filename);  
+  freopen (filename, "a", stdout); setbuf(stdout, NULL);
+  freopen (filename, "a", stderr); setbuf(stderr, NULL);
+  printf("%s", text);
+  //change it back aferwards
+  freopen (TEMPORARY_LOG_FILE, "a", stdout); setbuf(stdout, NULL);
+  freopen (TEMPORARY_LOG_FILE, "a", stderr); setbuf(stderr, NULL);
+  return 0;
+}
   
+int main (int argc, char **argv)
+{ 
   if (strstr (argv[0], "recovery") == NULL)
 	 {
 	    if (strstr (argv[0], "flash_image") != NULL)
@@ -881,15 +935,15 @@ int main (int argc, char **argv)
 	      return list_files_main(argc, argv);
 	    if (strstr (argv[0], "freespace") != NULL)
 	      return freespace_main(argc, argv);
+	    if (strstr (argv[0], "printfile") != NULL)
+	      return file_from_std(argv[1], argv[2]);	    
 	    //we dont need to keep executing stuff past this point if an embedded function was called 
 	    return 0;
 	  }
    
   // If these fail, there's not really anywhere to complain...
-  freopen (TEMPORARY_LOG_FILE, "a", stdout);
-  setbuf (stdout, NULL);
-  freopen (TEMPORARY_LOG_FILE, "a", stderr);
-  setbuf (stderr, NULL);
+  freopen (TEMPORARY_LOG_FILE, "a", stdout); setbuf(stdout, NULL);
+  freopen (TEMPORARY_LOG_FILE, "a", stderr); setbuf(stderr, NULL);
   time_t start = time (NULL);
   printf ("Starting recovery on %s", ctime (&start));
   ui_init();
