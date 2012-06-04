@@ -1,0 +1,405 @@
+<html>
+<head><title>RZR-2.1.4 Downloads</title></head>
+<body>
+<body bgcolor=black>
+<font color=white>
+<center><img src=http://www.rzdroid.com/images/RZ_Avatar_nice.gif>
+<br><h1>RZrecovery version 2.1.4 Downloads</h1><br>
+<h3>Changelog</h3>
+<br><textarea name="changelog" cols="80" rows="20" READONLY STYLE="background:#000000; color:#ffffff;">
+2.1.4 (unreleased)
+-----
+nandroid will only use android versions from build.prop
+replace shell script nandroid with C - much faster and should work on galaxy nexus/xoom
+abort install queue if an item fails
+added view log to extras menu (will print 35 lines at a time, press volume down to see 35 more lines or back to exit)
+removed custom copyFile fucntion in favor of __system
+convert lowercase rzr dir on sdcard to uppercase name
+switched from cyanogenmod tree to vanilla aosp to build recoveries (can build RZR for 58 devices must faster this way)  
+Added ability to choose the directory for nandroids and will save the setting (/sdcard/nandroid, /emmc/nandroid, /sdcard/nandroid, /sdcard/external_sdcard/nandroid)
+Add on screen back button for devices without accessible select buttons (will not be shown on main menu)
+Create nandroid directory if it does not exist at boot, instead of letting the nandroid script do it (users were reporting they had to create it manually)
+Allow devices to have inverted volume keys (down is up and up is down)
+Fix the way nandroid dumps boot (if dd fails, it fails over to dump_image/flash_image)
+Separate Extras to Options menu & Extras menu
+If an android build version tag for nandroid contains spaces, replace them with underscores (e.g., Liquid Gingerbread=Liquid_Gingerbread)
+Created flash_image wrapper script which will first attempt dd, if that fails it will use flash_image 
+Added variable scroll speed (on options menu) from 255 to 105 ms, saves to sdcard
+Add support for variable storage locations (/sdcard, /emmc, /data/media)
+Added a loading screen
+Rewrote configuration save/read functions
+Only calculate progress bars if progress is hidden, before it was still calculating in the background just not showing anything
+Added a way to execute the built-in mkfs.ext4 & erase_volume from the shell (call them using the
+mountpoint, not the device name)
+store configuration files in /tmp, not in /cache - speeds up operations across the board
+Copy the recovery log to sdcard for review in android later, will delete this copy next recovery boot to make room for the new log
+Mount USB storage will detect any volumes able to be mounted, including an option to mount ext filesystems as USB storage. (ext2/3/4, vfat supported)
+Mount menu will display all present and mountable partitions, not a predefined list
+
+DOWNLOADS:
+
+http://rzdroid.com/ftp/recovery/gingerbread/2.1.4/RZR-2.1.4-download.html
+
+
+
+2.1.3 (released 11/25/11)
+-----
+Added "fix_permissions" from clockwork to the ROM tweaks menu
+Updated busybox to 1.19.3
+Increased the number of rows on the screen to 43 (full screen at 480x800)
+Moved progress bars to bottom of the screen 
+Added option to auto reboot following existing nandroid compression
+Add ability to reset the progress bar from shell scripts
+Added progress bar reset command to end of pipeline (nandroid function that draws progrerss bars) - should prevent it from ever drawing out bounds
+Take away all nandroid progress bars if progress is not shown - I left some indeterminates in there by mistake
+Clean up a lot of nandroid - should be slightly faster since it will only make certain calculations if necessary
+Added recovery log files to the read & write files routines so that logs aren't lost when wiping cache 
+Added plugins system/"API" - this will have its own thread
+Moved nandroid perform restore to top of the list (select it without choosing a backup to restore the latest)
+Added sd-ext suppot for nandroid
+Implemented a zip/img/apk/tar install queue 
+Leaving the preinstall menu will return to file selection, not the home screen
+Added option to reboot following install
+Changed preinstall menu to allow for unattended operation, like nandroid
+Repackaged ROM Tweaks menu items as individual plugins and made an update.zip to install them
+Root ROM plugin now includes superuser.apk
+Tagged backups with the version of android (if available), should help make them stand out
+Added menu to inform user when they do not have sufficient battery power for nandroid, option to continue or abort
+Added ability to reboot device to android from the shell (reboot_android)
+
+Downloads:
+----------
+
+Recovery: http://rzdroid.com/ftp/recovery/gingerbread/2.1.3/
+Plugins Bundle: http://rzdroid.com/ftp/recovery/gingerbread/2.1.3/plugins/RZR-plugins-bundle-update.zip
+
+
+2.1.2 (released 11/15/11)
+-----
+Added gzip compression option for nandroid
+Added cache support for nandroid
+Added ability to auto reboot after successful nandroid operation
+Added timer to nandroid
+Added diskspace required/available/used readout to nandroid
+Added ability to delete nandroid backups
+Added check if nandroid reports out of space, to ask the user if they'd like to delete a backup
+Added question function to get yes/no answers from users (used in nandroid out of space)
+Added confirm question function used for wipe menu
+Sort nandroid backup selection list
+Rewrote wipe menu to use new confirm routine
+Added preference "savepoints" throughout system to try to ensure custom colors/overclock/icon is not lost
+Added ability to compress an existing nandroid backup
+Fixed ext3 wipe erroneous failure on some devices
+Added progress bar reset commands to installer to compenstae for update.zips that don't reset it
+Removed grey rootzwiki theme
+Added cache wipe to preinstall menu
+
+nandroid times & sizes (Nexus S 4G @ 1200 MHz - boot, data, cache, system, android-secure)
+uncompressed backup: used 512 MB SD space, 130 seconds
+compressed backup: used 328 MB SD space, 514 seconds
+
+uncompressed restore: unpacked 512 MB, 118 seconds 
+compressed restore: unpacked 328 MB, 131 seconds 
+
+Downloads:
+
+http://rzdroid.com/ftp/recovery/gingerbread/2.1.2/
+
+</textarea>
+<br><br>
+<h3>RZR is available for 68 devices!</h3><br>
+<fieldset style="width:30%; text-align:left;"><legend>PLUGINS</legend>
+This bundle contains 4 plugins:<br>
+<font color=blue><ul><li>Disable/enable Dalvik bytecode verification in Android<br>
+<li>Disable OTA downloads in Android<br>
+<li>Fix Permissions<br>
+<li>Root the installed ROM</ul></font>
+DOWNLOAD: <a href=http://rzdroid.com/ftp/recovery/gingerbread/plugins/RZR-plugins-bundle-update.zip>Download</a>
+<br>After installing this update, there will be a new menu in Extras called Plugins.<br>
+Go <a href=http://rootzwiki.com/topic/9977-how-to-make-your-own-plugins-for-rzr>here</a> for information on how to create your own plugins for this recovery.<br>
+</fieldset>
+<br><br>
+<fieldset style="width:30%; text-align:left;"><legend>DEVICE UNLISTED?</legend>
+Try the universal zip, this will not flash anything, it will only run and then when you reboot your old recovery will still be there.<br>
+DOWNLOAD: <a href=http://rzdroid.com/ftp/recovery/gingerbread/2.1.4/RZR-2.1.4-universal-runme.zip>RZR-2.1.4-universal-runme.zip</a>
+</fieldset>
+<br><br>
+<fieldset style="width:30%; text-align:left;"><legend>CONFIRMED WORKING</legend>
+HTC Desire HD/Inspire [ace]
+<a href="RZR-2.1.4-ace-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-ace-update.zip">(ZIP)</a>
+<br>
+HTC Evo [supersonic]
+<a href="RZR-2.1.4-supersonic-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-supersonic-update.zip">(ZIP)</a>
+<br>
+HTC Evo 3D [shooter]
+<a href="RZR-2.1.4-shooter-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-shooter-update.zip">(ZIP)</a>
+<br>
+HTC HD2 [leo]
+<a href="RZR-2.1.4-leo-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-leo-update.zip">(ZIP)</a>
+<br>
+HTC Incredible [inc]
+<a href="RZR-2.1.4-inc-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-inc-update.zip">(ZIP)</a>
+<br>
+HTC Incredible 2 [vivow]
+<a href="RZR-2.1.4-vivow-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-vivow-update.zip">(ZIP)</a>
+<br>
+HTC Incredible S [vivo]
+<a href="RZR-2.1.4-vivo-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-vivo-update.zip">(ZIP)</a>
+<br>
+HTC MyTouch 4G [glacier]
+<a href="RZR-2.1.4-glacier-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-glacier-update.zip">(ZIP)</a>
+<br>
+HTC Thunderbolt [mecha]
+<a href="RZR-2.1.4-mecha-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-mecha-update.zip">(ZIP)</a>
+<br>
+HTC Wildfire S [marvel]
+<a href="RZR-2.1.4-marvel-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-marvel-update.zip">(ZIP)</a>
+<br>
+LG GT540 [swift]
+<a href="RZR-2.1.4-swift-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-swift-update.zip">(ZIP)</a>
+<br>
+MicroMax A70 [a70]
+<a href="RZR-2.1.4-a70-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-a70-update.zip">(ZIP)</a>
+<br>
+Notion Ink Adam [adam]
+<a href="RZR-2.1.4-adam-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-adam-update.zip">(ZIP)</a>
+<br>
+Samsung Galaxy W 8150 [ancora]
+<a href="RZR-2.1.4-ancora-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-ancora-update.zip">(ZIP)</a>
+<br>
+Samsung Nexus S [crespo]
+<a href="RZR-2.1.4-crespo-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-crespo-update.zip">(ZIP)</a>
+<br>
+Samsung Nexus S 4G [crespo4g]
+<a href="RZR-2.1.4-crespo4g-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-crespo4g-update.zip">(ZIP)</a>
+<br>
+Sprint Sanyo Zio [spc8600]
+<a href="RZR-2.1.4-spc8600-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-spc8600-update.zip">(ZIP)</a>
+<br>
+</fieldset>
+<br><br>
+<fieldset style="width:30%; text-align:left;"><legend>UNCONFIRMED</legend>
+Acer Iconia [a500]
+<a href="RZR-2.1.4-a500-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-a500-update.zip">(ZIP)</a>
+<br>
+Advent Vega [vega]
+<a href="RZR-2.1.4-vega-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-vega-update.zip">(ZIP)</a>
+<br>
+Barnes & Nobile Nook Color (constantly scroll down) [encore]
+<a href="RZR-2.1.4-encore-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-encore-update.zip">(ZIP)</a>
+<br>
+Commtiva Z71 [z71]
+<a href="RZR-2.1.4-z71-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-z71-update.zip">(ZIP)</a>
+<br>
+Dell Streak [streak]
+<a href="RZR-2.1.4-streak-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-streak-update.zip">(ZIP)</a>
+<br>
+Dell Streak 7 [streak 7]
+<a href="RZR-2.1.4-streak 7-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-streak 7-update.zip">(ZIP)</a>
+<br>
+Geeksphone Zero [zero]
+<a href="RZR-2.1.4-zero-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-zero-update.zip">(ZIP)</a>
+<br>
+Google Nexus One [passion]
+<a href="RZR-2.1.4-passion-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-passion-update.zip">(ZIP)</a>
+<br>
+HTC Amaze [ruby]
+<a href="RZR-2.1.4-ruby-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-ruby-update.zip">(ZIP)</a>
+<br>
+HTC Aria [liberty]
+<a href="RZR-2.1.4-liberty-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-liberty-update.zip">(ZIP)</a>
+<br>
+HTC Click/Tattoo [click]
+<a href="RZR-2.1.4-click-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-click-update.zip">(ZIP)</a>
+<br>
+HTC Desire [bravo]
+<a href="RZR-2.1.4-bravo-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-bravo-update.zip">(ZIP)</a>
+<br>
+HTC Desire CDMA [bravoc]
+<a href="RZR-2.1.4-bravoc-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-bravoc-update.zip">(ZIP)</a>
+<br>
+HTC Desire S [saga]
+<a href="RZR-2.1.4-saga-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-saga-update.zip">(ZIP)</a>
+<br>
+HTC Evo Shift [speedy]
+<a href="RZR-2.1.4-speedy-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-speedy-update.zip">(ZIP)</a>
+<br>
+HTC G1 [dream]
+<a href="RZR-2.1.4-dream-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-dream-update.zip">(ZIP)</a>
+<br>
+HTC G2 [vision]
+<a href="RZR-2.1.4-vision-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-vision-update.zip">(ZIP)</a>
+<br>
+HTC Legend [legend]
+<a href="RZR-2.1.4-legend-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-legend-update.zip">(ZIP)</a>
+<br>
+HTC Magic [magic]
+<a href="RZR-2.1.4-magic-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-magic-update.zip">(ZIP)</a>
+<br>
+HTC MyTouch 3G [sapphire]
+<a href="RZR-2.1.4-sapphire-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-sapphire-update.zip">(ZIP)</a>
+<br>
+HTC MyTouch Slide [espresso]
+<a href="RZR-2.1.4-espresso-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-espresso-update.zip">(ZIP)</a>
+<br>
+HTC Sensation [pyramid]
+<a href="RZR-2.1.4-pyramid-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-pyramid-update.zip">(ZIP)</a>
+<br>
+HTC Wildfire [buzz]
+<a href="RZR-2.1.4-buzz-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-buzz-update.zip">(ZIP)</a>
+<br>
+Huawei Ideos [u8150]
+<a href="RZR-2.1.4-u8150-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-u8150-update.zip">(ZIP)</a>
+<br>
+Huawei U8220/U8230 [u8220]
+<a href="RZR-2.1.4-u8220-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-u8220-update.zip">(ZIP)</a>
+<br>
+LG Ally [aloha]
+<a href="RZR-2.1.4-aloha-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-aloha-update.zip">(ZIP)</a>
+<br>
+LG Black [p970]
+<a href="RZR-2.1.4-p970-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-p970-update.zip">(ZIP)</a>
+<br>
+LG G-slate [v909]
+<a href="RZR-2.1.4-v909-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-v909-update.zip">(ZIP)</a>
+<br>
+LG G2X [p999]
+<a href="RZR-2.1.4-p999-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-p999-update.zip">(ZIP)</a>
+<br>
+LG Optimus 2X [p990]
+<a href="RZR-2.1.4-p990-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-p990-update.zip">(ZIP)</a>
+<br>
+LG Optimus 3D [p920]
+<a href="RZR-2.1.4-p920-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-p920-update.zip">(ZIP)</a>
+<br>
+LG Optimus One [thunderg]
+<a href="RZR-2.1.4-thunderg-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-thunderg-update.zip">(ZIP)</a>
+<br>
+LG Optimus V [thunderc]
+<a href="RZR-2.1.4-thunderc-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-thunderc-update.zip">(ZIP)</a>
+<br>
+Motorola Atrix [olympus]
+<a href="RZR-2.1.4-olympus-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-olympus-update.zip">(ZIP)</a>
+<br>
+Motorola Backflip [motus]
+<a href="RZR-2.1.4-motus-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-motus-update.zip">(ZIP)</a>
+<br>
+Motorola Bionic [targa]
+<a href="RZR-2.1.4-targa-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-targa-update.zip">(ZIP)</a>
+<br>
+Motorola Cliq [morrison]
+<a href="RZR-2.1.4-morrison-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-morrison-update.zip">(ZIP)</a>
+<br>
+Motorola Cliq XT [zeppelin]
+<a href="RZR-2.1.4-zeppelin-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-zeppelin-update.zip">(ZIP)</a>
+<br>
+Motorola Droid (next-gen version doesnt boot - use 2.0.3) [sholes]
+<a href="RZR-2.1.4-sholes-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-sholes-update.zip">(ZIP)</a>
+<br>
+Motorola Xoom [stingray]
+<a href="RZR-2.1.4-stingray-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-stingray-update.zip">(ZIP)</a>
+<br>
+Samsung CDMA Galaxy Nexus [toro]
+<a href="RZR-2.1.4-toro-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-toro-update.zip">(ZIP)</a>
+<br>
+Samsung Conquer 4G [conquer4g]
+<a href="RZR-2.1.4-conquer4g-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-conquer4g-update.zip">(ZIP)</a>
+<br>
+Samsung GSM Galaxy Nexus [maguro]
+<a href="RZR-2.1.4-maguro-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-maguro-update.zip">(ZIP)</a>
+<br>
+Samsung Galaxy Ace [galaxyace]
+<a href="RZR-2.1.4-galaxyace-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-galaxyace-update.zip">(ZIP)</a>
+<br>
+Samsung Galaxy Pro [b7510]
+<a href="RZR-2.1.4-b7510-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-b7510-update.zip">(ZIP)</a>
+<br>
+Samsung Galaxy S2 [hercules]
+<a href="RZR-2.1.4-hercules-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-hercules-update.zip">(ZIP)</a>
+<br>
+Samsung Galaxy Tab 10.1 [p7100]
+<a href="RZR-2.1.4-p7100-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-p7100-update.zip">(ZIP)</a>
+<br>
+Samsung Galaxy Tab 10.1 [p7510]
+<a href="RZR-2.1.4-p7510-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-p7510-update.zip">(ZIP)</a>
+<br>
+Samsung Galaxy Tab 7 Wifi [p1010]
+<a href="RZR-2.1.4-p1010-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-p1010-update.zip">(ZIP)</a>
+<br>
+Samsung Skyrocket I-727 [skyrocket]
+<a href="RZR-2.1.4-skyrocket-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-skyrocket-update.zip">(ZIP)</a>
+<br>
+ViewSonic G-Tablet [smb_a1002]
+<a href="RZR-2.1.4-smb_a1002-rec.img">(IMG)</a>  
+<a href="RZR-2.1.4-smb_a1002-update.zip">(ZIP)</a>
+<br>
+</fieldset>
+</body>
+</html>
