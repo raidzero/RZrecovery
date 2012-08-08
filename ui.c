@@ -30,6 +30,7 @@
 
 #include "common.h"
 #include <cutils/android_reboot.h>
+#include <cutils/properties.h>
 #include "minui/minui.h"
 #include "recovery_ui.h"
 
@@ -38,6 +39,10 @@
 
 #define MENU_MAX_COLS 64
 #define MENU_MAX_ROWS 250
+
+#define UI_WAIT_KEY_TIMEOUT_SEC    3600
+#define UI_KEY_REPEAT_INTERVAL 80
+#define UI_KEY_WAIT_REPEAT 400
 
 #define CHAR_WIDTH 10
 #define CHAR_HEIGHT 18
@@ -57,6 +62,8 @@ static gr_surface *gInstallationOverlay;
 static gr_surface *gProgressBarIndeterminate;
 static gr_surface gProgressBarEmpty;
 static gr_surface gProgressBarFill;
+
+static int boardRepeatableKeys[64], boardNumRepeatableKeys = 0;
 
 static const struct
 {
@@ -105,6 +112,8 @@ static int menu_top = 0, menu_items = 0, menu_sel = 0;
 static pthread_mutex_t key_queue_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t key_queue_cond = PTHREAD_COND_INITIALIZER;
 static int key_queue[256], key_queue_len = 0;
+static unsigned long key_last_repeat[KEY_MAX + 1],
+  key_press_time[KEY_MAX + 1];
 static volatile char key_pressed[KEY_MAX + 1];
 
 // Return the current time as a double (including fractions of a second).
@@ -427,6 +436,13 @@ input_callback(int fd, short revents, void *data)
   if (ev.value > 0 && key_queue_len < queue_max)
   {
     key_queue[key_queue_len++] = ev.code;
+
+    struct timeval now;
+    gettimeofday(&now, NULL);
+
+    key_press_time[ev.code] = (now.tv_sec * 1000) + (now.tv_usec / 1000);
+    key_last_repeat[ev.code] = 0;
+
     pthread_cond_signal(&key_queue_cond);
   }
   pthread_mutex_unlock(&key_queue_mutex);
@@ -530,6 +546,11 @@ ui_init(void)
   {
     gInstallationOverlay = NULL;
   }
+
+  boardRepeatableKeys[boardNumRepeatableKeys++] = KEY_UP;
+  boardRepeatableKeys[boardNumRepeatableKeys++] = KEY_DOWN;
+  boardRepeatableKeys[boardNumRepeatableKeys++] = KEY_VOLUMEUP;
+  boardRepeatableKeys[boardNumRepeatableKeys++] = KEY_VOLUMEDOWN;
 
   pthread_t t;
   pthread_create(&t, NULL, progress_thread, NULL);
@@ -745,10 +766,8 @@ usb_connected()
 int
 ui_wait_key()
 {
-  pthread_mutex_lock(&key_queue_mutex);
+  int key = -1;
 
-  // Time out after UI_WAIT_KEY_TIMEOUT_SEC, unless a USB cable is
-  // plugged in.
   do
   {
     struct timeval now;
@@ -761,19 +780,64 @@ ui_wait_key()
     int rc = 0;
     while (key_queue_len == 0 && rc != ETIMEDOUT)
     {
+      pthread_mutex_lock(&key_queue_mutex);
       rc = pthread_cond_timedwait(&key_queue_cond, &key_queue_mutex,
 				  &timeout);
+      pthread_mutex_unlock(&key_queue_mutex);
+    }
+    if (rc == ETIMEDOUT && !usb_connected())
+      return -1;
+
+    while (key_queue_len > 0)
+    {
+      unsigned long now_msec;
+      usleep(1);
+
+      gettimeofday(&now, NULL);
+      now_msec = (now.tv_sec * 1000) + (now.tv_usec / 1000);
+
+      key = key_queue[0];
+
+      pthread_mutex_lock(&key_queue_mutex);
+      memcpy(&key_queue[0], &key_queue[1], sizeof(int) * --key_queue_len);
+      pthread_mutex_unlock(&key_queue_mutex);
+
+      if (!key_pressed[key])
+      {
+	if (key_last_repeat[key] > 0)
+	  continue;
+	else
+	  return key;
+      }
+
+      int k = 0;
+      for (; k < boardNumRepeatableKeys; ++k)
+      {
+	if (boardRepeatableKeys[k] == key)
+	{
+	  break;
+	}
+      }
+      if (k < boardNumRepeatableKeys)
+      {
+	key_queue[key_queue_len] = key;
+	key_queue_len++;
+
+	if ((now_msec > key_press_time[key] + UI_KEY_WAIT_REPEAT &&
+	     now_msec > key_last_repeat[key] + UI_KEY_REPEAT_INTERVAL) ||
+	    key_last_repeat[key] == 0)
+	{
+	  key_last_repeat[key] = now_msec;
+	}
+	else if (key_last_repeat[key] > 0)
+	{
+	  continue;
+	}
+      }
+      return key;
     }
   }
-  while (usb_connected() && key_queue_len == 0);
-
-  int key = -1;
-  if (key_queue_len > 0)
-  {
-    key = key_queue[0];
-    memcpy(&key_queue[0], &key_queue[1], sizeof(int) * --key_queue_len);
-  }
-  pthread_mutex_unlock(&key_queue_mutex);
+  while (key_queue_len == 0);
   return key;
 }
 
