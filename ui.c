@@ -105,7 +105,7 @@ static int text_cols = 0, text_rows = 0;
 static int text_col = 0, text_row = 0, text_top = 0;
 static int menu_show_start = 0;	//menu start position
 
-static char menu[MAX_ROWS][MAX_COLS];
+static char menu[MENU_MAX_ROWS][MENU_MAX_COLS];
 static int menu_top = 0, menu_items = 0, menu_sel = 0;
 
 // Key event input queue
@@ -245,11 +245,21 @@ draw_screen_locked(void)
   gr_fill(0, (menu_top + menu_sel - menu_show_start) * CHAR_HEIGHT,
 	  gr_fb_width(),
 	  (menu_top + menu_sel - menu_show_start + 1) * CHAR_HEIGHT + 1);
+  
+  gr_color(255, 255, 255, 255); //header text color
+  
   for (i = 0; i < menu_top; ++i)
   {
     draw_text_line(i, menu[i]);
     row++;
   }
+
+  //draw line
+  gr_color(64, 96, 255, 255); //menu text color
+  row--;
+  gr_fill(0, row * CHAR_HEIGHT + CHAR_HEIGHT / 2 - 1,
+    gr_fb_width(), row * CHAR_HEIGHT + CHAR_HEIGHT / 2 + 1);
+  row++;
 
   if (menu_items - menu_show_start + menu_top >= MAX_ROWS)
     j = MAX_ROWS - menu_top;
