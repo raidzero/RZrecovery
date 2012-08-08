@@ -93,11 +93,8 @@ static int gPagesIdentical = 0;
 static char text[MAX_ROWS][MAX_COLS];
 static int text_cols = 0, text_rows = 0;
 static int text_col = 0, text_row = 0, text_top = 0;
-static int show_text = 0;
-static int show_text_ever = 0;	// has show_text ever been 1?
 
 static char menu[MAX_ROWS][MAX_COLS];
-static int show_menu = 0;
 static int menu_top = 0, menu_items = 0, menu_sel = 0;
 
 // Key event input queue
@@ -222,42 +219,36 @@ draw_screen_locked(void)
   draw_background_locked(gCurrentIcon);
   draw_progress_locked();
 
-  if (show_text)
+  gr_color(0, 0, 0, 160);
+  gr_fill(0, 0, gr_fb_width(), gr_fb_height());
+
+  int i = 0;
+  gr_color(64, 96, 255, 255);
+  gr_fill(0, (menu_top + menu_sel) * CHAR_HEIGHT,
+    gr_fb_width(), (menu_top + menu_sel + 1) * CHAR_HEIGHT + 1);
+
+  for (; i < menu_top + menu_items; ++i)
   {
-    gr_color(0, 0, 0, 160);
-    gr_fill(0, 0, gr_fb_width(), gr_fb_height());
-
-    int i = 0;
-    if (show_menu)
+    if (i == menu_top + menu_sel)
     {
+      gr_color(255, 255, 255, 255);
+      draw_text_line(i, menu[i]);
       gr_color(64, 96, 255, 255);
-      gr_fill(0, (menu_top + menu_sel) * CHAR_HEIGHT,
-	      gr_fb_width(), (menu_top + menu_sel + 1) * CHAR_HEIGHT + 1);
-
-      for (; i < menu_top + menu_items; ++i)
-      {
-	if (i == menu_top + menu_sel)
-	{
-	  gr_color(255, 255, 255, 255);
-	  draw_text_line(i, menu[i]);
-	  gr_color(64, 96, 255, 255);
-	}
-	else
-	{
-	  draw_text_line(i, menu[i]);
-	}
-      }
-      gr_fill(0, i * CHAR_HEIGHT + CHAR_HEIGHT / 2 - 1,
-	      gr_fb_width(), i * CHAR_HEIGHT + CHAR_HEIGHT / 2 + 1);
-      ++i;
     }
-
-    gr_color(255, 255, 0, 255);
-
-    for (; i < text_rows; ++i)
+    else
     {
-      draw_text_line(i, text[(i + text_top) % text_rows]);
+      draw_text_line(i, menu[i]);
     }
+  }
+  gr_fill(0, i * CHAR_HEIGHT + CHAR_HEIGHT / 2 - 1,
+    gr_fb_width(), i * CHAR_HEIGHT + CHAR_HEIGHT / 2 + 1);
+  ++i;
+
+  gr_color(255, 255, 0, 255);
+
+  for (; i < text_rows; ++i)
+  {
+    draw_text_line(i, text[(i + text_top) % text_rows]);
   }
 }
 
@@ -275,7 +266,7 @@ update_screen_locked(void)
 static void
 update_progress_locked(void)
 {
-  if (show_text || !gPagesIdentical)
+  if (!gPagesIdentical)
   {
     draw_screen_locked();	// Must redraw the whole screen
     gPagesIdentical = 1;
@@ -302,7 +293,7 @@ progress_thread(void *cookie)
     // update the installation animation, if active
     // skip this if we have a text overlay (too expensive to update)
     if (gCurrentIcon == BACKGROUND_ICON_INSTALLING &&
-	ui_parameters.installing_frames > 0 && !show_text)
+	ui_parameters.installing_frames > 0)
     {
       gInstallingFrame =
 	(gInstallingFrame + 1) % ui_parameters.installing_frames;
@@ -311,7 +302,7 @@ progress_thread(void *cookie)
 
     // update the progress bar animation, if active
     // skip this if we have a text overlay (too expensive to update)
-    if (gProgressBarType == PROGRESSBAR_TYPE_INDETERMINATE && !show_text)
+    if (gProgressBarType == PROGRESSBAR_TYPE_INDETERMINATE)
     {
       redraw = 1;
     }
@@ -413,12 +404,9 @@ input_callback(int fd, short revents, void *data)
   }
   pthread_mutex_unlock(&key_queue_mutex);
 
-  if (ev.value > 0 && device_toggle_display(key_pressed, ev.code))
+  if (ev.value > 0)
   {
     pthread_mutex_lock(&gUpdateMutex);
-    show_text = !show_text;
-    if (show_text)
-      show_text_ever = 1;
     update_screen_locked();
     pthread_mutex_unlock(&gUpdateMutex);
   }
@@ -648,7 +636,6 @@ ui_start_menu(char **headers, char **items, int initial_selection)
       menu[i][text_cols - 1] = '\0';
     }
     menu_items = i - menu_top;
-    show_menu = 1;
     menu_sel = initial_selection;
     update_screen_locked();
   }
@@ -660,18 +647,16 @@ ui_menu_select(int sel)
 {
   int old_sel;
   pthread_mutex_lock(&gUpdateMutex);
-  if (show_menu > 0)
-  {
-    old_sel = menu_sel;
-    menu_sel = sel;
-    if (menu_sel < 0)
-      menu_sel = 0;
-    if (menu_sel >= menu_items)
-      menu_sel = menu_items - 1;
+    
+  old_sel = menu_sel;
+  menu_sel = sel;
+  if (menu_sel < 0)
+    menu_sel = 0;
+  if (menu_sel >= menu_items)
+    menu_sel = menu_items - 1;
     sel = menu_sel;
-    if (menu_sel != old_sel)
-      update_screen_locked();
-  }
+  if (menu_sel != old_sel)
+    update_screen_locked();
   pthread_mutex_unlock(&gUpdateMutex);
   return sel;
 }
@@ -681,40 +666,10 @@ ui_end_menu()
 {
   int i;
   pthread_mutex_lock(&gUpdateMutex);
-  if (show_menu > 0 && text_rows > 0 && text_cols > 0)
+  if (text_rows > 0 && text_cols > 0)
   {
-    show_menu = 0;
     update_screen_locked();
   }
-  pthread_mutex_unlock(&gUpdateMutex);
-}
-
-int
-ui_text_visible()
-{
-  pthread_mutex_lock(&gUpdateMutex);
-  int visible = show_text;
-  pthread_mutex_unlock(&gUpdateMutex);
-  return visible;
-}
-
-int
-ui_text_ever_visible()
-{
-  pthread_mutex_lock(&gUpdateMutex);
-  int ever_visible = show_text_ever;
-  pthread_mutex_unlock(&gUpdateMutex);
-  return ever_visible;
-}
-
-void
-ui_show_text(int visible)
-{
-  pthread_mutex_lock(&gUpdateMutex);
-  show_text = visible;
-  if (show_text)
-    show_text_ever = 1;
-  update_screen_locked();
   pthread_mutex_unlock(&gUpdateMutex);
 }
 

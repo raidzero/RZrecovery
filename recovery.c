@@ -44,7 +44,6 @@ static const struct option OPTIONS[] = {
   {"update_package", required_argument, NULL, 'u'},
   {"wipe_data", no_argument, NULL, 'w'},
   {"wipe_cache", no_argument, NULL, 'c'},
-  {"show_text", no_argument, NULL, 't'},
   {NULL, 0, NULL, 0},
 };
 
@@ -486,15 +485,9 @@ get_menu_selection(char **headers, char **items, int menu_only,
   while (chosen_item < 0)
   {
     int key = ui_wait_key();
-    int visible = ui_text_visible();
 
     if (key == -1)
     {				// ui_wait_key() timed out
-      if (ui_text_ever_visible())
-      {
-	continue;
-      }
-      else
       {
 	LOGI("timed out waiting for key input; rebooting.\n");
 	ui_end_menu();
@@ -502,7 +495,7 @@ get_menu_selection(char **headers, char **items, int menu_only,
       }
     }
 
-    int action = device_handle_key(key, visible);
+    int action = device_handle_key(key);
 
     if (action < 0)
     {
@@ -761,17 +754,13 @@ prompt_and_wait()
       return;
 
     case ITEM_WIPE_DATA:
-      wipe_data(ui_text_visible());
-      if (!ui_text_visible())
-	return;
+      wipe_data();
       break;
 
     case ITEM_WIPE_CACHE:
       ui_print("\n-- Wiping cache...\n");
       erase_volume("/cache");
       ui_print("Cache wipe complete.\n");
-      if (!ui_text_visible())
-	return;
       break;
 
     case ITEM_APPLY_SDCARD:
@@ -782,10 +771,6 @@ prompt_and_wait()
 	{
 	  ui_set_background(BACKGROUND_ICON_ERROR);
 	  ui_print("Installation aborted.\n");
-	}
-	else if (!ui_text_visible())
-	{
-	  return;		// reboot if logs aren't visible
 	}
 	else
 	{
@@ -802,10 +787,6 @@ prompt_and_wait()
 	{
 	  ui_set_background(BACKGROUND_ICON_ERROR);
 	  ui_print("Installation aborted.\n");
-	}
-	else if (!ui_text_visible())
-	{
-	  return;		// reboot if logs aren't visible
 	}
 	else
 	{
@@ -866,9 +847,6 @@ main(int argc, char **argv)
       break;
     case 'c':
       wipe_cache = 1;
-      break;
-    case 't':
-      ui_show_text(1);
       break;
     case '?':
       LOGE("Invalid command argument\n");
@@ -939,7 +917,7 @@ main(int argc, char **argv)
 
   if (status != INSTALL_SUCCESS)
     ui_set_background(BACKGROUND_ICON_ERROR);
-  if (status != INSTALL_SUCCESS || ui_text_visible())
+  if (status != INSTALL_SUCCESS)
   {
     prompt_and_wait();
   }
