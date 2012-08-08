@@ -446,9 +446,8 @@ copy_sideloaded_package(const char *original_path)
 static char **
 prepend_title(const char **headers)
 {
-  char *title[] = { "Android system recovery <"
-      EXPAND(RECOVERY_API_VERSION) "e>",
-    "",
+  //no more recovery.version file, grab the title from the Makefile
+  char *title[] = { EXPAND(RECOVERY_TITLE),
     NULL
   };
 
@@ -733,8 +732,22 @@ wipe_data(int confirm)
 static void
 prompt_and_wait()
 {
-  char **headers = prepend_title((const char **) MENU_HEADERS);
+  
+  char *MENU_HEADERS[] = { "by raidzero", 
+    "",
+    NULL
+  };
 
+  char *MENU_ITEMS[] = { "reboot system now",
+    "apply update from external storage",
+    "wipe data/factory reset",
+    "wipe cache partition",
+    "apply update from cache",
+    NULL
+  };
+
+  char **headers = prepend_title((const char **) MENU_HEADERS);
+  
   for (;;)
   {
     finish_recovery(NULL);
