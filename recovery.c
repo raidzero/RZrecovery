@@ -754,7 +754,7 @@ prompt_and_wait()
       return;
 
     case ITEM_WIPE_DATA:
-      wipe_data();
+      wipe_data(1);
       break;
 
     case ITEM_WIPE_CACHE:
