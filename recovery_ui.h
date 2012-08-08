@@ -64,6 +64,7 @@ int device_wipe_data();
 #define HIGHLIGHT_UP        -2
 #define HIGHLIGHT_DOWN      -3
 #define SELECT_ITEM         -4
+#define ITEM_BACK           9999
 
 #define ITEM_REBOOT          0
 #define ITEM_APPLY_EXT       1

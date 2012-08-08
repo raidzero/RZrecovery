@@ -63,7 +63,15 @@ device_handle_key(int key_code)
       return HIGHLIGHT_UP;
 
     case KEY_ENTER:
+    case KEY_HOME:
+    case KEY_SEARCH:
       return SELECT_ITEM;
+
+    case KEY_BACK:
+    case KEY_BACKSPACE:
+    case KEY_END:
+    case KEY_POWER:
+      return ITEM_BACK;
   }
 
   return NO_ACTION;
