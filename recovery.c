@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/reboot.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
@@ -738,13 +739,27 @@ prompt_and_wait()
     NULL
   };
 
-  char *MENU_ITEMS[] = { "reboot system now",
-    "apply update from external storage",
-    "wipe data/factory reset",
-    "wipe cache partition",
-    "apply update from cache",
+  char *MENU_ITEMS[] = { "Reboot android",
+    "Reboot recovery",
+    "Power off",
+    "Bootloader",
+    "Wipe menu",
+    "Mount menu",
+    "Nandroid menu",
+    "Install menu",
+    "Extras menu", 
     NULL
   };
+
+  #define MAIN_REBOOT     0
+  #define MAIN_RECOVERY   1
+  #define MAIN_SHUTDOWN   2
+  #define MAIN_BOOTLOADER 3
+  #define MAIN_WIPE_MENU  4
+  #define MAIN_MOUNTS     5
+  #define MAIN_NANDROID   6
+  #define MAIN_INSTALL    7
+  #define MAIN_EXTRAS     8
 
   char **headers = prepend_title((const char **) MENU_HEADERS);
   
@@ -763,49 +778,40 @@ prompt_and_wait()
     int status;
     switch (chosen_item)
     {
-    case ITEM_REBOOT:
-      return;
-
-    case ITEM_WIPE_DATA:
-      wipe_data(1);
+    case MAIN_REBOOT:
+      reboot_fn("android");
       break;
 
-    case ITEM_WIPE_CACHE:
-      ui_print("\n-- Wiping cache...\n");
-      erase_volume("/cache");
-      ui_print("Cache wipe complete.\n");
+    case MAIN_RECOVERY:
+      reboot_fn("recovery");
       break;
 
-    case ITEM_APPLY_SDCARD:
-      status = update_directory(SDCARD_ROOT, SDCARD_ROOT);
-      if (status >= 0)
-      {
-	if (status != INSTALL_SUCCESS)
-	{
-	  ui_set_background(BACKGROUND_ICON_ERROR);
-	  ui_print("Installation aborted.\n");
-	}
-	else
-	{
-	  ui_print("\nInstall from sdcard complete.\n");
-	}
-      }
+    case MAIN_SHUTDOWN:
+      reboot_fn("poweroff");
       break;
-    case ITEM_APPLY_CACHE:
-      // Don't unmount cache at the end of this.
-      status = update_directory(CACHE_ROOT, NULL);
-      if (status >= 0)
-      {
-	if (status != INSTALL_SUCCESS)
-	{
-	  ui_set_background(BACKGROUND_ICON_ERROR);
-	  ui_print("Installation aborted.\n");
-	}
-	else
-	{
-	  ui_print("\nInstall from cache complete.\n");
-	}
-      }
+
+    case MAIN_BOOTLOADER:
+      reboot_fn("bootloader");
+      break;
+
+    case MAIN_WIPE_MENU:
+      //show_wipe_menu();
+      break;
+
+    case MAIN_MOUNTS:
+      //show_mounts_menu();
+      break;
+
+    case MAIN_NANDROID:
+      //show_nandroid_menu();
+      break;
+
+    case MAIN_INSTALL:
+      //show_install_menu();
+      break;
+
+    case MAIN_EXTRAS:
+      //show_extras_menu();
       break;
 
     }
@@ -940,4 +946,37 @@ main(int argc, char **argv)
   ui_print("Rebooting...\n");
   android_reboot(ANDROID_RB_RESTART, 0, 0);
   return EXIT_SUCCESS;
+}
+
+void reboot_fn(char* action)
+{
+  if (strcmp(action, "android") == 0 
+  || strcmp(action, "recovery") == 0 
+  || strcmp(action, "bootloader") == 0
+  || strcmp(action, "poweroff") == 0)
+  { 
+    if (strcmp(action, "poweroff") != 0)
+    {
+      ui_print("\n-- Rebooting into %s --\n", action);
+      //write_files();
+      sync();
+      if (strcmp(action, "android") == 0) action = NULL;
+      //if (access("/cache/recovery/command",F_OK) != -1) __system("rm /cache/recovery/command");
+      //if (access("/cache/update.zip",F_OK) != -1) __system("rm /cache/update.zip");
+      if (__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, action))
+      {
+        reboot(RB_AUTOBOOT);
+      }
+    }
+    else
+    {
+      ui_print("\n-- Shutting down --\n");
+      //write_files();
+      sync();
+      if (__reboot (LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2,LINUX_REBOOT_CMD_POWER_OFF, NULL))
+      {
+        reboot(RB_AUTOBOOT);
+      }
+    }
+  }
 }

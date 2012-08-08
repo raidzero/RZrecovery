@@ -47,8 +47,6 @@
 #define CHAR_WIDTH 10
 #define CHAR_HEIGHT 18
 
-#define UI_WAIT_KEY_TIMEOUT_SEC    120
-
 UIParameters ui_parameters = {
   6,				// indeterminate progress bar frames
   20,				// fps
