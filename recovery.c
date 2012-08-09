@@ -617,6 +617,13 @@ print_property(const char *key, const char *name, void *cookie)
 int
 main(int argc, char **argv)
 {
+  // handle anything else that isnt the recovery binary, busybox for one
+  if (strstr (argv[0], "recovery") != NULL)
+  {
+    //for now, we have nothing else set up. just busybox
+    return busybox_driver(argv, argv); // this is included in Android.mk
+  }  
+
   time_t start = time(NULL);
 
   // If these fail, there's not really anywhere to complain...

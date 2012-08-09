@@ -103,7 +103,7 @@ confirm_selection(char *question, char *operation, int autoaccept)
 }
 
 char *
-replace(char *st, char *orig, char *repl)
+__replace(char *st, char *orig, char *repl)
 {
   static char buffer[4096];
   char *ch;

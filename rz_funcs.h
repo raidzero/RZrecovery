@@ -7,8 +7,9 @@ ask_question(char *question);
 int
 confirm_selection(char *question, char *operation, int autoaccept);
 
+//original replace() is in busybox
 char *
-replace(char *st, char *orig, char *repl);
+__replace(char *st, char *orig, char *repl);
 
 int
 runve(char *filename, char **argv, char **envp, int secs);
