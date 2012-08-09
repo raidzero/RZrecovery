@@ -37,6 +37,7 @@
 #include "install.h"
 #include "minui/minui.h"
 #include "minzip/DirUtil.h"
+#include "power_menu.h"
 #include "roots.h"
 #include "recovery_ui.h"
 
@@ -119,6 +120,11 @@ extern UIParameters ui_parameters;	// from ui.c
 
 static const int MAX_ARG_LENGTH = 4096;
 static const int MAX_ARGS = 100;
+
+//prototypes
+//FILE *fopen_path(const char *path, const char *mode);
+//void check_and_fclose(FILE * fp, const char *name)
+
 
 // open a given path, mounting partitions as necessary
 FILE *
@@ -470,7 +476,7 @@ prepend_title(const char **headers)
   return new_headers;
 }
 
-static int
+int
 get_menu_selection(char **headers, char **items, int menu_only,
 		   int initial_selection)
 {
@@ -532,204 +538,6 @@ compare_string(const void *a, const void *b)
   return strcmp(*(const char **) a, *(const char **) b);
 }
 
-static int
-update_directory(const char *path, const char *unmount_when_done)
-{
-  ensure_path_mounted(path);
-
-  const char *MENU_HEADERS[] = { "Choose a package to install:",
-    path,
-    "",
-    NULL
-  };
-  DIR *d;
-  struct dirent *de;
-  d = opendir(path);
-  if (d == NULL)
-  {
-    LOGE("error opening %s: %s\n", path, strerror(errno));
-    if (unmount_when_done != NULL)
-    {
-      ensure_path_unmounted(unmount_when_done);
-    }
-    return 0;
-  }
-
-  char **headers = prepend_title(MENU_HEADERS);
-
-  int d_size = 0;
-  int d_alloc = 10;
-  char **dirs = malloc(d_alloc * sizeof(char *));
-  int z_size = 1;
-  int z_alloc = 10;
-  char **zips = malloc(z_alloc * sizeof(char *));
-  zips[0] = strdup("../");
-
-  while ((de = readdir(d)) != NULL)
-  {
-    int name_len = strlen(de->d_name);
-
-    if (de->d_type == DT_DIR)
-    {
-      // skip "." and ".." entries
-      if (name_len == 1 && de->d_name[0] == '.')
-	continue;
-      if (name_len == 2 && de->d_name[0] == '.' && de->d_name[1] == '.')
-	continue;
-
-      if (d_size >= d_alloc)
-      {
-	d_alloc *= 2;
-	dirs = realloc(dirs, d_alloc * sizeof(char *));
-      }
-      dirs[d_size] = malloc(name_len + 2);
-      strcpy(dirs[d_size], de->d_name);
-      dirs[d_size][name_len] = '/';
-      dirs[d_size][name_len + 1] = '\0';
-      ++d_size;
-    }
-    else if (de->d_type == DT_REG &&
-	     name_len >= 4 &&
-	     strncasecmp(de->d_name + (name_len - 4), ".zip", 4) == 0)
-    {
-      if (z_size >= z_alloc)
-      {
-	z_alloc *= 2;
-	zips = realloc(zips, z_alloc * sizeof(char *));
-      }
-      zips[z_size++] = strdup(de->d_name);
-    }
-  }
-  closedir(d);
-
-  qsort(dirs, d_size, sizeof(char *), compare_string);
-  qsort(zips, z_size, sizeof(char *), compare_string);
-
-  // append dirs to the zips list
-  if (d_size + z_size + 1 > z_alloc)
-  {
-    z_alloc = d_size + z_size + 1;
-    zips = realloc(zips, z_alloc * sizeof(char *));
-  }
-  memcpy(zips + z_size, dirs, d_size * sizeof(char *));
-  free(dirs);
-  z_size += d_size;
-  zips[z_size] = NULL;
-
-  int result;
-  int chosen_item = 0;
-  do
-  {
-    chosen_item = get_menu_selection(headers, zips, 1, chosen_item);
-
-    char *item = zips[chosen_item];
-    int item_len = strlen(item);
-    if (chosen_item == 0)
-    {				// item 0 is always "../"
-      // go up but continue browsing (if the caller is update_directory)
-      result = -1;
-      break;
-    }
-    else if (item[item_len - 1] == '/')
-    {
-      // recurse down into a subdirectory
-      char new_path[PATH_MAX];
-      strlcpy(new_path, path, PATH_MAX);
-      strlcat(new_path, "/", PATH_MAX);
-      strlcat(new_path, item, PATH_MAX);
-      new_path[strlen(new_path) - 1] = '\0';	// truncate the trailing '/'
-      result = update_directory(new_path, unmount_when_done);
-      if (result >= 0)
-	break;
-    }
-    else
-    {
-      // selected a zip file:  attempt to install it, and return
-      // the status to the caller.
-      char new_path[PATH_MAX];
-      strlcpy(new_path, path, PATH_MAX);
-      strlcat(new_path, "/", PATH_MAX);
-      strlcat(new_path, item, PATH_MAX);
-
-      ui_print("\n-- Install %s ...\n", path);
-      set_sdcard_update_bootloader_message();
-      char *copy = copy_sideloaded_package(new_path);
-      if (unmount_when_done != NULL)
-      {
-	ensure_path_unmounted(unmount_when_done);
-      }
-      if (copy)
-      {
-	result = install_package(copy);
-	free(copy);
-      }
-      else
-      {
-	result = INSTALL_ERROR;
-      }
-      break;
-    }
-  }
-  while (true);
-
-  int i;
-  for (i = 0; i < z_size; ++i)
-    free(zips[i]);
-  free(zips);
-  free(headers);
-
-  if (unmount_when_done != NULL)
-  {
-    ensure_path_unmounted(unmount_when_done);
-  }
-  return result;
-}
-
-static void
-wipe_data(int confirm)
-{
-  if (confirm)
-  {
-    static char **title_headers = NULL;
-
-    if (title_headers == NULL)
-    {
-      char *headers[] = { "Confirm wipe of all user data?",
-	"  THIS CAN NOT BE UNDONE.",
-	"",
-	NULL
-      };
-      title_headers = prepend_title((const char **) headers);
-    }
-
-    char *items[] = { " No",
-      " No",
-      " No",
-      " No",
-      " No",
-      " No",
-      " No",
-      " Yes -- delete all user data",	// [7]
-      " No",
-      " No",
-      " No",
-      NULL
-    };
-
-    int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-    if (chosen_item != 7)
-    {
-      return;
-    }
-  }
-
-  ui_print("\n-- Wiping data...\n");
-  device_wipe_data();
-  erase_volume("/data");
-  erase_volume("/cache");
-  ui_print("Data wipe complete.\n");
-}
-
 static void
 prompt_and_wait()
 {
@@ -739,10 +547,7 @@ prompt_and_wait()
     NULL
   };
 
-  char *MENU_ITEMS[] = { "Reboot android",
-    "Reboot recovery",
-    "Power off",
-    "Bootloader",
+  char *MENU_ITEMS[] = { "Power menu",
     "Wipe menu",
     "Mount menu",
     "Nandroid menu",
@@ -751,15 +556,12 @@ prompt_and_wait()
     NULL
   };
 
-  #define MAIN_REBOOT     0
-  #define MAIN_RECOVERY   1
-  #define MAIN_SHUTDOWN   2
-  #define MAIN_BOOTLOADER 3
-  #define MAIN_WIPE_MENU  4
-  #define MAIN_MOUNTS     5
-  #define MAIN_NANDROID   6
-  #define MAIN_INSTALL    7
-  #define MAIN_EXTRAS     8
+  #define MAIN_POWER      0
+  #define MAIN_WIPE       1
+  #define MAIN_MOUNTS     2
+  #define MAIN_NANDROID   3
+  #define MAIN_INSTALL    4
+  #define MAIN_EXTRAS     5
 
   char **headers = prepend_title((const char **) MENU_HEADERS);
   
@@ -778,23 +580,11 @@ prompt_and_wait()
     int status;
     switch (chosen_item)
     {
-    case MAIN_REBOOT:
-      reboot_fn("android");
+    case MAIN_POWER:
+      show_power_menu();
       break;
 
-    case MAIN_RECOVERY:
-      reboot_fn("recovery");
-      break;
-
-    case MAIN_SHUTDOWN:
-      reboot_fn("poweroff");
-      break;
-
-    case MAIN_BOOTLOADER:
-      reboot_fn("bootloader");
-      break;
-
-    case MAIN_WIPE_MENU:
+    case MAIN_WIPE:
       //show_wipe_menu();
       break;
 
@@ -948,35 +738,4 @@ main(int argc, char **argv)
   return EXIT_SUCCESS;
 }
 
-void reboot_fn(char* action)
-{
-  if (strcmp(action, "android") == 0 
-  || strcmp(action, "recovery") == 0 
-  || strcmp(action, "bootloader") == 0
-  || strcmp(action, "poweroff") == 0)
-  { 
-    if (strcmp(action, "poweroff") != 0)
-    {
-      ui_print("\n-- Rebooting into %s --\n", action);
-      //write_files();
-      sync();
-      if (strcmp(action, "android") == 0) action = NULL;
-      //if (access("/cache/recovery/command",F_OK) != -1) __system("rm /cache/recovery/command");
-      //if (access("/cache/update.zip",F_OK) != -1) __system("rm /cache/update.zip");
-      if (__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, action))
-      {
-        reboot(RB_AUTOBOOT);
-      }
-    }
-    else
-    {
-      ui_print("\n-- Shutting down --\n");
-      //write_files();
-      sync();
-      if (__reboot (LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2,LINUX_REBOOT_CMD_POWER_OFF, NULL))
-      {
-        reboot(RB_AUTOBOOT);
-      }
-    }
-  }
-}
+
