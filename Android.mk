@@ -8,6 +8,7 @@ LOCAL_SRC_FILES := \
     bootloader.c \
     install.c \
     roots.c \
+    mounts.c \
     ui.c \
     rz_funcs.c \
     power_menu.c \
@@ -48,10 +49,16 @@ else
   LOCAL_STATIC_LIBRARIES += $(TARGET_RECOVERY_UI_LIB)
 endif
 LOCAL_STATIC_LIBRARIES += libext4_utils libz
-LOCAL_STATIC_LIBRARIES += libminzip libunz libmtdutils libmincrypt
+LOCAL_STATIC_LIBRARIES += libminzip libunz libmincrypt
+
+LOCAL_STATIC_LIBRARIES += libbusybox libflash_image liberase_image libdump_image libunyaffs libmkyaffs2image libflashutils libbmlutils libmmcutils libmtdutils
+
+ifeq ($(BOARD_USES_BML_OVER_MTD),true)
+LOCAL_STATIC_LIBRARIES += libbml_over_mtd
+endif
+
 LOCAL_STATIC_LIBRARIES += libminui libpixelflinger_static libpng libcutils
 LOCAL_STATIC_LIBRARIES += libstdc++ libc
-LOCAL_STATIC_LIBRARIES += libbusybox
 
 LOCAL_C_INCLUDES += system/extras/ext4_utils
 
@@ -66,6 +73,7 @@ $(RECOVERY_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
 	@mkdir -p $(dir $@)
 	@rm -rf $@
 	$(hide) ln -sf $(RECOVERY_BINARY) $@
+
 ALL_DEFAULT_INSTALLED_MODULES += $(RECOVERY_SYMLINKS)
 
 ##busybox symlinks
@@ -77,6 +85,7 @@ $(BUSYBOX_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
 	@mkdir -p $(dir $@)
 	@rm -rf $@
 	$(hide) ln -sf $(BUSYBOX_BINARY) $@
+
 ALL_DEFAULT_INSTALLED_MODULES += $(BUSYBOX_SYMLINKS)
 
 include $(CLEAR_VARS)
@@ -93,13 +102,17 @@ LOCAL_STATIC_LIBRARIES := libmincrypt libcutils libstdc++ libc
 
 include $(BUILD_EXECUTABLE)
 
-
+#the order of these is important
+include $(commands_recovery_local_path)/bmlutils/Android.mk
+include $(commands_recovery_local_path)/flashutils/Android.mk
 include $(commands_recovery_local_path)/minui/Android.mk
 include $(commands_recovery_local_path)/minelf/Android.mk
 include $(commands_recovery_local_path)/minzip/Android.mk
 include $(commands_recovery_local_path)/mtdutils/Android.mk
+include $(commands_recovery_local_path)/mmcutils/Android.mk
 include $(commands_recovery_local_path)/tools/Android.mk
 include $(commands_recovery_local_path)/edify/Android.mk
 include $(commands_recovery_local_path)/updater/Android.mk
 include $(commands_recovery_local_path)/applypatch/Android.mk
+
 commands_recovery_local_path :=

@@ -617,10 +617,18 @@ print_property(const char *key, const char *name, void *cookie)
 int
 main(int argc, char **argv)
 {
-  // handle anything else that isnt the recovery binary, busybox for one
+  // handle anything else that isnt called with "recovery"
   if (strstr (argv[0], "recovery") != NULL)
   {
-    //for now, we have nothing else set up. just busybox
+    if (strstr(argv[0], "flash_image") != NULL)
+    {
+      return flash_image_main(argc, argv);
+    }
+    if (strstr(argv[0], "dump_image") != NULL)
+    {
+      return dump_image_main(argc, argv);
+    }
+    //if nothing else has matched, assume busybox
     return busybox_driver(argv, argv); // this is included in Android.mk
   }  
 

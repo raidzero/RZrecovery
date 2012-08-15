@@ -23,19 +23,31 @@
 void ui_init();
 
 // Use KEY_* codes from <linux/input.h> or KEY_DREAM_* from "minui/minui.h".
-int ui_wait_key();		// waits for a key/button press, returns the code
-int ui_key_pressed(int key);	// returns >0 if the code is currently pressed
+int ui_wait_key();            // waits for a key/button press, returns the code
+int ui_key_pressed(int key);  // returns >0 if the code is currently pressed
+int ui_text_visible();        // returns >0 if text log is currently visible
+int ui_text_ever_visible();   // returns >0 if text log was ever visible
+void ui_show_text(int visible);
 void ui_clear_key_queue();
 
 // Write a message to the on-screen log shown with Alt-L (also to stderr).
 // The screen is small, and users may need to report these messages to support,
 // so keep the output short and not too cryptic.
-void ui_print(const char *fmt, ...) __attribute__ ((format(printf, 1, 2)));
+void ui_print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+void ui_printlogtail(int nb_lines);
+
+void ui_delete_line();
+void ui_set_show_text(int value);
+void ui_set_nice(int enabled);
+#define ui_nice_print(...) { ui_set_nice(1); ui_print(__VA_ARGS__); ui_set_nice(0); }
+int ui_was_niced();
+int ui_get_text_cols();
+void ui_increment_frame();
 
 // Display some header text followed by a menu of items, which appears
 // at the top of the screen (in place of any scrolling ui_print()
 // output, if necessary).
-void ui_start_menu(char **headers, char **items, int initial_selection);
+//int ui_start_menu(char** headers, char** items, int initial_selection);
 // Set the menu highlight to the given index, and return it (capped to
 // the range [0..numitems).
 int ui_menu_select(int sel);
@@ -43,21 +55,31 @@ int ui_menu_select(int sel);
 // statements will be displayed.
 void ui_end_menu();
 
+int ui_get_showing_back_button();
+void ui_set_showing_back_button(int showBackButton);
+
 // Set the icon (normally the only thing visible besides the progress bar).
-enum
-{
+enum {
   BACKGROUND_ICON_NONE,
   BACKGROUND_ICON_INSTALLING,
   BACKGROUND_ICON_ERROR,
+  BACKGROUND_ICON_CLOCKWORK,
+  BACKGROUND_ICON_FIRMWARE_INSTALLING,
+  BACKGROUND_ICON_FIRMWARE_ERROR,
   NUM_BACKGROUND_ICONS
 };
 void ui_set_background(int icon);
+
+// Get a malloc'd copy of the screen image showing (only) the specified icon.
+// Also returns the width, height, and bits per pixel of the returned image.
+// TODO: Use some sort of "struct Bitmap" here instead of all these variables?
+char *ui_copy_image(int icon, int *width, int *height, int *bpp);
 
 // Show a progress bar and define the scope of the next operation:
 //   portion - fraction of the progress bar the next operation will use
 //   seconds - expected time interval (progress bar moves at this minimum rate)
 void ui_show_progress(float portion, int seconds);
-void ui_set_progress(float fraction);	// 0.0 - 1.0 within the defined scope
+void ui_set_progress(float fraction);  // 0.0 - 1.0 within the defined scope
 
 // Default allocation of progress bar segments to operations
 static const int VERIFICATION_PROGRESS_TIME = 60;
@@ -86,47 +108,54 @@ void ui_reset_progress();
 #define STRINGIFY(x) #x
 #define EXPAND(x) STRINGIFY(x)
 
-typedef struct
-{
-  const char *mount_point;	// eg. "/cache".  must live in the root directory.
+typedef struct {
+    const char* mount_point;  // eg. "/cache".  must live in the root directory.
 
-  const char *fs_type;		// "yaffs2" or "ext4" or "vfat"
+    const char* fs_type;      // "yaffs2" or "ext4" or "vfat"
 
-  const char *device;		// MTD partition name if fs_type == "yaffs"
-  // block device if fs_type == "ext4" or "vfat"
+    const char* device;       // MTD partition name if fs_type == "yaffs"
+                              // block device if fs_type == "ext4" or "vfat"
 
-  const char *device2;		// alternative device to try if fs_type
-  // == "ext4" or "vfat" and mounting
-  // 'device' fails
+    const char* device2;      // alternative device to try if fs_type
+                              // == "ext4" or "vfat" and mounting
+                              // 'device' fails
 
-  long long length;		// (ext4 partition only) when
-  // formatting, size to use for the
-  // partition.  0 or negative number
-  // means to format all but the last
-  // (that much).
+    long long length;         // (ext4 partition only) when
+                              // formatting, size to use for the
+                              // partition.  0 or negative number
+                              // means to format all but the last
+                              // (that much).
+
+    const char* fs_type2;
+
+    const char* fs_options;
+
+    const char* fs_options2;
 } Volume;
 
-typedef struct
-{
-  // number of frames in indeterminate progress bar animation
-  int indeterminate_frames;
+typedef struct {
+    // number of frames in indeterminate progress bar animation
+    int indeterminate_frames;
 
-  // number of frames per second to try to maintain when animating
-  int update_fps;
+    // number of frames per second to try to maintain when animating
+    int update_fps;
 
-  // number of frames in installing animation.  may be zero for a
-  // static installation icon.
-  int installing_frames;
+    // number of frames in installing animation.  may be zero for a
+    // static installation icon.
+    int installing_frames;
 
-  // the install icon is animated by drawing images containing the
-  // changing part over the base icon.  These specify the
-  // coordinates of the upper-left corner.
-  int install_overlay_offset_x;
-  int install_overlay_offset_y;
+    // the install icon is animated by drawing images containing the
+    // changing part over the base icon.  These specify the
+    // coordinates of the upper-left corner.
+    int install_overlay_offset_x;
+    int install_overlay_offset_y;
 
 } UIParameters;
 
 // fopen a file, mounting volumes and making parent dirs as necessary.
-FILE *fopen_path(const char *path, const char *mode);
+FILE* fopen_path(const char *path, const char *mode);
 
-#endif // RECOVERY_COMMON_H
+int ui_get_selected_item();
+int ui_is_showing_back_button();
+
+#endif  // RECOVERY_COMMON_H
